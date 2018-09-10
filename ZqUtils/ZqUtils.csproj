@@ -227,36 +227,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="bin\Release\AutoMapper.dll" />
-    <Content Include="bin\Release\AutoMapper.xml" />
-    <Content Include="bin\Release\Dapper.dll" />
-    <Content Include="bin\Release\Dapper.xml" />
-    <Content Include="bin\Release\EasyNetQ.dll" />
-    <Content Include="bin\Release\EasyNetQ.xml" />
-    <Content Include="bin\Release\EPPlus.dll" />
-    <Content Include="bin\Release\EPPlus.xml" />
-    <Content Include="bin\Release\ICSharpCode.SharpZipLib.dll" />
-    <Content Include="bin\Release\Newtonsoft.Json.dll" />
-    <Content Include="bin\Release\Newtonsoft.Json.xml" />
-    <Content Include="bin\Release\OpenPop.dll" />
-    <Content Include="bin\Release\RabbitMQ.Client.dll" />
-    <Content Include="bin\Release\RabbitMQ.Client.xml" />
-    <Content Include="bin\Release\SevenZipSharp.dll" />
-    <Content Include="bin\Release\SQLBuilder.dll" />
-    <Content Include="bin\Release\SQLBuilder.xml" />
-    <Content Include="bin\Release\StackExchange.Redis.dll" />
-    <Content Include="bin\Release\StackExchange.Redis.xml" />
-    <Content Include="bin\Release\System.ValueTuple.dll" />
-    <Content Include="bin\Release\System.ValueTuple.xml" />
-    <Content Include="bin\Release\x64\7z.dll" />
-    <Content Include="bin\Release\x86\7z.dll" />
-    <Content Include="bin\Release\ZqUtils.dll" />
-    <Content Include="bin\Release\ZqUtils.pdb" />
-    <Content Include="bin\Release\ZqUtils.XML" />
-    <Content Include="bin\Release\zxing.dll" />
-    <Content Include="bin\Release\zxing.presentation.dll" />
-    <Content Include="bin\Release\zxing.presentation.xml" />
-    <Content Include="bin\Release\zxing.xml" />
     <Content Include="License.txt" />
   </ItemGroup>
   <ItemGroup />
