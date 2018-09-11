@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using ZqUtils.Extensions;
 /****************************
 * [Author] 张强
-* [Date] 2018-03-21
+* [Date] 2018-09-11
 * [Describe] Polly异常处理工具类
 * **************************/
 namespace ZqUtils.Helpers
