@@ -22,7 +22,7 @@ namespace ZqUtils.Helpers
         /// <param name="actionException"></param>
         /// <param name="sleepDurations"></param>
         /// <param name="onRetry"></param>
-        public static void WaitAndRetry(Action action, Action<Exception> actionException, IEnumerable<TimeSpan> sleepDurations, Action<Exception, TimeSpan, int, Context> onRetry)
+        public static void WaitAndRetry<T>(Action action, Action<Exception> actionException, IEnumerable<TimeSpan> sleepDurations, Action<Exception, TimeSpan, int, Context> onRetry) where T : Exception
         {
             try
             {
@@ -33,7 +33,7 @@ namespace ZqUtils.Helpers
                     onRetry = OnRetry;
                 }
                 Policy
-                    .Handle<Exception>()
+                    .Handle<T>()
                     .WaitAndRetry(sleepDurations, onRetry)
                     .Execute(action);
             }
@@ -58,7 +58,7 @@ namespace ZqUtils.Helpers
         /// <param name="actionException"></param>
         /// <param name="sleepDurationProvider"></param>
         /// <param name="onRetry"></param>
-        public static void WaitAndRetry(Action action, int retryCount, Action<Exception> actionException, Func<int, TimeSpan> sleepDurationProvider, Action<Exception, TimeSpan, int, Context> onRetry)
+        public static void WaitAndRetry<T>(Action action, int retryCount, Action<Exception> actionException, Func<int, TimeSpan> sleepDurationProvider, Action<Exception, TimeSpan, int, Context> onRetry) where T : Exception
         {
             try
             {
@@ -75,7 +75,7 @@ namespace ZqUtils.Helpers
                     onRetry = OnRetry;
                 }
                 Policy
-                    .Handle<Exception>()
+                    .Handle<T>()
                     .WaitAndRetry(retryCount, sleepDurationProvider, onRetry)
                     .Execute(action);
             }
