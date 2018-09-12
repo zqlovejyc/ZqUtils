@@ -20,10 +20,11 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// Polly重试指定次数
         /// </summary>
-        /// <param name="action"></param>
-        /// <param name="actionException"></param>
-        /// <param name="sleepDurations"></param>
-        /// <param name="onRetry"></param>
+        /// <typeparam name="T">Exception类型</typeparam>
+        /// <param name="action">待执行委托</param>
+        /// <param name="actionException">最后抛出异常处理委托</param>
+        /// <param name="sleepDurations">延迟时间</param>
+        /// <param name="onRetry">重试事件</param>
         public static void WaitAndRetry<T>(Action action, Action<Exception> actionException, IEnumerable<TimeSpan> sleepDurations, Action<Exception, TimeSpan, int, Context> onRetry) where T : Exception
         {
             try
@@ -55,12 +56,13 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// Polly重试指定次数
         /// </summary>
-        /// <param name="action"></param>
-        /// <param name="retryCount"></param>
-        /// <param name="actionException"></param>
-        /// <param name="sleepDurationProvider"></param>
-        /// <param name="onRetry"></param>
-        public static void WaitAndRetry<T>(Action action, int retryCount, Action<Exception> actionException, Func<int, TimeSpan> sleepDurationProvider, Action<Exception, TimeSpan, int, Context> onRetry) where T : Exception
+        /// <typeparam name="T">Exception类型</typeparam>
+        /// <param name="retryCount">重试次数</param>
+        /// <param name="action">待执行委托</param>
+        /// <param name="actionException">最后抛出异常处理委托</param>
+        /// <param name="sleepDurationProvider">延迟时间委托</param>
+        /// <param name="onRetry">重试事件</param>
+        public static void WaitAndRetry<T>(int retryCount, Action action, Action<Exception> actionException, Func<int, TimeSpan> sleepDurationProvider, Action<Exception, TimeSpan, int, Context> onRetry) where T : Exception
         {
             try
             {
@@ -99,10 +101,12 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// Polly重试指定次数
         /// </summary>
-        /// <param name="action"></param>
-        /// <param name="actionException"></param>
-        /// <param name="sleepDurations"></param>
-        /// <param name="onRetry"></param>
+        /// <typeparam name="T">Exception类型</typeparam>
+        /// <param name="action">待执行委托</param>
+        /// <param name="actionException">最后抛出异常处理委托</param>
+        /// <param name="sleepDurations">延迟时间</param>
+        /// <param name="onRetry">重试事件</param>
+        /// <returns>Task</returns>
         public static async Task WaitAndRetryAsync<T>(Func<Task> action, Action<Exception> actionException, IEnumerable<TimeSpan> sleepDurations, Action<Exception, TimeSpan, int, Context> onRetry) where T : Exception
         {
             try
@@ -134,12 +138,14 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// Polly重试指定次数
         /// </summary>
-        /// <param name="action"></param>
-        /// <param name="retryCount"></param>
-        /// <param name="actionException"></param>
-        /// <param name="sleepDurationProvider"></param>
-        /// <param name="onRetry"></param>
-        public static async Task WaitAndRetryAsync<T>(Func<Task> action, int retryCount, Action<Exception> actionException, Func<int, TimeSpan> sleepDurationProvider, Action<Exception, TimeSpan, int, Context> onRetry) where T : Exception
+        /// <typeparam name="T">Exception类型</typeparam>
+        /// <param name="retryCount">重试次数</param>
+        /// <param name="action">待执行委托</param>
+        /// <param name="actionException">最后抛出异常处理委托</param>
+        /// <param name="sleepDurationProvider">延迟时间委托</param>
+        /// <param name="onRetry">重试事件</param>
+        /// <returns>Task</returns>
+        public static async Task WaitAndRetryAsync<T>(int retryCount, Func<Task> action, Action<Exception> actionException, Func<int, TimeSpan> sleepDurationProvider, Action<Exception, TimeSpan, int, Context> onRetry) where T : Exception
         {
             try
             {
@@ -180,10 +186,10 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// Polly永久重试机制
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="action"></param>
-        /// <param name="sleepDurationProvider"></param>
-        /// <param name="onRetry"></param>
+        /// <typeparam name="T">Exception类型</typeparam>
+        /// <param name="action">待执行委托</param>
+        /// <param name="sleepDurationProvider">延迟时间委托</param>
+        /// <param name="onRetry">重试事件</param>
         public static void WaitAndRetryForever<T>(Action action, Func<int, TimeSpan> sleepDurationProvider, Action<Exception, TimeSpan> onRetry) where T : Exception
         {
             //延迟机制
@@ -207,10 +213,10 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// Polly永久重试机制
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="action"></param>
-        /// <param name="sleepDurationProvider"></param>
-        /// <param name="onRetry"></param>
+        /// <typeparam name="T">Exception类型</typeparam>
+        /// <param name="action">待执行委托</param>
+        /// <param name="sleepDurationProvider">延迟时间委托</param>
+        /// <param name="onRetry">重试事件</param>
         public static void WaitAndRetryForever<T>(Action action, Func<int, Exception, Context, TimeSpan> sleepDurationProvider, Action<Exception, TimeSpan, Context> onRetry) where T : Exception
         {
             //延迟机制
@@ -236,10 +242,11 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// Polly永久重试机制
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="action"></param>
-        /// <param name="sleepDurationProvider"></param>
-        /// <param name="onRetry"></param>
+        /// <typeparam name="T">Exception类型</typeparam>
+        /// <param name="action">待执行委托</param>
+        /// <param name="sleepDurationProvider">延迟时间委托</param>
+        /// <param name="onRetry">重试事件</param>
+        /// <returns>Task</returns>
         public static async Task WaitAndRetryForeverAsync<T>(Func<Task> action, Func<int, TimeSpan> sleepDurationProvider, Action<Exception, TimeSpan> onRetry) where T : Exception
         {
             //延迟机制
@@ -263,10 +270,11 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// Polly永久重试机制
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="action"></param>
-        /// <param name="sleepDurationProvider"></param>
-        /// <param name="onRetryAsync"></param>
+        /// <typeparam name="T">Exception类型</typeparam>
+        /// <param name="action">待执行委托</param>
+        /// <param name="sleepDurationProvider">延迟时间委托</param>
+        /// <param name="onRetryAsync">重试事件</param>
+        /// <returns>Task</returns>
         public static async Task WaitAndRetryForeverAsync<T>(Func<Task> action, Func<int, Exception, Context, TimeSpan> sleepDurationProvider, Func<Exception, TimeSpan, Context, Task> onRetryAsync) where T : Exception
         {
             //延迟机制
