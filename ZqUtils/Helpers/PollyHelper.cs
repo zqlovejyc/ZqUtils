@@ -62,10 +62,10 @@ namespace ZqUtils.Helpers
         {
             try
             {
-                //延迟机制
+                //延迟机制，默认为3的重试次数次方
                 if (sleepDurationProvider == null)
                 {
-                    TimeSpan SleepDurationProvider(int retryAttempt) => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt));
+                    TimeSpan SleepDurationProvider(int retryAttempt) => TimeSpan.FromSeconds(Math.Pow(3, retryAttempt));
                     sleepDurationProvider = SleepDurationProvider;
                 }
                 //异常重试事件
@@ -106,7 +106,7 @@ namespace ZqUtils.Helpers
             //延迟机制
             if (sleepDurationProvider == null)
             {
-                TimeSpan SleepDurationProvider(int retryAttempt) => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt));
+                TimeSpan SleepDurationProvider(int retryAttempt) => TimeSpan.FromSeconds(Math.Pow(3, retryAttempt));
                 sleepDurationProvider = SleepDurationProvider;
             }
             //异常重试事件
@@ -133,7 +133,7 @@ namespace ZqUtils.Helpers
             //延迟机制
             if (sleepDurationProvider == null)
             {
-                TimeSpan SleepDurationProvider(int retryAttempt, Exception exception, Context context) => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt));
+                TimeSpan SleepDurationProvider(int retryAttempt, Exception exception, Context context) => TimeSpan.FromSeconds(Math.Pow(3, retryAttempt));
                 sleepDurationProvider = SleepDurationProvider;
             }
             //异常重试事件
