@@ -103,7 +103,7 @@ namespace ZqUtils.Helpers
         /// <param name="actionException"></param>
         /// <param name="sleepDurations"></param>
         /// <param name="onRetry"></param>
-        public static async void WaitAndRetryAsync<T>(Func<Task> action, Action<Exception> actionException, IEnumerable<TimeSpan> sleepDurations, Action<Exception, TimeSpan, int, Context> onRetry) where T : Exception
+        public static async Task WaitAndRetryAsync<T>(Func<Task> action, Action<Exception> actionException, IEnumerable<TimeSpan> sleepDurations, Action<Exception, TimeSpan, int, Context> onRetry) where T : Exception
         {
             try
             {
@@ -139,7 +139,7 @@ namespace ZqUtils.Helpers
         /// <param name="actionException"></param>
         /// <param name="sleepDurationProvider"></param>
         /// <param name="onRetry"></param>
-        public static async void WaitAndRetryAsync<T>(Func<Task> action, int retryCount, Action<Exception> actionException, Func<int, TimeSpan> sleepDurationProvider, Action<Exception, TimeSpan, int, Context> onRetry) where T : Exception
+        public static async Task WaitAndRetryAsync<T>(Func<Task> action, int retryCount, Action<Exception> actionException, Func<int, TimeSpan> sleepDurationProvider, Action<Exception, TimeSpan, int, Context> onRetry) where T : Exception
         {
             try
             {
@@ -240,7 +240,7 @@ namespace ZqUtils.Helpers
         /// <param name="action"></param>
         /// <param name="sleepDurationProvider"></param>
         /// <param name="onRetry"></param>
-        public static async void WaitAndRetryForeverAsync<T>(Func<Task> action, Func<int, TimeSpan> sleepDurationProvider, Action<Exception, TimeSpan> onRetry) where T : Exception
+        public static async Task WaitAndRetryForeverAsync<T>(Func<Task> action, Func<int, TimeSpan> sleepDurationProvider, Action<Exception, TimeSpan> onRetry) where T : Exception
         {
             //延迟机制
             if (sleepDurationProvider == null)
@@ -267,7 +267,7 @@ namespace ZqUtils.Helpers
         /// <param name="action"></param>
         /// <param name="sleepDurationProvider"></param>
         /// <param name="onRetryAsync"></param>
-        public static async void WaitAndRetryForeverAsync<T>(Func<Task> action, Func<int, Exception, Context, TimeSpan> sleepDurationProvider, Func<Exception, TimeSpan, Context, Task> onRetryAsync) where T : Exception
+        public static async Task WaitAndRetryForeverAsync<T>(Func<Task> action, Func<int, Exception, Context, TimeSpan> sleepDurationProvider, Func<Exception, TimeSpan, Context, Task> onRetryAsync) where T : Exception
         {
             //延迟机制
             if (sleepDurationProvider == null)
