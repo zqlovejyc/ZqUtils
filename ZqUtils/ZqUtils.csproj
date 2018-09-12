@@ -198,17 +198,6 @@
   <ItemGroup>
     <Compile Include="Extensions\Extensions.DataSet.cs" />
     <Compile Include="Extensions\Extensions.List.cs" />
-    <None Include="Nuget\Zq.Utils.1.0.1.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.2.1.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.2.2.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.2.3.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.2.4.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.2.5.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.2.6.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.2.7.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.2.8.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.2.9.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.2.nupkg" />
     <None Include="Nuget\Zq.Utils.1.0.3.0.nupkg" />
     <None Include="Nuget\Zq.Utils.1.0.3.1.nupkg" />
     <None Include="Nuget\Zq.Utils.1.0.3.2.nupkg" />
@@ -226,6 +215,7 @@
     <None Include="Nuget\Zq.Utils.1.0.4.4.nupkg" />
     <None Include="Nuget\Zq.Utils.1.0.4.5.nupkg" />
     <None Include="Nuget\Zq.Utils.1.0.4.6.nupkg" />
+    <None Include="Nuget\Zq.Utils.1.0.4.7.nupkg" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
