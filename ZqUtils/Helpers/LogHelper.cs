@@ -167,7 +167,7 @@ namespace ZqUtils.Helpers
                         swError.WriteLine($"[方法：{sf?.GetMethod().Name}]");
                         swError.WriteLine($"[行号：{sf?.GetFileLineNumber()}]");
                         if (!string.IsNullOrEmpty(logMessage.Message)) swError.WriteLine($"[内容：{logMessage.Message}]");
-                        swError.WriteLine($"[异常：{logMessage.Exception.ToString()}]");
+                        swError.WriteLine($"[异常：{logMessage.Exception?.ToString() ?? ""}]");
                         swError.WriteLine("------------------------------------------------------------------------------------------");
                         swError.WriteLine(string.Empty);
                     }
