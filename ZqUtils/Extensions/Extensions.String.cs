@@ -724,13 +724,12 @@ namespace ZqUtils.Extensions
             var result = string.Empty;
             try
             {
-                if (encoding == null) encoding = Encoding.UTF8;
-                var bytes = encoding.GetBytes(@this);
+                var bytes = (encoding ?? Encoding.UTF8).GetBytes(@this);
                 result = Convert.ToBase64String(bytes);
             }
-            catch (Exception ex)
+            catch
             {
-                result = ex.Message;
+                result = @this;
             }
             return result;
         }
@@ -749,12 +748,11 @@ namespace ZqUtils.Extensions
             try
             {
                 var bytes = Convert.FromBase64String(@this);
-                if (encoding == null) encoding = Encoding.UTF8;
-                result = encoding.GetString(bytes);
+                result = (encoding ?? Encoding.UTF8).GetString(bytes);
             }
-            catch (Exception ex)
+            catch
             {
-                result = ex.Message;
+                result = @this;
             }
             return result;
         }
