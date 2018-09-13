@@ -60,7 +60,7 @@ namespace ZqUtils.Helpers
             var logMessage = new LogMessage
             {
                 Level = LogLevel.Info,
-                Message = string.Format(message?.Replace("{", "{{").Replace("}", "}}") ?? string.Empty, args),
+                Message = string.Format(message?.Replace("{", "{{").Replace("}", "}}") ?? "", args),
                 StackFrame = sf
             };
             _que.Enqueue(logMessage);
@@ -69,6 +69,24 @@ namespace ZqUtils.Helpers
         #endregion
 
         #region 错误日志
+        /// <summary>
+        /// 错误日志
+        /// </summary>
+        /// <param name="message">自定义信息</param>
+        /// <param name="args">字符串格式化参数</param>
+        public static void Error(string message, params object[] args)
+        {
+            var sf = new StackTrace(true).GetFrame(1);
+            var logMessage = new LogMessage
+            {
+                Level = LogLevel.Error,
+                Message = string.Format(message?.Replace("{", "{{").Replace("}", "}}") ?? "", args),
+                StackFrame = sf
+            };
+            _que.Enqueue(logMessage);
+            _mre.Set();
+        }
+
         /// <summary>
         /// 错误日志
         /// </summary>
@@ -83,7 +101,7 @@ namespace ZqUtils.Helpers
             {
                 Level = LogLevel.Error,
                 Exception = ex,
-                Message = string.Format(message?.Replace("{", "{{").Replace("}", "}}") ?? string.Empty, args),
+                Message = string.Format(message?.Replace("{", "{{").Replace("}", "}}") ?? "", args),
                 StackFrame = sf
             };
             _que.Enqueue(logMessage);
