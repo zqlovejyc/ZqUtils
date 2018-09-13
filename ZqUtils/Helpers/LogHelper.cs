@@ -95,8 +95,16 @@ namespace ZqUtils.Helpers
         /// <param name="args">字符串格式化参数</param>
         public static void Error(Exception ex, string message = "", params object[] args)
         {
-            var frames = new StackTrace(ex, true).GetFrames();
-            var sf = frames?[frames.Length - 1];
+            StackFrame sf = null;
+            if (ex != null)
+            {
+                var frames = new StackTrace(ex, true).GetFrames();
+                sf = frames?[frames.Length - 1];
+            }
+            else
+            {
+                sf = new StackTrace(true).GetFrame(1);
+            }
             var logMessage = new LogMessage
             {
                 Level = LogLevel.Error,
@@ -184,8 +192,14 @@ namespace ZqUtils.Helpers
                         swError.WriteLine($"[类名：{sf?.GetMethod().DeclaringType.FullName}]");
                         swError.WriteLine($"[方法：{sf?.GetMethod().Name}]");
                         swError.WriteLine($"[行号：{sf?.GetFileLineNumber()}]");
-                        if (!string.IsNullOrEmpty(logMessage.Message)) swError.WriteLine($"[内容：{logMessage.Message}]");
-                        swError.WriteLine($"[异常：{logMessage.Exception?.ToString() ?? ""}]");
+                        if (!string.IsNullOrEmpty(logMessage.Message))
+                        {
+                            swError.WriteLine($"[内容：{logMessage.Message}]");
+                        }
+                        if (logMessage.Exception != null)
+                        {
+                            swError.WriteLine($"[异常：{logMessage.Exception.ToString()}]");
+                        }
                         swError.WriteLine("------------------------------------------------------------------------------------------");
                         swError.WriteLine(string.Empty);
                     }
