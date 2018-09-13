@@ -113,7 +113,7 @@ namespace ZqUtils.Helpers
                 //异常重试事件
                 if (onRetry == null)
                 {
-                    void OnRetry(DelegateResult<TResult> delegateResult, TimeSpan time, int count, Context context) => LogHelper.Error(delegateResult.Exception, $"异常：{delegateResult.Exception.Message}，结果：{delegateResult.Result.ToJson()}，时间：{time}，重试次数：{count}，内容：{context.ToJson()}");
+                    void OnRetry(DelegateResult<TResult> delegateResult, TimeSpan time, int count, Context context) => LogHelper.Error(delegateResult.Exception, $"异常：{delegateResult.Exception?.Message}，结果：{delegateResult.Result.ToJson()}，时间：{time}，重试次数：{count}，内容：{context.ToJson()}");
                     onRetry = OnRetry;
                 }
                 Policy
@@ -281,7 +281,7 @@ namespace ZqUtils.Helpers
                 //异常重试事件
                 if (onRetry == null)
                 {
-                    void OnRetry(DelegateResult<TResult> delegateResult, TimeSpan time, int count, Context context) => LogHelper.Error(delegateResult.Exception, $"异常：{delegateResult.Exception.Message}，结果：{delegateResult.Result.ToJson()}，时间：{time}，重试次数：{count}，内容：{context.ToJson()}");
+                    void OnRetry(DelegateResult<TResult> delegateResult, TimeSpan time, int count, Context context) => LogHelper.Error(delegateResult.Exception, $"异常：{delegateResult.Exception?.Message}，结果：{delegateResult.Result.ToJson()}，时间：{time}，重试次数：{count}，内容：{context.ToJson()}");
                     onRetry = OnRetry;
                 }
                 await Policy
@@ -327,7 +327,7 @@ namespace ZqUtils.Helpers
                 //异常重试事件
                 if (onRetry == null)
                 {
-                    void OnRetry(DelegateResult<TResult> delegateResult, TimeSpan time, int count, Context context) => LogHelper.Error(delegateResult.Exception, $"异常：{delegateResult.Exception.Message}，结果：{delegateResult.Result.ToJson()}，时间：{time}，重试次数：{count}，内容：{context.ToJson()}");
+                    void OnRetry(DelegateResult<TResult> delegateResult, TimeSpan time, int count, Context context) => LogHelper.Error(delegateResult.Exception, $"异常：{delegateResult.Exception?.Message}，结果：{delegateResult.Result.ToJson()}，时间：{time}，重试次数：{count}，内容：{context.ToJson()}");
                     onRetry = OnRetry;
                 }
                 await Policy
@@ -400,7 +400,7 @@ namespace ZqUtils.Helpers
             //异常重试事件
             if (onRetry == null)
             {
-                void OnRetry(DelegateResult<TResult> delegateResult, TimeSpan time, Context context) => LogHelper.Error(delegateResult.Exception, $"异常：{delegateResult.Exception.Message}，结果：{delegateResult.Result.ToJson()}，时间：{time}，内容：{context.ToJson()}");
+                void OnRetry(DelegateResult<TResult> delegateResult, TimeSpan time, Context context) => LogHelper.Error(delegateResult.Exception, $"异常：{delegateResult.Exception?.Message}，结果：{delegateResult.Result.ToJson()}，时间：{time}，内容：{context.ToJson()}");
                 onRetry = OnRetry;
             }
             Policy
@@ -466,7 +466,7 @@ namespace ZqUtils.Helpers
             {
                 Task OnRetryAsync(DelegateResult<TResult> delegateResult, TimeSpan time, Context context)
                 {
-                    LogHelper.Error(delegateResult.Exception, $"异常：{delegateResult.Exception.Message}，结果：{delegateResult.Result.ToJson()}，时间：{time}，内容：{context.ToJson()}");
+                    LogHelper.Error(delegateResult.Exception, $"异常：{delegateResult.Exception?.Message}，结果：{delegateResult.Result.ToJson()}，时间：{time}，内容：{context.ToJson()}");
                     return Task.FromResult(0);
                 }
                 onRetryAsync = OnRetryAsync;
