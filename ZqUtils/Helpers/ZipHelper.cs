@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
 using ICSharpCode.SharpZipLib.Zip;
-using ICSharpCode.SharpZipLib.Checksums;
+using ICSharpCode.SharpZipLib.Checksum;
 using SevenZip;
 /****************************
 * [Author] 张强
