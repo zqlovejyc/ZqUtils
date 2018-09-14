@@ -642,12 +642,12 @@ namespace ZqUtils.Helpers
         /// 根据图片创建字符画
         /// </summary>
         /// <param name="bitmap">图片</param>
-        /// <param name="rowSize">行分隔粒度,推荐2 </param>
-        /// <param name="colSize">列分隔粒度,推荐1 </param>
+        /// <param name="rowSize">行分隔粒度，默认：1</param>
+        /// <param name="colSize">列分隔粒度，默认：1</param>
         /// <param name="type">填充类型：1-数字；2-复杂字繁体字；3-自定义格式，配合chars使用；0-默认</param>
         /// <param name="chars">当type为3的时候才有用，用于填充</param>
         /// <returns></returns>
-        public static string BuildCharacter(Bitmap bitmap, int rowSize = 2, int colSize = 1, int type = 0, char[] chars = null)
+        public static string BuildCharacter(Bitmap bitmap, int rowSize = 1, int colSize = 1, int type = 0, char[] chars = null)
         {
             var result = new System.Text.StringBuilder();
             char[] charset = null;
