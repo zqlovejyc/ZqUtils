@@ -636,5 +636,72 @@ namespace ZqUtils.Helpers
             }
         }
         #endregion
+
+        #region 图片生成字符画
+        /// <summary>
+        /// 根据图片创建字符画
+        /// </summary>
+        /// <param name="bitmap">图片</param>
+        /// <param name="rowSize">行分隔粒度,推荐2 </param>
+        /// <param name="colSize">列分隔粒度,推荐1 </param>
+        /// <param name="type">填充类型：1-数字；2-复杂字繁体字；3-自定义格式，配合chars使用；0-默认</param>
+        /// <param name="chars">当type为3的时候才有用，用于填充</param>
+        /// <returns></returns>
+        public static string BuildCharacter(Bitmap bitmap, int rowSize = 2, int colSize = 1, int type = 0, char[] chars = null)
+        {
+            var result = new System.Text.StringBuilder();
+            char[] charset = null;
+            switch (type)
+            {
+                case 1:
+                    charset = new[] { ' ', '.', '1', '2', '0', '7', '5', '3', '4', '6', '9', '8' };
+                    break;
+                case 2:
+                    charset = new[] { '丶', '卜', '乙', '日', '瓦', '車', '馬', '龠', '齱', '龖' };
+                    break;
+                case 3:
+                    charset = chars;
+                    break;
+                default:
+                    charset = new[] { ' ', '.', ',', ':', ';', 'i', '1', 'r', 's', '5', '3', 'A', 'H', '9', '8', '&', '@', '#' };
+                    break;
+            }
+            var bitmapH = bitmap.Height;
+            var bitmapW = bitmap.Width;
+            for (var h = 0; h < bitmapH / rowSize; h++)
+            {
+                var offsetY = h * rowSize;
+                for (int w = 0; w < bitmapW / colSize; w++)
+                {
+                    var offsetX = w * colSize;
+                    float averBright = 0;
+                    for (int j = 0; j < rowSize; j++)
+                    {
+                        for (int i = 0; i < colSize; i++)
+                        {
+                            try
+                            {
+                                var color = bitmap.GetPixel(offsetX + i, offsetY + j);
+                                averBright += color.GetBrightness();
+                            }
+                            catch
+                            {
+                                averBright += 0;
+                            }
+                        }
+                    }
+                    averBright /= (rowSize * colSize);
+                    int index = (int)(averBright * charset.Length);
+                    if (index == charset.Length)
+                    {
+                        index--;
+                    }
+                    result.Append(charset[charset.Length - 1 - index]);
+                }
+                result.Append("\r\n");
+            }
+            return result.ToString();
+        }
+        #endregion
     }
 }
