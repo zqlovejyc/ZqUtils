@@ -199,7 +199,7 @@ namespace ZqUtils.Helpers
         /// <param name="e"></param>
         private static void ConnMultiplexer_InternalError(object sender, InternalErrorEventArgs e)
         {
-            LogHelper.Info($"{nameof(ConnMultiplexer_InternalError)}: {e.Exception}");
+            LogHelper.Error(e.Exception, $"{nameof(ConnMultiplexer_InternalError)}: {e.Exception?.Message}");
         }
 
         /// <summary>
@@ -229,7 +229,7 @@ namespace ZqUtils.Helpers
         /// <param name="e"></param>
         private static void ConnMultiplexer_ErrorMessage(object sender, RedisErrorEventArgs e)
         {
-            LogHelper.Info($"{nameof(ConnMultiplexer_ErrorMessage)}: {e.Message}");
+            LogHelper.Error($"{nameof(ConnMultiplexer_ErrorMessage)}: {e.Message}");
         }
 
         /// <summary>
@@ -239,7 +239,7 @@ namespace ZqUtils.Helpers
         /// <param name="e"></param>
         private static void ConnMultiplexer_ConnectionFailed(object sender, ConnectionFailedEventArgs e)
         {
-            LogHelper.Info($"{nameof(ConnMultiplexer_ConnectionFailed)}: {e.Exception}");
+            LogHelper.Error(e.Exception, $"{nameof(ConnMultiplexer_ConnectionFailed)}: {e.Exception?.Message}");
         }
 
         /// <summary>
@@ -249,7 +249,7 @@ namespace ZqUtils.Helpers
         /// <param name="e"></param>
         private static void ConnMultiplexer_ConnectionRestored(object sender, ConnectionFailedEventArgs e)
         {
-            LogHelper.Info($"{nameof(ConnMultiplexer_ConnectionRestored)}: {e.Exception}");
+            LogHelper.Error(e.Exception, $"{nameof(ConnMultiplexer_ConnectionRestored)}: {e.Exception?.Message}");
         }
         #endregion
 
