@@ -31,10 +31,12 @@ namespace ZqUtils.Helpers
         /// <param name="commandType">命令类型</param>
         /// <param name="commandText">sql语句/参数化sql语句/存储过程名</param>
         /// <param name="timeOut">超时时长</param>
+        /// <param name="isTrans">是否开启事务</param>
         /// <param name="commandParameters">参数</param>
         /// <returns>受影响的行数</returns>
-        public static int ExecuteNonQuery(string connectionString, CommandType commandType, string commandText, int timeOut = 100, params SqlParameter[] commandParameters)
+        public static int ExecuteNonQuery(string connectionString, CommandType commandType, string commandText, int timeOut = 100, bool isTrans = false, params SqlParameter[] commandParameters)
         {
+            var result = 0;
             var cmd = new SqlCommand();
             if (timeOut > 0)
             {
@@ -42,10 +44,31 @@ namespace ZqUtils.Helpers
             }
             using (var conn = new SqlConnection(connectionString))
             {
-                PrepareCommand(cmd, commandType, conn, commandText, commandParameters);
-                int val = cmd.ExecuteNonQuery();
-                return val;
+                if (isTrans)
+                {
+                    conn.Open();
+                    using (var trans = conn.BeginTransaction())
+                    {
+                        try
+                        {
+                            PrepareCommand(cmd, commandType, conn, commandText, trans, commandParameters);
+                            result = cmd.ExecuteNonQuery();
+                            trans.Commit();
+                        }
+                        catch
+                        {
+                            result = 0;
+                            trans.Rollback();
+                        }
+                    }
+                }
+                else
+                {
+                    PrepareCommand(cmd, commandType, conn, commandText, null, commandParameters);
+                    result = cmd.ExecuteNonQuery();
+                }
             }
+            return result;
         }
         #endregion
 
@@ -69,7 +92,7 @@ namespace ZqUtils.Helpers
                 {
                     cmd.CommandTimeout = timeOut;
                 }
-                PrepareCommand(cmd, commandType, conn, commandText, commandParameters);
+                PrepareCommand(cmd, commandType, conn, commandText, null, commandParameters);
                 var rdr = cmd.ExecuteReader(CommandBehavior.CloseConnection);
                 return rdr;
             }
@@ -102,7 +125,7 @@ namespace ZqUtils.Helpers
                 {
                     cmd.CommandTimeout = timeOut;
                 }
-                PrepareCommand(cmd, commandType, conn, commandText, commandParameters);
+                PrepareCommand(cmd, commandType, conn, commandText, null, commandParameters);
                 da = new SqlDataAdapter(cmd);
                 var ds = new DataSet();
                 da.Fill(ds);
@@ -141,7 +164,7 @@ namespace ZqUtils.Helpers
                 {
                     cmd.CommandTimeout = timeOut;
                 }
-                PrepareCommand(cmd, commandType, conn, commandText, commandParameters);
+                PrepareCommand(cmd, commandType, conn, commandText, null, commandParameters);
                 da = new SqlDataAdapter(cmd);
                 var dt = new DataTable();
                 da.Fill(dt);
@@ -179,7 +202,7 @@ namespace ZqUtils.Helpers
             }
             using (var conn = new SqlConnection(connectionString))
             {
-                PrepareCommand(cmd, commandType, conn, commandText, commandParameters);
+                PrepareCommand(cmd, commandType, conn, commandText, null, commandParameters);
                 object val = cmd.ExecuteScalar();
                 return val;
             }
@@ -194,8 +217,9 @@ namespace ZqUtils.Helpers
         /// <param name="commandType">命令类型</param>
         /// <param name="conn">SqlConnection 对象，不允许空对象</param>
         /// <param name="commandText">Sql 语句</param>
+        /// <param name="trans">Sql 事务</param>
         /// <param name="cmdParms">SqlParameters  对象,允许为空对象</param>
-        private static void PrepareCommand(SqlCommand cmd, CommandType commandType, SqlConnection conn, string commandText, params SqlParameter[] cmdParms)
+        private static void PrepareCommand(SqlCommand cmd, CommandType commandType, SqlConnection conn, string commandText, SqlTransaction trans, params SqlParameter[] cmdParms)
         {
             //打开连接
             if (conn.State != ConnectionState.Open)
@@ -206,6 +230,10 @@ namespace ZqUtils.Helpers
             cmd.Connection = conn;
             cmd.CommandText = commandText;
             cmd.CommandType = commandType;
+            if (trans != null)
+            {
+                cmd.Transaction = trans;
+            }
             if (cmdParms != null)
             {
                 cmd.Parameters.AddRange(cmdParms);
