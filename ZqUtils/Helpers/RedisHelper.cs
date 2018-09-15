@@ -1274,6 +1274,38 @@ namespace ZqUtils.Helpers
             redisKey = AddKeyPrefix(redisKey);
             return db.KeyExpire(redisKey, expiry);
         }
+
+        /// <summary>
+        /// 根据通配符 * 删除 Key
+        /// </summary>
+        /// <param name="pattern"></param>
+        /// <param name="database"></param>
+        /// <param name="configuredOnly"></param>
+        public bool KeyDealeteByPattern(string pattern, int database = 0, bool configuredOnly = false)
+        {
+            var result = true;
+            var points = connMultiplexer.GetEndPoints(configuredOnly);
+            if (points?.Length > 0)
+            {
+                foreach (var point in points)
+                {
+                    var server = connMultiplexer.GetServer(point);
+                    var keys = server.Keys(database: database, pattern: $"*{pattern}*");
+                    foreach (var key in keys)
+                    {
+                        if (!db.KeyDelete(key))
+                        {
+                            result = false;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                result = false;
+            }
+            return result;
+        }
         #endregion
 
         #region key-异步
@@ -1333,30 +1365,63 @@ namespace ZqUtils.Helpers
             redisKey = AddKeyPrefix(redisKey);
             return await db.KeyExpireAsync(redisKey, expiry);
         }
+
+        /// <summary>
+        /// 根据通配符 * 删除 Key
+        /// </summary>
+        /// <param name="pattern"></param>
+        /// <param name="database"></param>
+        /// <param name="configuredOnly"></param>
+        public async Task<bool> KeyDealeteByPatternAsync(string pattern, int database = 0, bool configuredOnly = false)
+        {
+            var result = true;
+            var points = connMultiplexer.GetEndPoints(configuredOnly);
+            if (points?.Length > 0)
+            {
+                foreach (var point in points)
+                {
+                    var server = connMultiplexer.GetServer(point);
+                    var keys = server.Keys(database: database, pattern: $"*{pattern}*");
+                    foreach (var key in keys)
+                    {
+                        if (!await db.KeyDeleteAsync(key))
+                        {
+                            result = false;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                result = false;
+            }
+            return result;
+        }
         #endregion
         #endregion key 操作
 
         #region 清空缓存
         #region Sync
         /// <summary>
-        /// 清空所有缓存
+        /// 清空缓存
         /// </summary>
-        public void ClearAll()
+        /// <param name="configuredOnly">默认：false</param>
+        public void Clear(bool configuredOnly = false)
         {
-            var endpoints = connMultiplexer.GetEndPoints(true);
-            foreach (var endpoint in endpoints)
+            var points = connMultiplexer.GetEndPoints(configuredOnly);
+            foreach (var point in points)
             {
-                var server = connMultiplexer.GetServer(endpoint);
+                var server = connMultiplexer.GetServer(point);
                 server.FlushAllDatabases();
             }
         }
 
         /// <summary>
-        /// 清空所有缓存
+        /// 清空缓存
         /// </summary>
         /// <param name="host">主机地址</param>
         /// <param name="port">端口号</param>
-        public void ClearAll(string host, int port)
+        public void Clear(string host, int port)
         {
             var server = connMultiplexer.GetServer(host, port);
             server.FlushAllDatabases();
@@ -1368,7 +1433,7 @@ namespace ZqUtils.Helpers
         /// <param name="host">主机地址</param>
         /// <param name="port">端口号</param>
         /// <param name="database">数据库</param>
-        public void Clear(string host, int port, int database = 0)
+        public void Clear(string host, int port, int database)
         {
             var server = connMultiplexer.GetServer(host, port);
             server.FlushDatabase(database);
@@ -1377,24 +1442,26 @@ namespace ZqUtils.Helpers
 
         #region Async
         /// <summary>
-        /// 清空所有缓存
+        /// 清空缓存
         /// </summary>
-        public async Task ClearAllAsync()
+        /// <param name="configuredOnly">默认：false</param>
+        /// <returns></returns>
+        public async Task ClearAsync(bool configuredOnly = false)
         {
-            var endpoints = connMultiplexer.GetEndPoints(true);
-            foreach (var endpoint in endpoints)
+            var points = connMultiplexer.GetEndPoints(configuredOnly);
+            foreach (var point in points)
             {
-                var server = connMultiplexer.GetServer(endpoint);
+                var server = connMultiplexer.GetServer(point);
                 await server.FlushAllDatabasesAsync();
             }
         }
 
         /// <summary>
-        /// 清空所有缓存
+        /// 清空缓存
         /// </summary>
         /// <param name="host">主机地址</param>
         /// <param name="port">端口号</param>
-        public async Task ClearAllAsync(string host, int port)
+        public async Task ClearAsync(string host, int port)
         {
             var server = connMultiplexer.GetServer(host, port);
             await server.FlushAllDatabasesAsync();
@@ -1406,7 +1473,7 @@ namespace ZqUtils.Helpers
         /// <param name="host">主机地址</param>
         /// <param name="port">端口号</param>
         /// <param name="database">数据库</param>
-        public async Task ClearAsync(string host, int port, int database = 0)
+        public async Task ClearAsync(string host, int port, int database)
         {
             var server = connMultiplexer.GetServer(host, port);
             await server.FlushDatabaseAsync(database);
