@@ -1281,7 +1281,7 @@ namespace ZqUtils.Helpers
         /// <param name="pattern"></param>
         /// <param name="database"></param>
         /// <param name="configuredOnly"></param>
-        public bool KeyDealeteByPattern(string pattern, int database = 0, bool configuredOnly = false)
+        public bool KeyDeleteByPattern(string pattern, int database = 0, bool configuredOnly = false)
         {
             var result = true;
             var points = connMultiplexer.GetEndPoints(configuredOnly);
@@ -1372,7 +1372,7 @@ namespace ZqUtils.Helpers
         /// <param name="pattern"></param>
         /// <param name="database"></param>
         /// <param name="configuredOnly"></param>
-        public async Task<bool> KeyDealeteByPatternAsync(string pattern, int database = 0, bool configuredOnly = false)
+        public async Task<bool> KeyDeleteByPatternAsync(string pattern, int database = 0, bool configuredOnly = false)
         {
             var result = true;
             var points = connMultiplexer.GetEndPoints(configuredOnly);
