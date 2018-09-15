@@ -1336,6 +1336,84 @@ namespace ZqUtils.Helpers
         #endregion
         #endregion key 操作
 
+        #region 清空缓存
+        #region Sync
+        /// <summary>
+        /// 清空所有缓存
+        /// </summary>
+        public void ClearAll()
+        {
+            var endpoints = connMultiplexer.GetEndPoints(true);
+            foreach (var endpoint in endpoints)
+            {
+                var server = connMultiplexer.GetServer(endpoint);
+                server.FlushAllDatabases();
+            }
+        }
+
+        /// <summary>
+        /// 清空所有缓存
+        /// </summary>
+        /// <param name="host">主机地址</param>
+        /// <param name="port">端口号</param>
+        public void ClearAll(string host, int port)
+        {
+            var server = connMultiplexer.GetServer(host, port);
+            server.FlushAllDatabases();
+        }
+
+        /// <summary>
+        /// 清空缓存
+        /// </summary>
+        /// <param name="host">主机地址</param>
+        /// <param name="port">端口号</param>
+        /// <param name="database">数据库</param>
+        public void Clear(string host, int port, int database = 0)
+        {
+            var server = connMultiplexer.GetServer(host, port);
+            server.FlushDatabase(database);
+        }
+        #endregion
+
+        #region Async
+        /// <summary>
+        /// 清空所有缓存
+        /// </summary>
+        public async Task ClearAllAsync()
+        {
+            var endpoints = connMultiplexer.GetEndPoints(true);
+            foreach (var endpoint in endpoints)
+            {
+                var server = connMultiplexer.GetServer(endpoint);
+                await server.FlushAllDatabasesAsync();
+            }
+        }
+
+        /// <summary>
+        /// 清空所有缓存
+        /// </summary>
+        /// <param name="host">主机地址</param>
+        /// <param name="port">端口号</param>
+        public async Task ClearAllAsync(string host, int port)
+        {
+            var server = connMultiplexer.GetServer(host, port);
+            await server.FlushAllDatabasesAsync();
+        }
+
+        /// <summary>
+        /// 清空缓存
+        /// </summary>
+        /// <param name="host">主机地址</param>
+        /// <param name="port">端口号</param>
+        /// <param name="database">数据库</param>
+        public async Task ClearAsync(string host, int port, int database = 0)
+        {
+            var server = connMultiplexer.GetServer(host, port);
+            await server.FlushDatabaseAsync(database);
+        }
+        #endregion
+        #endregion
+
         #region  发布/订阅[当作消息代理中间件使用 一般使用更专业的消息队列来处理这种业务场景]
         /// <summary>
         /// 当作消息代理中间件使用
