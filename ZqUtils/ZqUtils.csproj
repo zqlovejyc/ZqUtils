@@ -218,6 +218,7 @@
     <None Include="Nuget\Zq.Utils.1.0.4.6.nupkg" />
     <None Include="Nuget\Zq.Utils.1.0.4.7.nupkg" />
     <None Include="Nuget\Zq.Utils.1.0.4.8.nupkg" />
+    <None Include="Nuget\Zq.Utils.1.0.4.9.nupkg" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
