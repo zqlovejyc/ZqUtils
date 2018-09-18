@@ -49,7 +49,7 @@ namespace ZqUtils.Extensions
                 var typeName = typeof(T).Name;
                 var first = @this.FirstOrDefault();
                 var firstTypeName = first.GetType().Name;
-                if (typeName == "Object" && (firstTypeName == "DapperRow" || firstTypeName == "DynamicRow"))
+                if (typeName.Contains("Dictionary`2") || (typeName == "Object" && (firstTypeName == "DapperRow" || firstTypeName == "DynamicRow")))
                 {
                     var dic = first as IDictionary<string, object>;
                     dt.Columns.AddRange(dic.Select(o => new DataColumn(o.Key)).ToArray());
