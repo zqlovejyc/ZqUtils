@@ -69,7 +69,7 @@ namespace ZqUtils.Helpers
                 //延迟机制，默认为3的重试次数次方
                 if (sleepDurationProvider == null)
                 {
-                    TimeSpan SleepDurationProvider(int retryAttempt) => TimeSpan.FromSeconds(Math.Pow(3, retryAttempt));
+                    TimeSpan SleepDurationProvider(int retryAttempt) => TimeSpan.FromSeconds(2 + retryAttempt);
                     sleepDurationProvider = SleepDurationProvider;
                 }
                 //异常重试事件
@@ -153,7 +153,7 @@ namespace ZqUtils.Helpers
                 //延迟机制，默认为3的重试次数次方
                 if (sleepDurationProvider == null)
                 {
-                    TimeSpan SleepDurationProvider(int retryAttempt) => TimeSpan.FromSeconds(Math.Pow(3, retryAttempt));
+                    TimeSpan SleepDurationProvider(int retryAttempt) => TimeSpan.FromSeconds(2 + retryAttempt);
                     sleepDurationProvider = SleepDurationProvider;
                 }
                 //异常重试事件
@@ -237,7 +237,7 @@ namespace ZqUtils.Helpers
                 //延迟机制
                 if (sleepDurationProvider == null)
                 {
-                    TimeSpan SleepDurationProvider(int retryAttempt) => TimeSpan.FromSeconds(Math.Pow(3, retryAttempt));
+                    TimeSpan SleepDurationProvider(int retryAttempt) => TimeSpan.FromSeconds(2 + retryAttempt);
                     sleepDurationProvider = SleepDurationProvider;
                 }
                 //异常重试事件
@@ -274,7 +274,7 @@ namespace ZqUtils.Helpers
         /// <param name="actionException">最后抛出异常处理委托</param>
         /// <param name="sleepDurations">延迟时间</param>
         /// <param name="onRetry">重试事件</param>
-        public static async Task WaitAndRetry<TException, TResult>(Func<Task<TResult>> action, Func<TResult, bool> resultPredicate, Action<Exception> actionException, IEnumerable<TimeSpan> sleepDurations, Action<DelegateResult<TResult>, TimeSpan, int, Context> onRetry = null) where TException : Exception
+        public static async Task WaitAndRetryAsync<TException, TResult>(Func<Task<TResult>> action, Func<TResult, bool> resultPredicate, Action<Exception> actionException, IEnumerable<TimeSpan> sleepDurations, Action<DelegateResult<TResult>, TimeSpan, int, Context> onRetry = null) where TException : Exception
         {
             try
             {
@@ -321,7 +321,7 @@ namespace ZqUtils.Helpers
                 //延迟机制，默认为3的重试次数次方
                 if (sleepDurationProvider == null)
                 {
-                    TimeSpan SleepDurationProvider(int retryAttempt) => TimeSpan.FromSeconds(Math.Pow(3, retryAttempt));
+                    TimeSpan SleepDurationProvider(int retryAttempt) => TimeSpan.FromSeconds(2 + retryAttempt);
                     sleepDurationProvider = SleepDurationProvider;
                 }
                 //异常重试事件
@@ -365,7 +365,7 @@ namespace ZqUtils.Helpers
             //延迟机制
             if (sleepDurationProvider == null)
             {
-                TimeSpan SleepDurationProvider(int retryAttempt, Exception exception, Context context) => TimeSpan.FromSeconds(Math.Pow(3, retryAttempt));
+                TimeSpan SleepDurationProvider(int retryAttempt, Exception exception, Context context) => TimeSpan.FromSeconds(2 + retryAttempt);
                 sleepDurationProvider = SleepDurationProvider;
             }
             //异常重试事件
@@ -394,7 +394,7 @@ namespace ZqUtils.Helpers
             //延迟机制
             if (sleepDurationProvider == null)
             {
-                TimeSpan SleepDurationProvider(int retryAttempt, DelegateResult<TResult> delegateResult, Context context) => TimeSpan.FromSeconds(Math.Pow(3, retryAttempt));
+                TimeSpan SleepDurationProvider(int retryAttempt, DelegateResult<TResult> delegateResult, Context context) => TimeSpan.FromSeconds(2 + retryAttempt);
                 sleepDurationProvider = SleepDurationProvider;
             }
             //异常重试事件
@@ -425,7 +425,7 @@ namespace ZqUtils.Helpers
             //延迟机制
             if (sleepDurationProvider == null)
             {
-                TimeSpan SleepDurationProvider(int retryAttempt, Exception exception, Context context) => TimeSpan.FromSeconds(Math.Pow(3, retryAttempt));
+                TimeSpan SleepDurationProvider(int retryAttempt, Exception exception, Context context) => TimeSpan.FromSeconds(2 + retryAttempt);
                 sleepDurationProvider = SleepDurationProvider;
             }
             //异常重试事件
@@ -453,12 +453,12 @@ namespace ZqUtils.Helpers
         /// <param name="resultPredicate">返回值委托</param>
         /// <param name="sleepDurationProvider">延迟时间委托</param>
         /// <param name="onRetryAsync">重试事件</param>
-        public static async Task WaitAndRetryForever<TException, TResult>(Func<Task<TResult>> action, Func<TResult, bool> resultPredicate, Func<int, DelegateResult<TResult>, Context, TimeSpan> sleepDurationProvider = null, Func<DelegateResult<TResult>, TimeSpan, Context, Task> onRetryAsync = null) where TException : Exception
+        public static async Task WaitAndRetryForeverAsync<TException, TResult>(Func<Task<TResult>> action, Func<TResult, bool> resultPredicate, Func<int, DelegateResult<TResult>, Context, TimeSpan> sleepDurationProvider = null, Func<DelegateResult<TResult>, TimeSpan, Context, Task> onRetryAsync = null) where TException : Exception
         {
             //延迟机制
             if (sleepDurationProvider == null)
             {
-                TimeSpan SleepDurationProvider(int retryAttempt, DelegateResult<TResult> delegateResult, Context context) => TimeSpan.FromSeconds(Math.Pow(3, retryAttempt));
+                TimeSpan SleepDurationProvider(int retryAttempt, DelegateResult<TResult> delegateResult, Context context) => TimeSpan.FromSeconds(2 + retryAttempt);
                 sleepDurationProvider = SleepDurationProvider;
             }
             //异常重试事件
