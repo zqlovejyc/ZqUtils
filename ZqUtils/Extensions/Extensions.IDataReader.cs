@@ -208,6 +208,57 @@ namespace ZqUtils.Extensions
         }
         #endregion
 
+        #region ToDataSet
+        /// <summary>
+        /// IDataReader转换为DataSet
+        /// </summary>
+        /// <param name="this">reader数据源</param>
+        /// <returns>DataSet</returns>
+        public static DataSet ToDataSet(this IDataReader @this)
+        {
+            var dataSet = new DataSet();
+            if (@this.IsClosed == false)
+            {
+                do
+                {
+                    var schemaTable = @this.GetSchemaTable();
+                    var dataTable = new DataTable();
+                    if (schemaTable != null)
+                    {
+                        for (var i = 0; i < schemaTable.Rows.Count; i++)
+                        {
+                            var dataRow = schemaTable.Rows[i];
+                            var columnName = (string)dataRow["ColumnName"];
+                            var column = new DataColumn(columnName, (Type)dataRow["DataType"]);
+                            dataTable.Columns.Add(column);
+                        }
+                        dataSet.Tables.Add(dataTable);
+                        while (@this.Read())
+                        {
+                            var dataRow = dataTable.NewRow();
+                            for (var i = 0; i < @this.FieldCount; i++)
+                            {
+                                dataRow[i] = @this.GetValue(i);
+                            }
+                            dataTable.Rows.Add(dataRow);
+                        }
+                    }
+                    else
+                    {
+                        var column = new DataColumn("RowsAffected");
+                        dataTable.Columns.Add(column);
+                        dataSet.Tables.Add(dataTable);
+                        var dataRow = dataTable.NewRow();
+                        dataRow[0] = @this.RecordsAffected;
+                        dataTable.Rows.Add(dataRow);
+                    }
+                }
+                while (@this.NextResult());
+            }
+            return dataSet;
+        }
+        #endregion
+
         #region ContainsColumn
         /// <summary>
         /// An IDataReader extension method that query if '@this' contains column.
