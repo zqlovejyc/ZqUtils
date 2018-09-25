@@ -50,6 +50,37 @@ namespace ZqUtils.Extensions
                 }
             }
         }
+
+        /// <summary>
+        /// IDataReader数据转为List&lt;dynamic&gt;集合的集合
+        /// </summary>
+        /// <param name="this">IDataReader数据源</param>
+        /// <returns>List&lt;dynamic&gt;集合的集合</returns>
+        public static List<List<dynamic>> ToListDynamics(this IDataReader @this)
+        {
+            var result = new List<List<dynamic>>();
+            if (@this?.IsClosed == false)
+            {
+                using (@this)
+                {
+                    do
+                    {
+                        var list = new List<dynamic>();
+                        while (@this.Read())
+                        {
+                            var row = new ExpandoObject() as IDictionary<string, object>;
+                            for (var i = 0; i < @this.FieldCount; i++)
+                            {
+                                row.Add(@this.GetName(i), @this.GetValue(i));
+                            }
+                            list.Add(row);
+                        }
+                        result.Add(list);
+                    } while (@this.NextResult());
+                }
+            }
+            return result;
+        }
         #endregion
 
         #region ToDictionary
@@ -216,46 +247,28 @@ namespace ZqUtils.Extensions
         /// <returns>DataSet</returns>
         public static DataSet ToDataSet(this IDataReader @this)
         {
-            var dataSet = new DataSet();
+            var ds = new DataSet();
             if (@this.IsClosed == false)
             {
                 do
                 {
                     var schemaTable = @this.GetSchemaTable();
-                    var dataTable = new DataTable();
-                    if (schemaTable != null)
+                    var dt = new DataTable();
+                    dt.Columns.AddRange(schemaTable.AsEnumerable().Select(o => new DataColumn((string)o["ColumnName"], (Type)o["DataType"])).ToArray());
+                    while (@this.Read())
                     {
-                        for (var i = 0; i < schemaTable.Rows.Count; i++)
+                        var dataRow = dt.NewRow();
+                        for (var i = 0; i < @this.FieldCount; i++)
                         {
-                            var dataRow = schemaTable.Rows[i];
-                            var columnName = (string)dataRow["ColumnName"];
-                            var column = new DataColumn(columnName, (Type)dataRow["DataType"]);
-                            dataTable.Columns.Add(column);
+                            dataRow[i] = @this.GetValue(i);
                         }
-                        dataSet.Tables.Add(dataTable);
-                        while (@this.Read())
-                        {
-                            var dataRow = dataTable.NewRow();
-                            for (var i = 0; i < @this.FieldCount; i++)
-                            {
-                                dataRow[i] = @this.GetValue(i);
-                            }
-                            dataTable.Rows.Add(dataRow);
-                        }
+                        dt.Rows.Add(dataRow);
                     }
-                    else
-                    {
-                        var column = new DataColumn("RowsAffected");
-                        dataTable.Columns.Add(column);
-                        dataSet.Tables.Add(dataTable);
-                        var dataRow = dataTable.NewRow();
-                        dataRow[0] = @this.RecordsAffected;
-                        dataTable.Rows.Add(dataRow);
-                    }
+                    ds.Tables.Add(dt);
                 }
                 while (@this.NextResult());
             }
-            return dataSet;
+            return ds;
         }
         #endregion
 
