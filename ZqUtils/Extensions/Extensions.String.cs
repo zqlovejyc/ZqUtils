@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using System.Web;
+using System.Linq;
 using System.Globalization;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -1159,6 +1160,46 @@ namespace ZqUtils.Extensions
                 }
             }
             return string.Format(@this, args);
+        }
+        #endregion
+
+        #region 字符串累加器
+        /// <summary>
+        /// 字符串累加器
+        /// </summary>
+        /// <param name="this">源字符串</param>
+        /// <param name="separator">分隔符</param>
+        /// <param name="seed">初始种子</param>
+        /// <param name="current">累加选项</param>
+        /// <param name="remove">最后移除字符串</param>
+        /// <param name="isEnableNullValue">空值是否有效，默认：false</param>
+        /// <param name="distinct">是否去重，默认：true</param>
+        /// <returns></returns>
+        public static string Aggregate(this string @this, char separator, string seed, Func<string, string> current, string remove, bool isEnableNullValue = false, bool distinct = true)
+        {
+            if (!string.IsNullOrEmpty(@this))
+            {
+                var sb = new StringBuilder(seed);
+                var array = @this.TrimEnd(separator).Split(separator);
+                if (!isEnableNullValue)
+                {
+                    array = array.Where(o => !string.IsNullOrEmpty(o)).ToArray();
+                }
+                if (distinct)
+                {
+                    array = array.Distinct().ToArray();
+                }
+                foreach (var item in array)
+                {
+                    sb.Append(current(item));
+                }
+                if (!string.IsNullOrEmpty(remove))
+                {
+                    sb = sb.Remove(sb.ToString().LastIndexOf(remove), remove.Length);
+                }
+                return sb.ToString();
+            }
+            return @this;
         }
         #endregion
     }
