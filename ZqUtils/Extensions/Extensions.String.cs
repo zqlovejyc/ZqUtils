@@ -1212,14 +1212,14 @@ namespace ZqUtils.Extensions
         /// <param name="isEnableNullValue">空值是否有效，默认：false</param>
         /// <param name="distinct">是否去重，默认：true</param>
         /// <returns></returns>
-        public static string Aggregate(this IEnumerable<string> @this, string seed, Func<string, string> current, string remove, bool isEnableNullValue = false, bool distinct = true)
+        public static string Aggregate<T>(this IEnumerable<T> @this, string seed, Func<T, string> current, string remove, bool isEnableNullValue = false, bool distinct = true)
         {
             if (@this?.Count() > 0)
             {
                 var sb = new StringBuilder(seed);
                 if (!isEnableNullValue)
                 {
-                    @this = @this.Where(o => !string.IsNullOrEmpty(o));
+                    @this = @this.Where(o => o != null && !string.IsNullOrEmpty(o.ToString()));
                 }
                 if (distinct)
                 {
