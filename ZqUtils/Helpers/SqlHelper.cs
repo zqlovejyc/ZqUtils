@@ -241,34 +241,6 @@ namespace ZqUtils.Helpers
         }
         #endregion
 
-        #region 防止sql语句注入攻击
-        /// <summary>
-        /// 防止sql语句的注入攻击
-        /// </summary>
-        /// <param name="s"></param>
-        /// <returns>bool</returns>
-        public static bool CheckSQL(string s)
-        {
-            var reg = @"^\w*[^or|exec|execute|insert|select|delete|update|alter|create|drop|count|and|where|in|like|chr|char|asc|mid|substring|master|truncate|declare|xp_cmdshell|restore|backup|net +user|\'|>|<|=|,]\w*$";
-            return Regex.IsMatch(s, reg);
-        }
-        /// <summary>
-        /// 防止sql注入
-        /// </summary>
-        /// <param name="s">源sql</param>
-        /// <returns>string</returns>
-        public static string ReplaceSQL(string s)
-        {
-            var sql = "insert |update |delete |exec |execute |' |=|create |drop |alter |column |dbo |sys ";
-            var arr = sql.Split('|');
-            for (int i = 0; i < arr.Length; i++)
-            {
-                s = s.Replace(arr[i], "");
-            }
-            return s;
-        }
-        #endregion
-
         #region Update DataTable
         /// <summary>
         /// 更新DataTable

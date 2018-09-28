@@ -1238,5 +1238,26 @@ namespace ZqUtils.Extensions
             return null;
         }
         #endregion
+
+        #region 转换为安全的sql
+        /// <summary>
+        /// 转换为安全的sql
+        /// </summary>
+        /// <param name="this">源字符串</param>
+        /// <returns></returns>
+        public static string ToSafeSql(this string @this)
+        {
+            if (!string.IsNullOrEmpty(@this))
+            {
+                var sql = "or|exec|execute|insert|select|delete|update|alter|create|drop|count|and|where|in|like|chr|char|asc|mid|substring|master|truncate|declare|xp_cmdshell|restore|backup|net +user|'|>|<|=|,";
+                var array = sql.Split('|');
+                foreach (var item in array)
+                {
+                    @this = @this.Replace(item, "").Replace(item.ToUpper(), "");
+                }
+            }
+            return @this;
+        }
+        #endregion
     }
 }
