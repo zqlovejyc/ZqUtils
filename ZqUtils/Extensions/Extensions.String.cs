@@ -1180,14 +1180,14 @@ namespace ZqUtils.Extensions
             if (!string.IsNullOrEmpty(@this))
             {
                 var sb = new StringBuilder(seed);
-                var array = @this.TrimEnd(separator).Split(separator);
+                IEnumerable<string> array = @this.TrimEnd(separator).Split(separator);
                 if (!isEnableNullValue)
                 {
-                    array = array.Where(o => !string.IsNullOrEmpty(o)).ToArray();
+                    array = array.Where(o => !string.IsNullOrEmpty(o));
                 }
                 if (distinct)
                 {
-                    array = array.Distinct().ToArray();
+                    array = array.Distinct();
                 }
                 foreach (var item in array)
                 {
@@ -1200,6 +1200,42 @@ namespace ZqUtils.Extensions
                 return sb.ToString();
             }
             return @this;
+        }
+
+        /// <summary>
+        /// 字符串累加器
+        /// </summary>
+        /// <param name="this">源字符串</param>
+        /// <param name="seed">初始种子</param>
+        /// <param name="current">累加选项</param>
+        /// <param name="remove">最后移除字符串</param>
+        /// <param name="isEnableNullValue">空值是否有效，默认：false</param>
+        /// <param name="distinct">是否去重，默认：true</param>
+        /// <returns></returns>
+        public static string Aggregate(this IEnumerable<string> @this, string seed, Func<string, string> current, string remove, bool isEnableNullValue = false, bool distinct = true)
+        {
+            if (@this?.Count() > 0)
+            {
+                var sb = new StringBuilder(seed);
+                if (!isEnableNullValue)
+                {
+                    @this = @this.Where(o => !string.IsNullOrEmpty(o));
+                }
+                if (distinct)
+                {
+                    @this = @this.Distinct();
+                }
+                foreach (var item in @this)
+                {
+                    sb.Append(current(item));
+                }
+                if (!string.IsNullOrEmpty(remove))
+                {
+                    sb = sb.Remove(sb.ToString().LastIndexOf(remove), remove.Length);
+                }
+                return sb.ToString();
+            }
+            return null;
         }
         #endregion
     }
