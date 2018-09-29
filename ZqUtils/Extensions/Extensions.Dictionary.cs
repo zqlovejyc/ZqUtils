@@ -7,10 +7,10 @@ using System.Dynamic;
 using System.Collections.Specialized;
 using System.Data.Common;
 using System.Data.SqlClient;
+using System.Reflection;
+using System.Collections.Concurrent;
 using ZqUtils.Helpers;
 using Dapper;
-using System.Data;
-using System.Collections.Concurrent;
 /****************************
 * [Author] 张强
 * [Date] 2015-10-26
@@ -110,6 +110,37 @@ namespace ZqUtils.Extensions
             }
             xml.Append("</xml>");
             return xml.ToString();
+        }
+        #endregion
+
+        #region ToEntity
+        /// <summary>
+        /// IDictionary数据转为强类型实体
+        /// </summary>
+        /// <param name="this">IDictionary数据源</param>
+        /// <returns>强类型实体</returns>
+        public static T ToEntity<T>(this IDictionary<string, object> @this)
+        {
+            if (@this?.Count > 0)
+            {
+                var fields = new List<string>();
+                for (int i = 0; i < @this.Keys.Count; i++)
+                {
+                    fields.Add(@this.Keys.ElementAt(i).ToLower());
+                }
+                var instance = Activator.CreateInstance<T>();
+                var props = instance.GetType().GetProperties(BindingFlags.GetProperty | BindingFlags.Public | BindingFlags.Instance);
+                foreach (var p in props)
+                {
+                    if (!p.CanWrite) continue;
+                    if (fields.Contains(p.Name.ToLower()) && !@this[p.Name].IsNull())
+                    {
+                        p.SetValue(instance, @this[p.Name].ToSafeValue(p.PropertyType), null);
+                    }
+                }
+                return instance;
+            }
+            return default(T);
         }
         #endregion
 
