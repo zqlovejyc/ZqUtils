@@ -22,7 +22,7 @@ namespace ZqUtils.Helpers
         /// <param name="lat2">纬度2</param>
         /// <param name="lng2">经度2</param>
         /// <param name="earthRadius">地球半径，默认：6378137.0米</param>
-        /// <returns>距离(米)</returns>
+        /// <returns>距离（单位：米）</returns>
         public static double Distance(double lat1, double lng1, double lat2, double lng2, double earthRadius = 6378137.0)
         {
             double Rad(double d)
@@ -34,9 +34,8 @@ namespace ZqUtils.Helpers
             double a = Lat1 - Lat2;//两点纬度之差
             double b = Rad(lng1) - Rad(lng2); //经度之差
             double s = 2 * Math.Asin(Math.Sqrt(Math.Pow(Math.Sin(a / 2), 2) + Math.Cos(Lat1) * Math.Cos(Lat2) * Math.Pow(Math.Sin(b / 2), 2)));//计算两点距离的公式
-            s = s * earthRadius;//弧长乘地球半径（半径为米）
-            s = Math.Round(s * 10000d) / 10000d;//精确距离的数值
-            return s;
+            var distance = s * earthRadius;//弧长乘地球半径（半径为米）
+            return distance;
         }
         #endregion
 
@@ -50,7 +49,7 @@ namespace ZqUtils.Helpers
         /// <param name="lat2">纬度2</param>
         /// <param name="lng2">经度2</param>
         /// <param name="earthRadius">地球半径，默认：6371393.0米</param>
-        /// <returns>距离(米)</returns>
+        /// <returns>距离（单位：米）</returns>
         public static double Distance2(double lat1, double lng1, double lat2, double lng2, double earthRadius = 6371393.0)
         {
             double HaverSin(double theta)
@@ -77,10 +76,9 @@ namespace ZqUtils.Helpers
 
             //h is the great circle distance in radians, great circle就是一个球体上的切面，它的圆心即是球心的一个周长最大的圆。
             var h = HaverSin(vLat) + Math.Cos(lat1) * Math.Cos(lat2) * HaverSin(vLon);
-
             var distance = 2 * earthRadius * Math.Asin(Math.Sqrt(h));
 
-            return distance * 1000;
+            return distance;
         }
         #endregion
 
@@ -109,30 +107,6 @@ namespace ZqUtils.Helpers
             double minLng = lng - dlng;//最小经度
             double maxLng = lng + dlng;
             return (minLat, maxLat, minLng, maxLng);
-        }
-        #endregion
-
-        #region 获取维度差
-        /// <summary>
-        /// 获取维度差
-        /// </summary>
-        /// <param name="km">千米</param>
-        /// <returns></returns>
-        public static double GetLatitudeDifference(double km)
-        {
-            return km * 1 / 111;
-        }
-        #endregion
-
-        #region 获取经度差
-        /// <summary>
-        /// 获取经度差
-        /// </summary>
-        /// <param name="km">千米</param>
-        /// <returns></returns>
-        public static double GetLongitudeDifference(double km)
-        {
-            return km * 1 / 110;
         }
         #endregion
     }
