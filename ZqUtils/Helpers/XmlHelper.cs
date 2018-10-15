@@ -8,20 +8,20 @@ using ZqUtils.Extensions;
 /****************************
 * [Author] 张强
 * [Date] 2015-10-26
-* [Describe] Xml工具类
+* [Describe] XML工具类
 * **************************/
 namespace ZqUtils.Helpers
 {
     /// <summary>
-    /// Xml工具类
+    /// XML工具类
     /// </summary>
     public class XmlHelper
     {
-        #region xml转换为Dictionary
+        #region XML转换为Dictionary
         /// <summary>
-        /// xml字符串转换为Dictionary
+        /// Xml字符串转换为Dictionary
         /// </summary>
-        /// <param name="xmlStr">xml字符串</param>
+        /// <param name="xmlStr">XML字符串</param>
         /// <returns>Dictionary</returns>
         public static Dictionary<string, string> XmlToDictionary(string xmlStr)
         {
@@ -52,7 +52,7 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
-        /// stream转换为Dictionary
+        /// Stream转换为Dictionary
         /// </summary>
         /// <param name="stream">字节流</param>
         /// <returns>Dictionary</returns>
@@ -85,9 +85,9 @@ namespace ZqUtils.Helpers
         }
         #endregion
 
-        #region xml序列化初始化
+        #region XML序列化初始化
         /// <summary>
-        /// xml序列化初始化
+        /// XML序列化初始化
         /// </summary>
         /// <param name="stream">字节流</param>
         /// <param name="o">要序列化的对象</param>
