@@ -19,7 +19,7 @@ namespace ZqUtils.Helpers
     {
         #region XML转换为Dictionary
         /// <summary>
-        /// Xml字符串转换为Dictionary
+        /// XML字符串转换为Dictionary
         /// </summary>
         /// <param name="xmlStr">XML字符串</param>
         /// <returns>Dictionary</returns>
@@ -54,7 +54,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// Stream转换为Dictionary
         /// </summary>
-        /// <param name="stream">字节流</param>
+        /// <param name="stream">XML字节流</param>
         /// <returns>Dictionary</returns>
         public static Dictionary<string, string> XmlToDictionary(Stream stream)
         {
