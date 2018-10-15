@@ -30,7 +30,11 @@ namespace ZqUtils.Helpers
             {
                 if (!xmlStr.IsNull())
                 {
-                    var xmlDoc = new XmlDocument();
+                    var xmlDoc = new XmlDocument
+                    {
+                        //修复XML外部实体注入漏洞(XML External Entity Injection，简称 XXE)
+                        XmlResolver = null
+                    };
                     xmlDoc.LoadXml(xmlStr);
                     var root = xmlDoc.SelectSingleNode("xml");
                     var xnl = root.ChildNodes;
@@ -46,7 +50,7 @@ namespace ZqUtils.Helpers
             }
             return dic;
         }
-        
+
         /// <summary>
         /// stream转换为Dictionary
         /// </summary>
@@ -57,9 +61,13 @@ namespace ZqUtils.Helpers
             var dic = new Dictionary<string, string>();
             try
             {
-                if (stream.Length > 0)
+                if (stream?.Length > 0)
                 {
-                    var xmlDoc = new XmlDocument();
+                    var xmlDoc = new XmlDocument
+                    {
+                        //修复XML外部实体注入漏洞(XML External Entity Injection，简称 XXE)
+                        XmlResolver = null
+                    };
                     xmlDoc.Load(stream);
                     var root = xmlDoc.SelectSingleNode("xml");
                     var xnl = root.ChildNodes;
