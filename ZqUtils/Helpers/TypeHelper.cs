@@ -111,20 +111,36 @@ namespace ZqUtils.Helpers
         /// <param name="assemblyName">程序集</param>
         public static Dictionary<Type, Type[]> GetClassAndInheritInterfaces(string assemblyName)
         {
+            var result = new Dictionary<Type, Type[]>();
             if (!string.IsNullOrEmpty(assemblyName))
             {
                 var assembly = Assembly.Load(assemblyName);
                 var ts = assembly.GetTypes().ToList();
-                var result = new Dictionary<Type, Type[]>();
                 foreach (var item in ts.Where(s => !s.IsInterface))
                 {
                     var interfaceType = item.GetInterfaces();
                     if (item.IsGenericType) continue;
                     result.Add(item, interfaceType);
                 }
-                return result;
             }
-            return new Dictionary<Type, Type[]>();
+            return result;
+        }
+
+        /// <summary>  
+        /// 获取程序集中的实现类对应的多个接口
+        /// </summary>  
+        /// <param name="assemblyNames">程序集数组</param>
+        public static Dictionary<Type, Type[]> GetClassAndInheritInterfaces(params string[] assemblyNames)
+        {
+            var result = new Dictionary<Type, Type[]>();
+            if (assemblyNames?.Length > 0)
+            {
+                foreach (var assemblyName in assemblyNames)
+                {
+                    result = result.Union(GetClassAndInheritInterfaces(assemblyName)).ToDictionary(o => o.Key, o => o.Value);
+                }
+            }
+            return result;
         }
         #endregion
     }
