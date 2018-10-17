@@ -118,9 +118,9 @@ namespace ZqUtils.Helpers
                 var ts = assembly.GetTypes().ToList();
                 foreach (var item in ts.Where(s => !s.IsInterface))
                 {
-                    var interfaceType = item.GetInterfaces();
+                    var interfaces = item.GetInterfaces();
                     if (item.IsGenericType) continue;
-                    result.Add(item, interfaceType);
+                    if (interfaces?.Length > 0) result.Add(item, interfaces);
                 }
             }
             return result;
