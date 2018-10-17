@@ -104,18 +104,17 @@ namespace ZqUtils.Helpers
         }
         #endregion
 
-        #region GetClassAndInheritInterface
+        #region GetClassAndInheritInterfaces
         /// <summary>  
         /// 获取程序集中的实现类对应的多个接口
         /// </summary>  
         /// <param name="assemblyName">程序集</param>
-        public static Dictionary<Type, Type[]> GetClassAndInheritInterface(string assemblyName)
+        public static Dictionary<Type, Type[]> GetClassAndInheritInterfaces(string assemblyName)
         {
             if (!string.IsNullOrEmpty(assemblyName))
             {
-                Assembly assembly = Assembly.Load(assemblyName);
-                List<Type> ts = assembly.GetTypes().ToList();
-
+                var assembly = Assembly.Load(assemblyName);
+                var ts = assembly.GetTypes().ToList();
                 var result = new Dictionary<Type, Type[]>();
                 foreach (var item in ts.Where(s => !s.IsInterface))
                 {
