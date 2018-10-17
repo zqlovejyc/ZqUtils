@@ -66,7 +66,7 @@ namespace ZqUtils.Helpers
         {
             try
             {
-                //延迟机制，默认为3的重试次数次方
+                //延迟机制，默认为2s+当前重试次数；
                 if (sleepDurationProvider == null)
                 {
                     TimeSpan SleepDurationProvider(int retryAttempt) => TimeSpan.FromSeconds(2 + retryAttempt);
@@ -150,7 +150,7 @@ namespace ZqUtils.Helpers
         {
             try
             {
-                //延迟机制，默认为3的重试次数次方
+                //延迟机制，默认为2s+当前重试次数；
                 if (sleepDurationProvider == null)
                 {
                     TimeSpan SleepDurationProvider(int retryAttempt) => TimeSpan.FromSeconds(2 + retryAttempt);
@@ -234,7 +234,7 @@ namespace ZqUtils.Helpers
         {
             try
             {
-                //延迟机制
+                //延迟机制，默认为2s+当前重试次数；
                 if (sleepDurationProvider == null)
                 {
                     TimeSpan SleepDurationProvider(int retryAttempt) => TimeSpan.FromSeconds(2 + retryAttempt);
@@ -318,7 +318,7 @@ namespace ZqUtils.Helpers
         {
             try
             {
-                //延迟机制，默认为3的重试次数次方
+                //延迟机制，默认为2s+当前重试次数；
                 if (sleepDurationProvider == null)
                 {
                     TimeSpan SleepDurationProvider(int retryAttempt) => TimeSpan.FromSeconds(2 + retryAttempt);
@@ -362,7 +362,7 @@ namespace ZqUtils.Helpers
         /// <param name="onRetry">重试事件</param>
         public static void WaitAndRetryForever<T>(Action action, Func<int, Exception, Context, TimeSpan> sleepDurationProvider = null, Action<Exception, TimeSpan, Context> onRetry = null) where T : Exception
         {
-            //延迟机制
+            //延迟机制，默认为2s+当前重试次数；
             if (sleepDurationProvider == null)
             {
                 TimeSpan SleepDurationProvider(int retryAttempt, Exception exception, Context context) => TimeSpan.FromSeconds(2 + retryAttempt);
@@ -391,7 +391,7 @@ namespace ZqUtils.Helpers
         /// <param name="onRetry">重试事件</param>
         public static void WaitAndRetryForever<TException, TResult>(Func<TResult> action, Func<TResult, bool> resultPredicate, Func<int, DelegateResult<TResult>, Context, TimeSpan> sleepDurationProvider = null, Action<DelegateResult<TResult>, TimeSpan, Context> onRetry = null) where TException : Exception
         {
-            //延迟机制
+            //延迟机制，默认为2s+当前重试次数；
             if (sleepDurationProvider == null)
             {
                 TimeSpan SleepDurationProvider(int retryAttempt, DelegateResult<TResult> delegateResult, Context context) => TimeSpan.FromSeconds(2 + retryAttempt);
@@ -422,7 +422,7 @@ namespace ZqUtils.Helpers
         /// <returns>Task</returns>
         public static async Task WaitAndRetryForeverAsync<T>(Func<Task> action, Func<int, Exception, Context, TimeSpan> sleepDurationProvider = null, Func<Exception, TimeSpan, Context, Task> onRetryAsync = null) where T : Exception
         {
-            //延迟机制
+            //延迟机制，默认为2s+当前重试次数；
             if (sleepDurationProvider == null)
             {
                 TimeSpan SleepDurationProvider(int retryAttempt, Exception exception, Context context) => TimeSpan.FromSeconds(2 + retryAttempt);
@@ -455,7 +455,7 @@ namespace ZqUtils.Helpers
         /// <param name="onRetryAsync">重试事件</param>
         public static async Task WaitAndRetryForeverAsync<TException, TResult>(Func<Task<TResult>> action, Func<TResult, bool> resultPredicate, Func<int, DelegateResult<TResult>, Context, TimeSpan> sleepDurationProvider = null, Func<DelegateResult<TResult>, TimeSpan, Context, Task> onRetryAsync = null) where TException : Exception
         {
-            //延迟机制
+            //延迟机制，默认为2s+当前重试次数；
             if (sleepDurationProvider == null)
             {
                 TimeSpan SleepDurationProvider(int retryAttempt, DelegateResult<TResult> delegateResult, Context context) => TimeSpan.FromSeconds(2 + retryAttempt);
