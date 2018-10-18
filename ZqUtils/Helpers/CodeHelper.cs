@@ -96,10 +96,7 @@ namespace ZqUtils.Helpers
                         using (var ms = new MemoryStream())
                         {
                             bitmap.Save(ms, imageFormat ?? ImageFormat.Png);
-                            var bytes = new byte[ms.Length];
-                            ms.Position = 0;
-                            ms.Read(bytes, 0, (int)ms.Length);
-                            res = $"data:image/{(imageFormat == ImageFormat.Jpeg ? "jpeg" : "png")};base64,{Convert.ToBase64String(bytes)}";
+                            res = $"data:image/{(imageFormat == ImageFormat.Jpeg ? "jpeg" : "png")};base64,{Convert.ToBase64String(ms.ToArray())}";
                         }
                     }
                 }
@@ -248,10 +245,7 @@ namespace ZqUtils.Helpers
                                     using (var ms = new MemoryStream())
                                     {
                                         bmpimg.Save(ms, imageFormat ?? ImageFormat.Png);
-                                        var bytes = new byte[ms.Length];
-                                        ms.Position = 0;
-                                        ms.Read(bytes, 0, (int)ms.Length);
-                                        res = $"data:image/{(imageFormat == ImageFormat.Jpeg ? "jpeg" : "png")};base64,{Convert.ToBase64String(bytes)}";
+                                        res = $"data:image/{(imageFormat == ImageFormat.Jpeg ? "jpeg" : "png")};base64,{Convert.ToBase64String(ms.ToArray())}";
                                     }
                                 }
                             }
@@ -350,10 +344,7 @@ namespace ZqUtils.Helpers
                         using (var ms = new MemoryStream())
                         {
                             bitmap.Save(ms, imageFormat ?? ImageFormat.Png);
-                            var bytes = new byte[ms.Length];
-                            ms.Position = 0;
-                            ms.Read(bytes, 0, (int)ms.Length);
-                            res = $"data:image/{(imageFormat == ImageFormat.Jpeg ? "jpeg" : "png")};base64,{Convert.ToBase64String(bytes)}";
+                            res = $"data:image/{(imageFormat == ImageFormat.Jpeg ? "jpeg" : "png")};base64,{Convert.ToBase64String(ms.ToArray())}";
                         }
                     }
                 }
