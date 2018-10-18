@@ -18,7 +18,7 @@ namespace ZqUtils.Helpers
         /// </summary>
         /// <param name="strName">cookie名称</param>
         /// <param name="strValue">cookie值</param>
-        public static void Write(string strName, string strValue)
+        public static void Set(string strName, string strValue)
         {
             var cookie = HttpContext.Current.Request.Cookies[strName];            
             if (cookie == null) cookie = new HttpCookie(strName);
@@ -32,7 +32,7 @@ namespace ZqUtils.Helpers
         /// <param name="strName">cookie名称</param>
         /// <param name="strValue">cookie值</param>
         /// <param name="expires">过期时间(单位：分钟)</param>
-        public static void Write(string strName, string strValue, int expires)
+        public static void Set(string strName, string strValue, int expires)
         {
             var cookie = HttpContext.Current.Request.Cookies[strName];
             if (cookie == null) cookie = new HttpCookie(strName);

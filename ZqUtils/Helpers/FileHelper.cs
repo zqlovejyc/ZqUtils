@@ -64,9 +64,8 @@ namespace ZqUtils.Helpers
         /// <param name="filePath">文件路径</param>
         /// <param name="fileName">文件名</param>
         /// <param name="isDeleteFile">是否删除源文件</param>
-        public static bool GetFile(string filePath, string fileName, bool isDeleteFile = false)
+        public static void GetFile(string filePath, string fileName, bool isDeleteFile = false)
         {
-            var result = true;
             try
             {
                 using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
@@ -106,15 +105,13 @@ namespace ZqUtils.Helpers
             }
             catch (Exception ex)
             {
-                LogHelper.Error(ex, "续传获取文件");
-                result = false;
+                throw ex;
             }
             finally
             {
                 if (isDeleteFile) if (File.Exists(filePath)) File.Delete(filePath);
                 HttpContext.Current.Response.End();
             }
-            return result;
         }
 
         /// <summary>
@@ -123,11 +120,9 @@ namespace ZqUtils.Helpers
         /// <param name="fileName">下载文件名</param>
         /// <param name="fullPath">带文件名下载路径</param>
         /// <param name="speed">每秒允许下载的字节数</param>
-        /// <param name="isDeleteFile">是否删除源文件</param>
-        /// <returns>返回是否成功</returns>
-        public static bool GetFile(string fileName, string fullPath, long speed, bool isDeleteFile = false)
+        /// <param name="isDeleteFile">是否删除源文件</param>        
+        public static void GetFile(string fileName, string fullPath, long speed, bool isDeleteFile = false)
         {
-            var result = true;
             try
             {
                 var request = HttpContext.Current.Request;
@@ -175,15 +170,13 @@ namespace ZqUtils.Helpers
             }
             catch (Exception ex)
             {
-                LogHelper.Error(ex, "限速续传获取文件");
-                result = false;
+                throw ex;
             }
             finally
             {
                 if (isDeleteFile) if (File.Exists(fullPath)) File.Delete(fullPath);
                 HttpContext.Current.Response.End();
             }
-            return result;
         }
 
         /// <summary>
@@ -193,9 +186,8 @@ namespace ZqUtils.Helpers
         /// <param name="fileName">文件名称</param>
         /// <param name="contentType">文件类型【application/pdf、text/plain、text/html、application/zip、application/msword、application/vnd.ms-excel、application/vnd.ms-powerpoint、image/gif、image/png、image/jpg】</param>
         /// <param name="isDeleteFile">是否删除源文件</param>
-        public static bool GetFile(string filePath, string fileName, string contentType, bool isDeleteFile = false)
+        public static void GetFile(string filePath, string fileName, string contentType, bool isDeleteFile = false)
         {
-            var result = true;
             try
             {
                 HttpContext.Current.Response.ClearContent();
@@ -211,15 +203,13 @@ namespace ZqUtils.Helpers
             }
             catch (Exception ex)
             {
-                LogHelper.Error(ex, "普通获取文件");
-                result = false;
+                throw ex;
             }
             finally
             {
                 if (isDeleteFile) if (File.Exists(filePath)) File.Delete(filePath);
                 HttpContext.Current.Response.End();
             }
-            return result;
         }
 
         /// <summary>
@@ -228,9 +218,8 @@ namespace ZqUtils.Helpers
         /// <param name="pathArr">文件路径数组</param>
         /// <param name="zipName">压缩文件名</param>
         /// <param name="isDeleteFiles">是否删除源文件</param>
-        public static bool GetFileOfZip(string[] pathArr, string zipName, bool isDeleteFiles = false)
+        public static void GetFileOfZip(string[] pathArr, string zipName, bool isDeleteFiles = false)
         {
-            var result = true;
             try
             {
                 if (pathArr?.Length > 0)
@@ -264,15 +253,10 @@ namespace ZqUtils.Helpers
                         }
                     }
                 }
-                else
-                {
-                    result = false;
-                }
             }
             catch (Exception ex)
             {
-                LogHelper.Error(ex, "获取压缩过的文件");
-                throw;
+                throw ex;
             }
             finally
             {
@@ -286,7 +270,6 @@ namespace ZqUtils.Helpers
                 }
                 HttpContext.Current.Response.End();
             }
-            return result;
         }
         #endregion
 
