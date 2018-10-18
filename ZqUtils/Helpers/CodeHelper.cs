@@ -21,6 +21,7 @@ namespace ZqUtils.Helpers
     public class CodeHelper
     {
         #region 创建二维码图片
+        #region CreateQr
         /// <summary>
         /// 创建二维码图片
         /// </summary>
@@ -60,51 +61,6 @@ namespace ZqUtils.Helpers
             {
                 LogHelper.Error(ex, "生成二维码图片");
                 res = false;
-            }
-            return res;
-        }
-
-        /// <summary>
-        /// 创建二维码图片，返回base64字符串
-        /// </summary>
-        /// <param name="contents">要生成二维码包含的信息</param>
-        /// <param name="width">二维码宽度</param>
-        /// <param name="height">二维码高度</param>
-        /// <param name="imageFormat">图片格式，默认：png</param>
-        /// <returns>bool</returns>
-        public static string CreateQrBase64(string contents, int width = 300, int height = 300, ImageFormat imageFormat = null)
-        {
-            var res = string.Empty;
-            try
-            {
-                if (!string.IsNullOrEmpty(contents))
-                {
-                    var writer = new BarcodeWriter
-                    {
-                        Format = BarcodeFormat.QR_CODE,
-                        Options = new QrCodeEncodingOptions
-                        {
-                            DisableECI = true,
-                            CharacterSet = "UTF-8",
-                            Width = width,
-                            Height = height,
-                            ErrorCorrection = ErrorCorrectionLevel.H,
-                        }
-                    };
-                    using (var bitmap = writer.Write(contents))
-                    {
-                        using (var ms = new MemoryStream())
-                        {
-                            bitmap.Save(ms, imageFormat ?? ImageFormat.Png);
-                            res = $"data:image/{(imageFormat == ImageFormat.Jpeg ? "jpeg" : "png")};base64,{Convert.ToBase64String(ms.ToArray())}";
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "创建二维码图片，返回base64字符串");
-                res = string.Empty;
             }
             return res;
         }
@@ -182,6 +138,53 @@ namespace ZqUtils.Helpers
             {
                 LogHelper.Error(ex, "创建中间带有图片的二维码图片");
                 res = false;
+            }
+            return res;
+        }
+        #endregion
+
+        #region CreateQrBase64
+        /// <summary>
+        /// 创建二维码图片，返回base64字符串
+        /// </summary>
+        /// <param name="contents">要生成二维码包含的信息</param>
+        /// <param name="width">二维码宽度</param>
+        /// <param name="height">二维码高度</param>
+        /// <param name="imageFormat">图片格式，默认：png</param>
+        /// <returns>bool</returns>
+        public static string CreateQrBase64(string contents, int width = 300, int height = 300, ImageFormat imageFormat = null)
+        {
+            var res = string.Empty;
+            try
+            {
+                if (!string.IsNullOrEmpty(contents))
+                {
+                    var writer = new BarcodeWriter
+                    {
+                        Format = BarcodeFormat.QR_CODE,
+                        Options = new QrCodeEncodingOptions
+                        {
+                            DisableECI = true,
+                            CharacterSet = "UTF-8",
+                            Width = width,
+                            Height = height,
+                            ErrorCorrection = ErrorCorrectionLevel.H,
+                        }
+                    };
+                    using (var bitmap = writer.Write(contents))
+                    {
+                        using (var ms = new MemoryStream())
+                        {
+                            bitmap.Save(ms, imageFormat ?? ImageFormat.Png);
+                            res = $"data:image/{(imageFormat == ImageFormat.Jpeg ? "jpeg" : "png")};base64,{Convert.ToBase64String(ms.ToArray())}";
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Error(ex, "创建二维码图片，返回base64字符串");
+                res = string.Empty;
             }
             return res;
         }
@@ -265,8 +268,10 @@ namespace ZqUtils.Helpers
             return res;
         }
         #endregion
+        #endregion
 
         #region 创建条形码图片
+        #region CreateBar
         /// <summary>
         /// 创建条形码
         /// </summary>
@@ -310,7 +315,9 @@ namespace ZqUtils.Helpers
             }
             return res;
         }
+        #endregion
 
+        #region CreateBarBase64
         /// <summary>
         /// 创建条形码，返回base64字符串
         /// </summary>
@@ -357,6 +364,7 @@ namespace ZqUtils.Helpers
             return res;
         }
         #endregion
+        #endregion
 
         #region 读取二维码或者条形码
         /// <summary>
@@ -390,23 +398,6 @@ namespace ZqUtils.Helpers
         #endregion
 
         #region 验证码
-        /// <summary>
-        /// 生成随机的字符串
-        /// </summary>
-        /// <param name="codeCount">验证码长度</param>
-        /// <returns>string</returns>
-        public static string CreateRandomCode(int codeCount)
-        {
-            var allCharArray = new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
-            var randomCode = string.Empty;
-            var rand = new Random();
-            for (var i = 0; i < codeCount; i++)
-            {
-                randomCode += allCharArray[rand.Next(allCharArray.Length)];
-            }
-            return randomCode;
-        }
-
         /// <summary>
         /// 生成验证码字节数组
         /// </summary>
