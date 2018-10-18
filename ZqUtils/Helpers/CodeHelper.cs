@@ -72,7 +72,7 @@ namespace ZqUtils.Helpers
         /// <param name="height">二维码高度</param>
         /// <param name="imageFormat">图片格式，默认：png</param>
         /// <returns>bool</returns>
-        public static string CreateQr(string contents, int width = 300, int height = 300, ImageFormat imageFormat = null)
+        public static string CreateQrBase64(string contents, int width = 300, int height = 300, ImageFormat imageFormat = null)
         {
             var res = string.Empty;
             try
@@ -195,7 +195,7 @@ namespace ZqUtils.Helpers
         /// <param name="height">二维码高度</param>
         /// <param name="imageFormat">图片格式，默认：png</param>
         /// <returns>bool</returns>
-        public static string CreateQr(string contents, string logoPath, int width = 300, int height = 300, ImageFormat imageFormat = null)
+        public static string CreateQrBase64(string contents, string logoPath, int width = 300, int height = 300, ImageFormat imageFormat = null)
         {
             var res = string.Empty;
             try
@@ -253,7 +253,7 @@ namespace ZqUtils.Helpers
                     }
                     else
                     {
-                        res = CreateQr(contents, width, height, imageFormat);
+                        res = CreateQrBase64(contents, width, height, imageFormat);
                     }
                 }
             }
@@ -319,7 +319,7 @@ namespace ZqUtils.Helpers
         /// <param name="height">条形码高度</param>
         /// <param name="imageFormat">图片格式，默认：png</param>
         /// <returns>bool</returns>
-        public static string CreateBar(string contents, int width = 150, int height = 50, ImageFormat imageFormat = null)
+        public static string CreateBarBase64(string contents, int width = 150, int height = 50, ImageFormat imageFormat = null)
         {
             var res = string.Empty;
             try
