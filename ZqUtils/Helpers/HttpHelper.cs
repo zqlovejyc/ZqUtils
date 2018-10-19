@@ -52,9 +52,9 @@ namespace ZqUtils.Helpers
         }
         #endregion
 
-        #region https安全验证
+        #region HTTPS安全验证
         /// <summary>
-        /// https安全验证
+        /// HTTPS安全验证
         /// </summary>
         /// <param name="sender">发送者</param>
         /// <param name="certificate">X509证书</param>
@@ -67,9 +67,9 @@ namespace ZqUtils.Helpers
         }
         #endregion
 
-        #region post请求
+        #region POST请求
         /// <summary>
-        /// post请求
+        /// POST请求
         /// </summary>
         /// <param name="url">post请求地址</param>
         /// <param name="data">post请求参数</param>
@@ -165,7 +165,7 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
-        /// post请求
+        /// POST请求
         /// </summary>
         /// <param name="url">post请求地址</param>
         /// <param name="data">post请求参数</param>
@@ -182,7 +182,7 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
-        /// post请求
+        /// POST请求
         /// </summary>
         /// <param name="url">post请求地址</param>
         /// <param name="data">post请求参数</param>
@@ -251,7 +251,7 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
-        /// post请求
+        /// POST请求
         /// </summary>
         /// <param name="url">post请求地址</param>
         /// <param name="data">post请求参数</param>
@@ -267,9 +267,9 @@ namespace ZqUtils.Helpers
         }
         #endregion
 
-        #region get请求
+        #region GET请求
         /// <summary>
-        /// get请求
+        /// GET请求
         /// </summary>
         /// <param name="url">get请求地址</param>
         /// <param name="encoding">编码方式</param>
@@ -348,7 +348,7 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
-        /// get请求
+        /// GET请求
         /// </summary>
         /// <param name="url">get请求地址</param>
         /// <param name="data">字典型请求参数</param>
@@ -363,7 +363,7 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
-        /// get请求
+        /// GET请求
         /// </summary>
         /// <param name="url">get请求地址</param>
         /// <param name="cookies">请求cookies</param>
@@ -415,7 +415,7 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
-        /// get请求
+        /// GET请求
         /// </summary>
         /// <param name="url">get请求地址</param>
         /// <param name="data">字典型请求参数</param>
@@ -429,9 +429,9 @@ namespace ZqUtils.Helpers
         }
         #endregion
 
-        #region http上传文件
+        #region HTTP上传文件
         /// <summary>
-        /// http单文件上传
+        /// HTTP单文件上传
         /// </summary>
         /// <param name="url">上传地址</param>
         /// <param name="path">文件路径</param>
@@ -532,7 +532,7 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
-        /// http多文件上传
+        /// HTTP多文件上传
         /// </summary>
         /// <param name="url">上传地址</param>
         /// <param name="files">需要上传的文件，Key：对应要上传的Name，Value：文件路径</param>
@@ -648,7 +648,7 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
-        /// http表单和多文件同时上传
+        /// HTTP表单和多文件同时上传
         /// </summary>
         /// <param name="url">上传地址</param>
         /// <param name="data">表单数据</param>
@@ -800,7 +800,7 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
-        /// http表单和多文件同时上传
+        /// HTTP表单和多文件同时上传
         /// </summary>
         /// <param name="url">上传地址</param>
         /// <param name="data">表单数据字典集合</param>
@@ -955,9 +955,9 @@ namespace ZqUtils.Helpers
         }
         #endregion
 
-        #region http下载文件
+        #region HTTP下载文件
         /// <summary>
-        /// http get方式下载任意类型文件
+        /// HTTP GET方式下载任意类型文件
         /// </summary>
         /// <param name="url">文件http路径</param>
         /// <param name="saveDir">保存文件目录</param>
@@ -1047,7 +1047,7 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
-        /// http post方式下载任意类型文件
+        /// HTTP POST方式下载任意类型文件
         /// </summary>
         /// <param name="url">文件http路径</param>
         /// <param name="data">post数据</param>
