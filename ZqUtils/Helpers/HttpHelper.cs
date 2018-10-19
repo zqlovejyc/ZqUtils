@@ -147,11 +147,11 @@ namespace ZqUtils.Helpers
                 {
                     if (cookies != null) response.Cookies = cc.GetCookies(response.ResponseUri);
                     var responseStream = response.GetResponseStream();
-                    if (response.ContentEncoding.ToLower().Contains("gzip"))
+                    if (response.ContentEncoding?.ToLower().Contains("gzip") == true)
                     {
                         responseStream = new GZipStream(responseStream, CompressionMode.Decompress);
                     }
-                    else if (response.ContentEncoding.ToLower().Contains("deflate"))
+                    else if (response.ContentEncoding?.ToLower().Contains("deflate") == true)
                     {
                         responseStream = new DeflateStream(responseStream, CompressionMode.Decompress);
                     }
@@ -330,11 +330,11 @@ namespace ZqUtils.Helpers
                 {
                     if (cookies != null) response.Cookies = cc.GetCookies(response.ResponseUri);
                     var responseStream = response.GetResponseStream();
-                    if (response.ContentEncoding.ToLower().Contains("gzip"))
+                    if (response.ContentEncoding?.ToLower().Contains("gzip") == true)
                     {
                         responseStream = new GZipStream(responseStream, CompressionMode.Decompress);
                     }
-                    else if (response.ContentEncoding.ToLower().Contains("deflate"))
+                    else if (response.ContentEncoding?.ToLower().Contains("deflate") == true)
                     {
                         responseStream = new DeflateStream(responseStream, CompressionMode.Decompress);
                     }
@@ -514,11 +514,11 @@ namespace ZqUtils.Helpers
                     if (cookies != null) response.Cookies = cc.GetCookies(response.ResponseUri);
                     //直到request.GetResponse()程序才开始向目标网页发送Post请求
                     var responseStream = response.GetResponseStream();
-                    if (response.ContentEncoding.ToLower().Contains("gzip"))
+                    if (response.ContentEncoding?.ToLower().Contains("gzip") == true)
                     {
                         responseStream = new GZipStream(responseStream, CompressionMode.Decompress);
                     }
-                    else if (response.ContentEncoding.ToLower().Contains("deflate"))
+                    else if (response.ContentEncoding?.ToLower().Contains("deflate") == true)
                     {
                         responseStream = new DeflateStream(responseStream, CompressionMode.Decompress);
                     }
@@ -630,11 +630,11 @@ namespace ZqUtils.Helpers
                         response.Cookies = cc.GetCookies(response.ResponseUri);
                     }
                     var responseStream = response.GetResponseStream();
-                    if (response.ContentEncoding.ToLower().Contains("gzip"))
+                    if (response.ContentEncoding?.ToLower().Contains("gzip") == true)
                     {
                         responseStream = new GZipStream(responseStream, CompressionMode.Decompress);
                     }
-                    else if (response.ContentEncoding.ToLower().Contains("deflate"))
+                    else if (response.ContentEncoding?.ToLower().Contains("deflate") == true)
                     {
                         responseStream = new DeflateStream(responseStream, CompressionMode.Decompress);
                     }
@@ -782,11 +782,11 @@ namespace ZqUtils.Helpers
                         response.Cookies = cc.GetCookies(response.ResponseUri);
                     }
                     var responseStream = response.GetResponseStream();
-                    if (response.ContentEncoding.ToLower().Contains("gzip"))
+                    if (response.ContentEncoding?.ToLower().Contains("gzip") == true)
                     {
                         responseStream = new GZipStream(responseStream, CompressionMode.Decompress);
                     }
-                    else if (response.ContentEncoding.ToLower().Contains("deflate"))
+                    else if (response.ContentEncoding?.ToLower().Contains("deflate") == true)
                     {
                         responseStream = new DeflateStream(responseStream, CompressionMode.Decompress);
                     }
@@ -937,11 +937,11 @@ namespace ZqUtils.Helpers
                         response.Cookies = cc.GetCookies(response.ResponseUri);
                     }
                     var responseStream = response.GetResponseStream();
-                    if (response.ContentEncoding.ToLower().Contains("gzip"))
+                    if (response.ContentEncoding?.ToLower().Contains("gzip") == true)
                     {
                         responseStream = new GZipStream(responseStream, CompressionMode.Decompress);
                     }
-                    else if (response.ContentEncoding.ToLower().Contains("deflate"))
+                    else if (response.ContentEncoding?.ToLower().Contains("deflate") == true)
                     {
                         responseStream = new DeflateStream(responseStream, CompressionMode.Decompress);
                     }
@@ -1023,11 +1023,11 @@ namespace ZqUtils.Helpers
                 {
                     if (cookies != null) response.Cookies = cc.GetCookies(response.ResponseUri);
                     var responseStream = response.GetResponseStream();
-                    if (response.ContentEncoding.ToLower().Contains("gzip"))
+                    if (response.ContentEncoding?.ToLower().Contains("gzip") == true)
                     {
                         responseStream = new GZipStream(responseStream, CompressionMode.Decompress);
                     }
-                    else if (response.ContentEncoding.ToLower().Contains("deflate"))
+                    else if (response.ContentEncoding?.ToLower().Contains("deflate") == true)
                     {
                         responseStream = new DeflateStream(responseStream, CompressionMode.Decompress);
                     }
@@ -1123,11 +1123,11 @@ namespace ZqUtils.Helpers
                 {
                     if (cookies != null) response.Cookies = cc.GetCookies(response.ResponseUri);
                     var responseStream = response.GetResponseStream();
-                    if (response.ContentEncoding.ToLower().Contains("gzip"))
+                    if (response.ContentEncoding?.ToLower().Contains("gzip") == true)
                     {
                         responseStream = new GZipStream(responseStream, CompressionMode.Decompress);
                     }
-                    else if (response.ContentEncoding.ToLower().Contains("deflate"))
+                    else if (response.ContentEncoding?.ToLower().Contains("deflate") == true)
                     {
                         responseStream = new DeflateStream(responseStream, CompressionMode.Decompress);
                     }
@@ -1205,11 +1205,11 @@ namespace ZqUtils.Helpers
             if (response != null && response.StatusCode == HttpStatusCode.OK)
             {
                 var responseStream = response.GetResponseStream();
-                if (response.ContentEncoding.ToLower().Contains("gzip"))
+                if (response.ContentEncoding?.ToLower().Contains("gzip") == true)
                 {
                     responseStream = new GZipStream(responseStream, CompressionMode.Decompress);
                 }
-                else if (response.ContentEncoding.ToLower().Contains("deflate"))
+                else if (response.ContentEncoding?.ToLower().Contains("deflate") == true)
                 {
                     responseStream = new DeflateStream(responseStream, CompressionMode.Decompress);
                 }
