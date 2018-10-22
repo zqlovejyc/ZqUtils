@@ -1277,5 +1277,23 @@ namespace ZqUtils.Extensions
             return @this;
         }
         #endregion
+
+        #region 正则替换
+        /// <summary>
+        /// 正则替换
+        /// </summary>
+        /// <param name="this">源字符串</param>
+        /// <param name="replacement">替换内容</param>
+        /// <param name="pattern">正则表达式</param>
+        /// <returns>替换后的字符串</returns>
+        public static string ReplaceOfRegex(this string @this, string replacement = "", string pattern = @"\s")
+        {
+            if (!string.IsNullOrEmpty(@this))
+            {
+                @this = Regex.Replace(@this, pattern, replacement);
+            }
+            return @this;
+        }
+        #endregion
     }
 }

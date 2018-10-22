@@ -24,7 +24,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Collections.Concurrent;
-using System.Text.RegularExpressions;
+using ZqUtils.Extensions;
 /****************************
 * [Author] 张强
 * [Date] 2015-10-26
@@ -79,7 +79,7 @@ namespace ZqUtils.Helpers
             var logMessage = new LogMessage
             {
                 Level = LogLevel.Info,
-                Message = string.Format(Regex.Replace(message?.Replace("{", "{{").Replace("}", "}}") ?? "", @"{{(\d+)}}", "{$1}"), args),
+                Message = string.Format((message?.Replace("{", "{{").Replace("}", "}}") ?? "").ReplaceOfRegex("{$1}", @"{{(\d+)}}"), args),
                 StackFrame = sf
             };
             _que.Enqueue(logMessage);
@@ -99,7 +99,7 @@ namespace ZqUtils.Helpers
             var logMessage = new LogMessage
             {
                 Level = LogLevel.Error,
-                Message = string.Format(Regex.Replace(message?.Replace("{", "{{").Replace("}", "}}") ?? "", @"{{(\d+)}}", "{$1}"), args),
+                Message = string.Format((message?.Replace("{", "{{").Replace("}", "}}") ?? "").ReplaceOfRegex("{$1}", @"{{(\d+)}}"), args),
                 StackFrame = sf
             };
             _que.Enqueue(logMessage);
@@ -128,7 +128,7 @@ namespace ZqUtils.Helpers
             {
                 Level = LogLevel.Error,
                 Exception = ex,
-                Message = string.Format(Regex.Replace(message?.Replace("{", "{{").Replace("}", "}}") ?? "", @"{{(\d+)}}", "{$1}"), args),
+                Message = string.Format((message?.Replace("{", "{{").Replace("}", "}}") ?? "").ReplaceOfRegex("{$1}", @"{{(\d+)}}"), args),
                 StackFrame = sf
             };
             _que.Enqueue(logMessage);
