@@ -356,6 +356,19 @@ namespace ZqUtils.Extensions
         }
         #endregion
 
+        #region URL拼接字符串转换为强类型T
+        /// <summary>
+        /// URL拼接字符串转换为强类型T
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <returns></returns>
+        public static T ToEntity<T>(this string @this)
+        {
+            return @this.ToDictionary().ToJson().ToObject<T>();
+        }
+        #endregion
+
         #region 字符串半角转全角
         /// <summary>
         /// 半角转全角的函数(SBC case)
