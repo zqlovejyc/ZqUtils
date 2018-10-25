@@ -52,31 +52,6 @@ namespace ZqUtils.Extensions
             }
             return t;
         }
-
-        /// <summary>
-        /// 时间戳转时间
-        /// </summary>
-        /// <param name="this">时间戳字符串</param>
-        /// <param name="type">默认10位[13位]</param>
-        /// <returns></returns>
-        public static DateTime ToDateTime(this string @this, int type = 10)
-        {
-            var time = new DateTime();
-            var dateTimeStart = TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1));
-            if (type == 10)
-            {
-                var lTime = long.Parse(@this + "0000000");
-                var toNow = new TimeSpan(lTime);
-                time = dateTimeStart.Add(toNow);
-            }
-            else if (type == 13)
-            {
-                var lTime = long.Parse(@this + "0000");
-                var toNow = new TimeSpan(lTime);
-                time = dateTimeStart.Add(toNow);
-            }
-            return time;
-        }
         #endregion
 
         #region ToUnixTime

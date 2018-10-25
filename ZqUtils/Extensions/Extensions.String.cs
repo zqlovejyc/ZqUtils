@@ -661,30 +661,58 @@ namespace ZqUtils.Extensions
         }
         #endregion
 
-        #region GMT日期字符串转换为DateTime
+        #region 字符串转日期
         /// <summary>
-        /// GMT字符串转换为DateTime
+        /// GMT字符串/时间戳转DateTime
         /// </summary>
         /// <param name="this">GMT日期字符串</param>
         /// <returns>DateTime</returns>
         public static DateTime ToDateTime(this string @this)
         {
             var dt = DateTime.MinValue;
-            var pattern = "";
-            if (@this.IndexOf("+0") != -1)
+            if (!@this.IsNull())
             {
-                @this = @this.Replace("GMT", "");
-                pattern = "ddd, dd MMM yyyy HH':'mm':'ss zzz";
-            }
-            if (@this.ToUpper().IndexOf("GMT") != -1) pattern = "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'";
-            if (pattern != "")
-            {
-                dt = DateTime.ParseExact(@this, pattern, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal);
-                dt = dt.ToLocalTime();
-            }
-            else
-            {
-                dt = Convert.ToDateTime(@this);
+                #region GMT日期
+                if (@this.ToUpper().Contains("GMT") == true)
+                {
+                    var pattern = "";
+                    if (@this.IndexOf("+0") != -1)
+                    {
+                        @this = @this.Replace("GMT", "");
+                        pattern = "ddd, dd MMM yyyy HH':'mm':'ss zzz";
+                    }
+                    if (@this.ToUpper().IndexOf("GMT") != -1) pattern = "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'";
+                    if (pattern != "")
+                    {
+                        dt = DateTime.ParseExact(@this, pattern, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal);
+                        dt = dt.ToLocalTime();
+                    }
+                    else
+                    {
+                        dt = Convert.ToDateTime(@this);
+                    }
+                }
+                #endregion
+
+                #region 时间戳
+                else
+                {
+                    var start = TimeZoneInfo.ConvertTime(new DateTime(1970, 1, 1), TimeZoneInfo.Local);
+                    var type = @this.Length;
+                    if (type == 10)
+                    {
+                        var ticks = long.Parse(@this + "0000000");
+                        var time = new TimeSpan(ticks);
+                        dt = start.Add(time);
+                    }
+                    else if (type == 13)
+                    {
+                        var ticks = long.Parse(@this + "0000");
+                        var time = new TimeSpan(ticks);
+                        dt = start.Add(time);
+                    }
+                }
+                #endregion
             }
             return dt;
         }
