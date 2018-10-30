@@ -104,16 +104,17 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 构建Mongo的更新表达式
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="fieldList"></param>
         /// <param name="property"></param>
         /// <param name="propertyValue"></param>
         /// <param name="item"></param>
         /// <param name="father"></param>
-        public static void BuildUpdateDefinition<TEntity>(
-              List<UpdateDefinition<TEntity>> fieldList,
+        public static void BuildUpdateDefinition<T>(
+              List<UpdateDefinition<T>> fieldList,
               PropertyInfo property,
               object propertyValue,
-              TEntity item,
+              T item,
               string father)
         {
             //复杂类型
@@ -164,11 +165,11 @@ namespace ZqUtils.Helpers
 
                     if (string.IsNullOrWhiteSpace(father))
                     {
-                        fieldList.Add(Builders<TEntity>.Update.Set(property.Name, propertyValue));
+                        fieldList.Add(Builders<T>.Update.Set(property.Name, propertyValue));
                     }
                     else
                     {
-                        fieldList.Add(Builders<TEntity>.Update.Set(father + "." + property.Name, propertyValue));
+                        fieldList.Add(Builders<T>.Update.Set(father + "." + property.Name, propertyValue));
                     }
                 }
             }
@@ -177,12 +178,13 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 构建Mongo的更新表达式
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public static List<UpdateDefinition<TEntity>> BuildUpdateDefinition<TEntity>(TEntity entity)
+        public static List<UpdateDefinition<T>> BuildUpdateDefinition<T>(T entity)
         {
-            var fieldList = new List<UpdateDefinition<TEntity>>();
-            foreach (var property in typeof(TEntity).GetProperties(BindingFlags.Instance | BindingFlags.Public))
+            var fieldList = new List<UpdateDefinition<T>>();
+            foreach (var property in typeof(T).GetProperties(BindingFlags.Instance | BindingFlags.Public))
             {
                 BuildUpdateDefinition(fieldList, property, property.GetValue(entity), entity, string.Empty);
             }
@@ -224,13 +226,13 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 获取子项名称集合
         /// </summary>
-        /// <typeparam name="TEntity"></typeparam>        
+        /// <typeparam name="T"></typeparam>        
         /// <param name="entity"></param>
         /// <returns></returns>
-        public static List<string> GetFields<TEntity>(object entity)
+        public static List<string> GetFields<T>(object entity)
         {
             var fields = new List<string>();
-            foreach (var property in typeof(TEntity).GetProperties(BindingFlags.Instance | BindingFlags.Public))
+            foreach (var property in typeof(T).GetProperties(BindingFlags.Instance | BindingFlags.Public))
             {
                 //集合
                 if (typeof(IList).IsAssignableFrom(property.PropertyType))
@@ -264,7 +266,7 @@ namespace ZqUtils.Helpers
         /// <param name="entity">插入实体</param>
         public void InsertOne<T>(T entity)
         {
-            var collection = this.database.GetCollection<T>(nameof(T));
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
             collection.InsertOne(entity);
         }
 
@@ -287,7 +289,7 @@ namespace ZqUtils.Helpers
         /// <param name="entity">插入实体</param>
         public void InsertMany<T>(List<T> entity)
         {
-            var collection = this.database.GetCollection<T>(nameof(T));
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
             collection.InsertMany(entity);
         }
 
@@ -312,7 +314,7 @@ namespace ZqUtils.Helpers
         /// <param name="entity">插入实体</param>
         public async Task InsertOneAsync<T>(T entity)
         {
-            var collection = this.database.GetCollection<T>(nameof(T));
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
             await collection.InsertOneAsync(entity);
         }
 
@@ -335,7 +337,7 @@ namespace ZqUtils.Helpers
         /// <param name="entity">插入实体</param>
         public async Task InsertManyAsync<T>(List<T> entity)
         {
-            var collection = this.database.GetCollection<T>(nameof(T));
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
             await collection.InsertManyAsync(entity);
         }
 
@@ -364,7 +366,7 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public bool DeleteOne<T>(Expression<Func<T, bool>> query, DeleteOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(nameof(T));
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
             return collection.DeleteOne(query, options).DeletedCount > 0;
         }
 
@@ -391,7 +393,7 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public bool DeleteMany<T>(Expression<Func<T, bool>> query, DeleteOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(nameof(T));
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
             return collection.DeleteMany(query, options).DeletedCount > 0;
         }
 
@@ -429,7 +431,7 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public async Task<DeleteResult> DeleteOneAsync<T>(Expression<Func<T, bool>> query, DeleteOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(nameof(T));
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
             return await collection.DeleteOneAsync(query, options);
         }
 
@@ -456,7 +458,7 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public async Task<DeleteResult> DeleteManyAsync<T>(Expression<Func<T, bool>> query, DeleteOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(nameof(T));
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
             return await collection.DeleteManyAsync(query, options);
         }
 
@@ -497,7 +499,7 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public bool UpdatePushItem<T>(object item, Expression<Func<T, bool>> filter) where T : class
         {
-            var collection = this.database.GetCollection<T>(nameof(T));
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
             return collection.UpdateOne<T>(filter, Builders<T>.Update.Push(GetFields<T>(item).FirstOrDefault(), item)).ModifiedCount > 0 ? true : false;
         }
 
@@ -541,7 +543,7 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public bool UpdatePullItem<T>(object item, Expression<Func<T, bool>> filter) where T : class
         {
-            var collection = this.database.GetCollection<T>(nameof(T));
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
             return collection.UpdateOne<T>(filter, Builders<T>.Update.Pull(GetFields<T>(item).FirstOrDefault(), item)).ModifiedCount > 0 ? true : false;
         }
 
@@ -584,7 +586,7 @@ namespace ZqUtils.Helpers
         /// <param name="entity">新实体</param>
         public bool UpdateOne<T>(Expression<Func<T, bool>> filter, T entity) where T : class
         {
-            var collection = this.database.GetCollection<T>(nameof(T));
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
             var updateList = BuildUpdateDefinition<T>(entity);
             return collection.UpdateOne<T>(filter, Builders<T>.Update.Combine(updateList)).ModifiedCount > 0;
         }
@@ -613,7 +615,7 @@ namespace ZqUtils.Helpers
         /// <param name="entity">新实体</param>
         public bool UpdateMany<T>(Expression<Func<T, bool>> filter, T entity)
         {
-            var collection = this.database.GetCollection<T>(nameof(T));
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
             var updateList = BuildUpdateDefinition<T>(entity);
             return collection.UpdateMany<T>(filter, Builders<T>.Update.Combine(updateList)).ModifiedCount > 0;
         }
@@ -645,7 +647,7 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public async Task<UpdateResult> UpdatePushItemAsync<T>(object item, Expression<Func<T, bool>> filter) where T : class
         {
-            var collection = this.database.GetCollection<T>(nameof(T));
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
             return await collection.UpdateOneAsync<T>(filter, Builders<T>.Update.Push(GetFields<T>(item).FirstOrDefault(), item));
         }
 
@@ -689,7 +691,7 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public async Task<UpdateResult> UpdatePullItemAsync<T>(object item, Expression<Func<T, bool>> filter) where T : class
         {
-            var collection = this.database.GetCollection<T>(nameof(T));
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
             return await collection.UpdateOneAsync<T>(filter, Builders<T>.Update.Pull(GetFields<T>(item).FirstOrDefault(), item));
         }
 
@@ -732,7 +734,7 @@ namespace ZqUtils.Helpers
         /// <param name="entity">新实体</param>
         public async Task<UpdateResult> UpdateOneAsync<T>(Expression<Func<T, bool>> filter, T entity) where T : class
         {
-            var collection = this.database.GetCollection<T>(nameof(T));
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
             var updateList = BuildUpdateDefinition<T>(entity);
             return await collection.UpdateOneAsync<T>(filter, Builders<T>.Update.Combine(updateList));
         }
@@ -761,7 +763,7 @@ namespace ZqUtils.Helpers
         /// <param name="entity">新实体</param>
         public async Task<UpdateResult> UpdateManyAsync<T>(Expression<Func<T, bool>> filter, T entity)
         {
-            var collection = this.database.GetCollection<T>(nameof(T));
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
             var updateList = BuildUpdateDefinition<T>(entity);
             return await collection.UpdateManyAsync<T>(filter, Builders<T>.Update.Combine(updateList));
         }
@@ -794,7 +796,7 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public T FindEntity<T>(Expression<Func<T, bool>> filter, FindOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(nameof(T));
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
             return collection.Find(filter, options).Skip(0).Limit(1).FirstOrDefault();
         }
 
@@ -823,7 +825,7 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public List<T> FindList<T>(Expression<Func<T, bool>> filter = null, Expression<Func<T, object>> sort = null, bool isDesc = false, FindOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(nameof(T));
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
             if (sort == null)
                 return collection.Find(filter == null ? FilterDefinition<T>.Empty : filter, options).ToList();
             if (!isDesc)
@@ -864,7 +866,7 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public async Task<T> FindEntityAsync<T>(Expression<Func<T, bool>> filter, FindOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(nameof(T));
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
             return await collection.Find(filter, options).Skip(0).Limit(1).FirstOrDefaultAsync();
         }
 
@@ -893,7 +895,7 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public async Task<List<T>> FindListAsync<T>(Expression<Func<T, bool>> filter = null, Expression<Func<T, object>> sort = null, bool isDesc = false, FindOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(nameof(T));
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
             if (sort == null)
                 return await collection.Find(filter == null ? FilterDefinition<T>.Empty : filter, options).ToListAsync();
             if (!isDesc)
