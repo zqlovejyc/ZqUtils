@@ -607,7 +607,7 @@ namespace ZqUtils.Extensions
             }
             else
             {
-                return default(T);
+                return @this.ToOrDefault<T>();
             }
         }
         #endregion
