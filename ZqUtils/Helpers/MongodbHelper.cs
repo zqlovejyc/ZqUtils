@@ -110,90 +110,129 @@ namespace ZqUtils.Helpers
         /// <param name="propertyValue"></param>
         /// <param name="item"></param>
         /// <param name="father"></param>
-        public static void BuildUpdateDefinition<T>(
-              List<UpdateDefinition<T>> fieldList,
-              PropertyInfo property,
-              object propertyValue,
-              T item,
-              string father)
+        public static void BuildUpdateDefinition<T>(List<UpdateDefinition<T>> fieldList, PropertyInfo property, object propertyValue, T item, string father)
         {
-            //复杂类型
+            #region 复杂类型
             if (property.PropertyType.IsClass && property.PropertyType != typeof(string) && propertyValue != null)
             {
-                //数组
+                #region 数组
                 if (propertyValue.GetType().IsArray)
                 {
                     var elementType = propertyValue.GetType().GetElementType();
-                    if (elementType.IsClass && elementType != typeof(string))
+                    if (propertyValue is IList arr && arr?.Count > 0 && arr[0].GetType() == elementType)
                     {
-                        if (propertyValue is IList arr && arr.Count > 0)
+                        for (int index = 0; index < arr.Count; index++)
                         {
-                            for (int index = 0; index < arr.Count; index++)
+                            //复杂类型
+                            if (elementType.IsClass && elementType != typeof(string))
                             {
                                 foreach (var subInner in elementType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
                                 {
                                     if (string.IsNullOrWhiteSpace(father))
-                                        BuildUpdateDefinition(fieldList, subInner, subInner.GetValue(arr[index]), item, property.Name + ".$");
+                                    {
+                                        BuildUpdateDefinition(fieldList, subInner, subInner.GetValue(arr[index]), item, $"{property.Name}.$");
+                                    }
                                     else
-                                        BuildUpdateDefinition(fieldList, subInner, subInner.GetValue(arr[index]), item, father + "." + property.Name + ".$");
+                                    {
+                                        BuildUpdateDefinition(fieldList, subInner, subInner.GetValue(arr[index]), item, $"{father}.{property.Name}.$");
+                                    }
+                                }
+                            }
+                            //简单类型
+                            else if (property.Name != "_id" && arr[index] != null)
+                            {
+                                if (string.IsNullOrWhiteSpace(father))
+                                {
+                                    fieldList.Add(Builders<T>.Update.Set($"{property.Name}.$", arr[index]));
+                                }
+                                else
+                                {
+                                    fieldList.Add(Builders<T>.Update.Set($"{father}.{property.Name}.$", arr[index]));
                                 }
                             }
                         }
                     }
                 }
-                //集合
+                #endregion
+
+                #region 集合
                 else if (typeof(IList).IsAssignableFrom(propertyValue.GetType()))
                 {
                     foreach (var sub in property.PropertyType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
                     {
-                        if (sub.PropertyType.IsClass && sub.PropertyType != typeof(string))
+                        if (propertyValue is IList arr && arr?.Count > 0 && arr[0].GetType() == sub.PropertyType)
                         {
-                            if (propertyValue is IList arr && arr.Count > 0)
+                            for (int index = 0; index < arr.Count; index++)
                             {
-                                for (int index = 0; index < arr.Count; index++)
+                                //复杂类型
+                                if (sub.PropertyType.IsClass && sub.PropertyType != typeof(string))
                                 {
                                     foreach (var subInner in sub.PropertyType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
                                     {
                                         if (string.IsNullOrWhiteSpace(father))
-                                            BuildUpdateDefinition(fieldList, subInner, subInner.GetValue(arr[index]), item, property.Name + ".$");
+                                        {
+                                            BuildUpdateDefinition(fieldList, subInner, subInner.GetValue(arr[index]), item, $"{property.Name}.$");
+                                        }
                                         else
-                                            BuildUpdateDefinition(fieldList, subInner, subInner.GetValue(arr[index]), item, father + "." + property.Name + ".$");
+                                        {
+                                            BuildUpdateDefinition(fieldList, subInner, subInner.GetValue(arr[index]), item, $"{father}.{property.Name}.$");
+                                        }
+                                    }
+                                }
+                                //简单类型
+                                else if (property.Name != "_id" && arr[index] != null)
+                                {
+                                    if (string.IsNullOrWhiteSpace(father))
+                                    {
+                                        fieldList.Add(Builders<T>.Update.Set($"{property.Name}.$", arr[index]));
+                                    }
+                                    else
+                                    {
+                                        fieldList.Add(Builders<T>.Update.Set($"{father}.{property.Name}.$", arr[index]));
                                     }
                                 }
                             }
                         }
                     }
                 }
-                //实体
+                #endregion
+
+                #region 实体
                 else
                 {
                     foreach (var sub in property.PropertyType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
                     {
-
                         if (string.IsNullOrWhiteSpace(father))
+                        {
                             BuildUpdateDefinition(fieldList, sub, sub.GetValue(propertyValue), item, property.Name);
+                        }
                         else
-                            BuildUpdateDefinition(fieldList, sub, sub.GetValue(propertyValue), item, father + "." + property.Name);
+                        {
+                            BuildUpdateDefinition(fieldList, sub, sub.GetValue(propertyValue), item, $"{father}.{property.Name}");
+                        }
                     }
                 }
+                #endregion
             }
-            //简单类型
+            #endregion
+
+            #region 简单类型
             else
             {
                 //更新集中不能有实体键_id
                 if (property.Name != "_id" && propertyValue != null)
                 {
-
                     if (string.IsNullOrWhiteSpace(father))
                     {
                         fieldList.Add(Builders<T>.Update.Set(property.Name, propertyValue));
                     }
                     else
                     {
-                        fieldList.Add(Builders<T>.Update.Set(father + "." + property.Name, propertyValue));
+                        fieldList.Add(Builders<T>.Update.Set($"{father}.{property.Name}", propertyValue));
                     }
                 }
             }
+            #endregion
         }
 
         /// <summary>
