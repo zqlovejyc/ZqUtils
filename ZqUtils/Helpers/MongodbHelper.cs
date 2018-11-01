@@ -120,8 +120,29 @@ namespace ZqUtils.Helpers
             //复杂类型
             if (property.PropertyType.IsClass && property.PropertyType != typeof(string) && propertyValue != null)
             {
+                //数组
+                if (propertyValue.GetType().IsArray)
+                {
+                    var elementType = propertyValue.GetType().GetElementType();
+                    if (elementType.IsClass && elementType != typeof(string))
+                    {
+                        if (propertyValue is IList arr && arr.Count > 0)
+                        {
+                            for (int index = 0; index < arr.Count; index++)
+                            {
+                                foreach (var subInner in elementType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+                                {
+                                    if (string.IsNullOrWhiteSpace(father))
+                                        BuildUpdateDefinition(fieldList, subInner, subInner.GetValue(arr[index]), item, property.Name + ".$");
+                                    else
+                                        BuildUpdateDefinition(fieldList, subInner, subInner.GetValue(arr[index]), item, father + "." + property.Name + ".$");
+                                }
+                            }
+                        }
+                    }
+                }
                 //集合
-                if (typeof(IList).IsAssignableFrom(propertyValue.GetType()))
+                else if (typeof(IList).IsAssignableFrom(propertyValue.GetType()))
                 {
                     foreach (var sub in property.PropertyType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
                     {
