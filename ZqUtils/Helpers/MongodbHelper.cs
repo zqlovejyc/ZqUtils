@@ -517,7 +517,7 @@ namespace ZqUtils.Helpers
         public bool UpdatePushItem<T>(object item, Expression<Func<T, bool>> filter) where T : class
         {
             var collection = this.database.GetCollection<T>(typeof(T).Name);
-            return collection.UpdateOne<T>(filter, Builders<T>.Update.Push(GetFields<T>(item).FirstOrDefault(), item)).ModifiedCount > 0 ? true : false;
+            return collection.UpdateOne<T>(filter, Builders<T>.Update.Push(GetFields<T>(item).FirstOrDefault(), item)).ModifiedCount > 0;
         }
 
         /// <summary>
@@ -531,7 +531,7 @@ namespace ZqUtils.Helpers
         public bool UpdatePushItem<T>(string collectionName, object item, Expression<Func<T, bool>> filter) where T : class
         {
             var collection = this.database.GetCollection<T>(collectionName);
-            return collection.UpdateOne<T>(filter, Builders<T>.Update.Push(GetFields<T>(item).FirstOrDefault(), item)).ModifiedCount > 0 ? true : false;
+            return collection.UpdateOne<T>(filter, Builders<T>.Update.Push(GetFields<T>(item).FirstOrDefault(), item)).ModifiedCount > 0;
         }
 
         /// <summary>
@@ -546,7 +546,7 @@ namespace ZqUtils.Helpers
         public bool UpdatePushItem<T>(string collectionName, string field, object item, Expression<Func<T, bool>> filter) where T : class
         {
             var collection = this.database.GetCollection<T>(collectionName);
-            return collection.UpdateOne<T>(filter, Builders<T>.Update.Push(field, item)).ModifiedCount > 0 ? true : false;
+            return collection.UpdateOne<T>(filter, Builders<T>.Update.Push(field, item)).ModifiedCount > 0;
         }
         #endregion
 
@@ -561,7 +561,7 @@ namespace ZqUtils.Helpers
         public bool UpdatePullItem<T>(object item, Expression<Func<T, bool>> filter) where T : class
         {
             var collection = this.database.GetCollection<T>(typeof(T).Name);
-            return collection.UpdateOne<T>(filter, Builders<T>.Update.Pull(GetFields<T>(item).FirstOrDefault(), item)).ModifiedCount > 0 ? true : false;
+            return collection.UpdateOne<T>(filter, Builders<T>.Update.Pull(GetFields<T>(item).FirstOrDefault(), item)).ModifiedCount > 0;
         }
 
         /// <summary>
@@ -575,7 +575,7 @@ namespace ZqUtils.Helpers
         public bool UpdatePullItem<T>(string collectionName, object item, Expression<Func<T, bool>> filter) where T : class
         {
             var collection = this.database.GetCollection<T>(collectionName);
-            return collection.UpdateOne<T>(filter, Builders<T>.Update.Pull(GetFields<T>(item).FirstOrDefault(), item)).ModifiedCount > 0 ? true : false;
+            return collection.UpdateOne<T>(filter, Builders<T>.Update.Pull(GetFields<T>(item).FirstOrDefault(), item)).ModifiedCount > 0;
         }
 
         /// <summary>
@@ -590,7 +590,7 @@ namespace ZqUtils.Helpers
         public bool UpdatePullItem<T>(string collectionName, string field, object item, Expression<Func<T, bool>> filter) where T : class
         {
             var collection = this.database.GetCollection<T>(collectionName);
-            return collection.UpdateOne<T>(filter, Builders<T>.Update.Pull(field, item)).ModifiedCount > 0 ? true : false;
+            return collection.UpdateOne<T>(filter, Builders<T>.Update.Pull(field, item)).ModifiedCount > 0;
         }
         #endregion
 
