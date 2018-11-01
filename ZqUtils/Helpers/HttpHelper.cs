@@ -43,10 +43,21 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 重定向执行进程
         /// </summary>
-        /// <param name="p"></param>
-        /// <param name="exe"></param>
-        /// <param name="arg"></param>
-        /// <param name="output"></param>
+        /// <param name="p">进程</param>
+        /// <param name="exe">exe可执行文件路径</param>
+        /// <param name="arg">参数</param>
+        /// <param name="output">委托</param>
+        /// <example>
+        ///     <code>
+        ///         var tool = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\aria2-1.34.0-win-64bit-build1\\aria2c.exe";
+        ///         var fi = new FileInfo(strFileName);
+        ///         var command = " -c -s 10 -x 10 --file-allocation=none --check-certificate=false -d " + fi.DirectoryName + " -o " + fi.Name + " " + url;
+        ///         using (var p = new Process())
+        ///         {
+        ///             RedirectExcuteProcess(p, tool, command, (s, e) => ShowInfo(url, e.Data));
+        ///         }
+        ///     </code>
+        /// </example>
         public static void RedirectExcuteProcess(Process p, string exe, string arg, DataReceivedEventHandler output)
         {
             p.StartInfo.FileName = exe;

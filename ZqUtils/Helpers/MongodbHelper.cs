@@ -205,8 +205,17 @@ namespace ZqUtils.Helpers
         {
             foreach (var prop in property.PropertyType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
             {
+                //数组
+                if (prop.PropertyType.IsArray)
+                {
+                    if (prop.PropertyType.GetElementType() == entity.GetType())
+                    {
+                        father += "." + prop.Name;
+                        isExists = true;
+                    }
+                }
                 //集合
-                if (typeof(IList).IsAssignableFrom(prop.PropertyType))
+                else if (typeof(IList).IsAssignableFrom(prop.PropertyType))
                 {
                     if (prop.PropertyType.GetProperties(BindingFlags.Instance | BindingFlags.Public).Any(o => o.PropertyType == entity.GetType()))
                     {
@@ -234,8 +243,16 @@ namespace ZqUtils.Helpers
             var fields = new List<string>();
             foreach (var property in typeof(T).GetProperties(BindingFlags.Instance | BindingFlags.Public))
             {
+                //数组
+                if (property.PropertyType.IsArray)
+                {
+                    if (property.PropertyType.GetElementType() == entity.GetType())
+                    {
+                        fields.Add(property.Name);
+                    }
+                }
                 //集合
-                if (typeof(IList).IsAssignableFrom(property.PropertyType))
+                else if (typeof(IList).IsAssignableFrom(property.PropertyType))
                 {
                     if (property.PropertyType.GetProperties(BindingFlags.Instance | BindingFlags.Public).Any(o => o.PropertyType == entity.GetType()))
                     {
