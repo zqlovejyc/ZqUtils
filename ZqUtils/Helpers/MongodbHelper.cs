@@ -104,12 +104,12 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 构建Mongo的更新表达式
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="fieldList"></param>
-        /// <param name="property"></param>
-        /// <param name="propertyValue"></param>
-        /// <param name="item"></param>
-        /// <param name="father"></param>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="fieldList">更新字段集合</param>
+        /// <param name="property">属性</param>
+        /// <param name="propertyValue">属性值</param>
+        /// <param name="item">更新子项</param>
+        /// <param name="father">父级字段</param>
         public static void BuildUpdateDefinition<T>(List<UpdateDefinition<T>> fieldList, PropertyInfo property, object propertyValue, T item, string father)
         {
             #region 复杂类型
@@ -238,8 +238,8 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 构建Mongo的更新表达式
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="entity"></param>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="entity">更新实体</param>
         /// <returns></returns>
         public static List<UpdateDefinition<T>> BuildUpdateDefinition<T>(T entity)
         {
@@ -256,10 +256,10 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 获取子项名称
         /// </summary>        
-        /// <param name="property"></param>
-        /// <param name="entity"></param>
-        /// <param name="father"></param>
-        /// <param name="isExists"></param>
+        /// <param name="property">属性</param>
+        /// <param name="entity">更新实体</param>
+        /// <param name="father">父级字段</param>
+        /// <param name="isExists">是否存在</param>
         /// <returns></returns>
         public static string GetField(PropertyInfo property, object entity, string father, ref bool isExists)
         {
@@ -295,8 +295,8 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 获取子项名称集合
         /// </summary>
-        /// <typeparam name="T"></typeparam>        
-        /// <param name="entity"></param>
+        /// <typeparam name="T">泛型类型</typeparam>        
+        /// <param name="entity">更新实体</param>
         /// <returns></returns>
         public static List<string> GetFields<T>(object entity)
         {
@@ -336,10 +336,11 @@ namespace ZqUtils.Helpers
 
         #region 新增
         #region 同步方法
+        #region InsertOne
         /// <summary>
         /// 插入单条新数据
         /// </summary>
-        /// <typeparam name="T"></typeparam>        
+        /// <typeparam name="T">泛型类型</typeparam>        
         /// <param name="entity">插入实体</param>
         public void InsertOne<T>(T entity)
         {
@@ -350,7 +351,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 插入单条新数据
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T">泛型类型</typeparam>
         /// <param name="collectionName">表名</param>
         /// <param name="entity">插入实体</param>
         public void InsertOne<T>(string collectionName, T entity)
@@ -358,11 +359,13 @@ namespace ZqUtils.Helpers
             var collection = this.database.GetCollection<T>(collectionName);
             collection.InsertOne(entity);
         }
+        #endregion
 
+        #region InsertMany
         /// <summary>
         /// 插入多条新数据
         /// </summary>
-        /// <typeparam name="T"></typeparam>        
+        /// <typeparam name="T">泛型类型</typeparam>        
         /// <param name="entity">插入实体</param>
         public void InsertMany<T>(List<T> entity)
         {
@@ -373,7 +376,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 插入多条新数据
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T">泛型类型</typeparam>
         /// <param name="collectionName">表名</param>
         /// <param name="entity">插入实体</param>
         public void InsertMany<T>(string collectionName, List<T> entity)
@@ -382,12 +385,14 @@ namespace ZqUtils.Helpers
             collection.InsertMany(entity);
         }
         #endregion
+        #endregion
 
         #region 异步方法
+        #region InsertOneAsync
         /// <summary>
         /// 插入单条新数据
         /// </summary>
-        /// <typeparam name="T"></typeparam>        
+        /// <typeparam name="T">泛型类型</typeparam>        
         /// <param name="entity">插入实体</param>
         public async Task InsertOneAsync<T>(T entity)
         {
@@ -398,7 +403,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 插入单条新数据
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T">泛型类型</typeparam>
         /// <param name="collectionName">表名</param>
         /// <param name="entity">插入实体</param>
         public async Task InsertOneAsync<T>(string collectionName, T entity)
@@ -406,11 +411,13 @@ namespace ZqUtils.Helpers
             var collection = this.database.GetCollection<T>(collectionName);
             await collection.InsertOneAsync(entity);
         }
+        #endregion
 
+        #region InsertManyAsync
         /// <summary>
         /// 插入多条新数据
         /// </summary>
-        /// <typeparam name="T"></typeparam>        
+        /// <typeparam name="T">泛型类型</typeparam>        
         /// <param name="entity">插入实体</param>
         public async Task InsertManyAsync<T>(List<T> entity)
         {
@@ -421,7 +428,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 插入多条新数据
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T">泛型类型</typeparam>
         /// <param name="collectionName">表名</param>
         /// <param name="entity">插入实体</param>
         public async Task InsertManyAsync<T>(string collectionName, List<T> entity)
@@ -431,136 +438,257 @@ namespace ZqUtils.Helpers
         }
         #endregion
         #endregion
+        #endregion
 
         #region 删除
         #region 同步方法
+        #region DeleteOne
         /// <summary>
         /// 删除数据
         /// </summary>
-        /// <typeparam name="T"></typeparam>        
-        /// <param name="query"></param>
-        /// <param name="options"></param>
+        /// <typeparam name="T">泛型类型</typeparam>        
+        /// <param name="filter">条件</param>
+        /// <param name="options">配置</param>
         /// <returns></returns>
-        public bool DeleteOne<T>(Expression<Func<T, bool>> query, DeleteOptions options = null)
+        public bool DeleteOne<T>(Expression<Func<T, bool>> filter, DeleteOptions options = null)
         {
             var collection = this.database.GetCollection<T>(typeof(T).Name);
-            return collection.DeleteOne(query, options).DeletedCount > 0;
+            return collection.DeleteOne(filter, options).DeletedCount > 0;
         }
 
         /// <summary>
         /// 删除数据
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="collectionName"></param>
-        /// <param name="query"></param>
-        /// <param name="options"></param>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="collectionName">表名</param>
+        /// <param name="filter">条件</param>
+        /// <param name="options">配置</param>
         /// <returns></returns>
-        public bool DeleteOne<T>(string collectionName, Expression<Func<T, bool>> query, DeleteOptions options = null)
+        public bool DeleteOne<T>(string collectionName, Expression<Func<T, bool>> filter, DeleteOptions options = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
-            return collection.DeleteOne(query, options).DeletedCount > 0;
+            return collection.DeleteOne(filter, options).DeletedCount > 0;
         }
 
         /// <summary>
         /// 删除数据
         /// </summary>
-        /// <typeparam name="T"></typeparam>        
-        /// <param name="query"></param>
-        /// <param name="options"></param>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="filter">条件</param>
+        /// <param name="options">配置</param>
         /// <returns></returns>
-        public bool DeleteMany<T>(Expression<Func<T, bool>> query, DeleteOptions options = null)
+        public bool DeleteOne<T>(FilterDefinition<T> filter, DeleteOptions options = null)
         {
             var collection = this.database.GetCollection<T>(typeof(T).Name);
-            return collection.DeleteMany(query, options).DeletedCount > 0;
+            return collection.DeleteOne(filter, options).DeletedCount > 0;
         }
 
         /// <summary>
         /// 删除数据
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="collectionName"></param>
-        /// <param name="query"></param>
-        /// <param name="options"></param>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="collectionName">表名</param>
+        /// <param name="filter">条件</param>
+        /// <param name="options">配置</param>
         /// <returns></returns>
-        public bool DeleteMany<T>(string collectionName, Expression<Func<T, bool>> query, DeleteOptions options = null)
+        public bool DeleteOne<T>(string collectionName, FilterDefinition<T> filter, DeleteOptions options = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
-            return collection.DeleteMany(query, options).DeletedCount > 0;
+            return collection.DeleteOne(filter, options).DeletedCount > 0;
+        }
+        #endregion
+
+        #region DeleteMany
+        /// <summary>
+        /// 删除数据
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>        
+        /// <param name="filter">条件</param>
+        /// <param name="options">配置</param>
+        /// <returns></returns>
+        public bool DeleteMany<T>(Expression<Func<T, bool>> filter, DeleteOptions options = null)
+        {
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
+            return collection.DeleteMany(filter, options).DeletedCount > 0;
         }
 
+        /// <summary>
+        /// 删除数据
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="collectionName">表名</param>
+        /// <param name="filter">条件</param>
+        /// <param name="options">配置</param>
+        /// <returns></returns>
+        public bool DeleteMany<T>(string collectionName, Expression<Func<T, bool>> filter, DeleteOptions options = null)
+        {
+            var collection = this.database.GetCollection<T>(collectionName);
+            return collection.DeleteMany(filter, options).DeletedCount > 0;
+        }
+
+        /// <summary>
+        /// 删除数据
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="filter">条件</param>
+        /// <param name="options">配置</param>
+        /// <returns></returns>
+        public bool DeleteMany<T>(FilterDefinition<T> filter, DeleteOptions options = null)
+        {
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
+            return collection.DeleteMany(filter, options).DeletedCount > 0;
+        }
+
+        /// <summary>
+        /// 删除数据
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="collectionName">表名</param>
+        /// <param name="filter">条件</param>
+        /// <param name="options">配置</param>
+        /// <returns></returns>
+        public bool DeleteMany<T>(string collectionName, FilterDefinition<T> filter, DeleteOptions options = null)
+        {
+            var collection = this.database.GetCollection<T>(collectionName);
+            return collection.DeleteMany(filter, options).DeletedCount > 0;
+        }
+        #endregion
+
+        #region DropCollection
         /// <summary>
         /// 删除表
         /// </summary>
-        /// <param name="collectionName"></param>
+        /// <param name="collectionName">表名</param>
         public void DropCollection(string collectionName)
         {
             this.database.DropCollection(collectionName);
         }
         #endregion
+        #endregion
 
         #region 异步方法
+        #region DeleteOneAsync
         /// <summary>
         /// 删除数据
         /// </summary>
-        /// <typeparam name="T"></typeparam>        
-        /// <param name="query"></param>
-        /// <param name="options"></param>
+        /// <typeparam name="T">泛型类型</typeparam>        
+        /// <param name="filter">条件</param>
+        /// <param name="options">配置</param>
         /// <returns></returns>
-        public async Task<DeleteResult> DeleteOneAsync<T>(Expression<Func<T, bool>> query, DeleteOptions options = null)
+        public async Task<DeleteResult> DeleteOneAsync<T>(Expression<Func<T, bool>> filter, DeleteOptions options = null)
         {
             var collection = this.database.GetCollection<T>(typeof(T).Name);
-            return await collection.DeleteOneAsync(query, options);
+            return await collection.DeleteOneAsync(filter, options);
         }
 
         /// <summary>
         /// 删除数据
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="collectionName"></param>
-        /// <param name="query"></param>
-        /// <param name="options"></param>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="collectionName">表名</param>
+        /// <param name="filter">条件</param>
+        /// <param name="options">配置</param>
         /// <returns></returns>
-        public async Task<DeleteResult> DeleteOneAsync<T>(string collectionName, Expression<Func<T, bool>> query, DeleteOptions options = null)
+        public async Task<DeleteResult> DeleteOneAsync<T>(string collectionName, Expression<Func<T, bool>> filter, DeleteOptions options = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
-            return await collection.DeleteOneAsync(query, options);
+            return await collection.DeleteOneAsync(filter, options);
         }
 
         /// <summary>
         /// 删除数据
         /// </summary>
-        /// <typeparam name="T"></typeparam>        
-        /// <param name="query"></param>
-        /// <param name="options"></param>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="filter">条件</param>
+        /// <param name="options">配置</param>
         /// <returns></returns>
-        public async Task<DeleteResult> DeleteManyAsync<T>(Expression<Func<T, bool>> query, DeleteOptions options = null)
+        public async Task<DeleteResult> DeleteOneAsync<T>(FilterDefinition<T> filter, DeleteOptions options = null)
         {
             var collection = this.database.GetCollection<T>(typeof(T).Name);
-            return await collection.DeleteManyAsync(query, options);
+            return await collection.DeleteOneAsync(filter, options);
         }
 
         /// <summary>
         /// 删除数据
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="collectionName"></param>
-        /// <param name="query"></param>
-        /// <param name="options"></param>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="collectionName">表名</param>
+        /// <param name="filter">条件</param>
+        /// <param name="options">配置</param>
         /// <returns></returns>
-        public async Task<DeleteResult> DeleteManyAsync<T>(string collectionName, Expression<Func<T, bool>> query, DeleteOptions options = null)
+        public async Task<DeleteResult> DeleteOneAsync<T>(string collectionName, FilterDefinition<T> filter, DeleteOptions options = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
-            return await collection.DeleteManyAsync(query, options);
+            return await collection.DeleteOneAsync(filter, options);
+        }
+        #endregion
+
+        #region DeleteManyAsync
+        /// <summary>
+        /// 删除数据
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>        
+        /// <param name="filter">条件</param>
+        /// <param name="options">配置</param>
+        /// <returns></returns>
+        public async Task<DeleteResult> DeleteManyAsync<T>(Expression<Func<T, bool>> filter, DeleteOptions options = null)
+        {
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
+            return await collection.DeleteManyAsync(filter, options);
         }
 
+        /// <summary>
+        /// 删除数据
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="collectionName">表名</param>
+        /// <param name="filter">条件</param>
+        /// <param name="options">配置</param>
+        /// <returns></returns>
+        public async Task<DeleteResult> DeleteManyAsync<T>(string collectionName, Expression<Func<T, bool>> filter, DeleteOptions options = null)
+        {
+            var collection = this.database.GetCollection<T>(collectionName);
+            return await collection.DeleteManyAsync(filter, options);
+        }
+
+        /// <summary>
+        /// 删除数据
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="filter">条件</param>
+        /// <param name="options">配置</param>
+        /// <returns></returns>
+        public async Task<DeleteResult> DeleteManyAsync<T>(FilterDefinition<T> filter, DeleteOptions options = null)
+        {
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
+            return await collection.DeleteManyAsync(filter, options);
+        }
+
+        /// <summary>
+        /// 删除数据
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="collectionName">表名</param>
+        /// <param name="filter">条件</param>
+        /// <param name="options">配置</param>
+        /// <returns></returns>
+        public async Task<DeleteResult> DeleteManyAsync<T>(string collectionName, FilterDefinition<T> filter, DeleteOptions options = null)
+        {
+            var collection = this.database.GetCollection<T>(collectionName);
+            return await collection.DeleteManyAsync(filter, options);
+        }
+        #endregion
+
+        #region DropCollectionAsync
         /// <summary>
         /// 删除表
         /// </summary>
-        /// <param name="collectionName"></param>
+        /// <param name="collectionName">表名</param>
         public async Task DropCollectionAsync(string collectionName)
         {
             await this.database.DropCollectionAsync(collectionName);
         }
+        #endregion
         #endregion
         #endregion
 
@@ -570,7 +698,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 新增集合子项
         /// </summary>
-        /// <typeparam name="T">实体类型</typeparam>        
+        /// <typeparam name="T">泛型类型</typeparam>        
         /// <param name="item">要新增的子项值</param>
         /// <param name="filter">条件</param>
         /// <returns></returns>
@@ -583,7 +711,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 新增集合子项
         /// </summary>
-        /// <typeparam name="T">实体类型</typeparam>        
+        /// <typeparam name="T">泛型类型</typeparam>        
         /// <param name="collectionName">表名</param>
         /// <param name="item">要新增的子项值</param>
         /// <param name="filter">条件</param>
@@ -597,7 +725,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 新增集合子项
         /// </summary>
-        /// <typeparam name="T">实体类型</typeparam>        
+        /// <typeparam name="T">泛型类型</typeparam>        
         /// <param name="collectionName">表名</param>
         /// <param name="field">子项名称</param>
         /// <param name="item">要新增的子项值</param>
@@ -614,7 +742,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 删除集合子项
         /// </summary>
-        /// <typeparam name="T">实体类型</typeparam>        
+        /// <typeparam name="T">泛型类型</typeparam>        
         /// <param name="item">要删除的子项值</param>
         /// <param name="filter">条件</param>
         /// <returns></returns>
@@ -627,7 +755,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 删除集合子项
         /// </summary>
-        /// <typeparam name="T">实体类型</typeparam>        
+        /// <typeparam name="T">泛型类型</typeparam>        
         /// <param name="collectionName">表名</param>
         /// <param name="item">要删除的子项值</param>
         /// <param name="filter">条件</param>
@@ -641,7 +769,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 删除集合子项
         /// </summary>
-        /// <typeparam name="T">实体类型</typeparam>        
+        /// <typeparam name="T">泛型类型</typeparam>        
         /// <param name="collectionName">表名</param>
         /// <param name="field">子项名称</param>
         /// <param name="item">要删除的子项值</param>
@@ -658,7 +786,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 更新单条操作
         /// </summary>
-        /// <typeparam name="T">类型</typeparam>        
+        /// <typeparam name="T">泛型类型</typeparam>        
         /// <param name="filter">条件</param>
         /// <param name="entity">新实体</param>
         public bool UpdateOne<T>(Expression<Func<T, bool>> filter, T entity) where T : class
@@ -671,7 +799,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 更新单条操作
         /// </summary>
-        /// <typeparam name="T">类型</typeparam>
+        /// <typeparam name="T">泛型类型</typeparam>
         /// <param name="collectionName">表名</param>
         /// <param name="filter">条件</param>
         /// <param name="entity">新实体</param>
@@ -681,13 +809,54 @@ namespace ZqUtils.Helpers
             var updateList = BuildUpdateDefinition<T>(entity);
             return collection.UpdateOne<T>(filter, Builders<T>.Update.Combine(updateList)).ModifiedCount > 0;
         }
+
+        /// <summary>
+        /// 更新单条操作
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="filter">条件</param>
+        /// <param name="parameters">要修改的参数</param>
+        /// <returns></returns>
+        public bool UpdateOne<T>(FilterDefinition<T> filter, Dictionary<string, object> parameters)
+        {
+            var list = new List<UpdateDefinition<T>>();
+            foreach (var item in typeof(T).GetType().GetProperties())
+            {
+                if (!parameters.ContainsKey(item.Name)) continue;
+                list.Add(Builders<T>.Update.Set(item.Name, parameters[item.Name]));
+            }
+            var update = Builders<T>.Update.Combine(list);
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
+            return collection.UpdateOne(filter, update).ModifiedCount > 0;
+        }
+
+        /// <summary>
+        /// 更新单条操作
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="collectionName">表名</param>
+        /// <param name="filter">条件</param>
+        /// <param name="parameters">要修改的参数</param>
+        /// <returns></returns>
+        public bool UpdateOne<T>(string collectionName, FilterDefinition<T> filter, Dictionary<string, object> parameters)
+        {
+            var list = new List<UpdateDefinition<T>>();
+            foreach (var item in typeof(T).GetType().GetProperties())
+            {
+                if (!parameters.ContainsKey(item.Name)) continue;
+                list.Add(Builders<T>.Update.Set(item.Name, parameters[item.Name]));
+            }
+            var update = Builders<T>.Update.Combine(list);
+            var collection = this.database.GetCollection<T>(collectionName);
+            return collection.UpdateOne(filter, update).ModifiedCount > 0;
+        }
         #endregion
 
         #region UpdateMany
         /// <summary>
         /// 更新多条操作
         /// </summary>
-        /// <typeparam name="T">类型</typeparam>        
+        /// <typeparam name="T">泛型类型</typeparam>        
         /// <param name="filter">条件</param>
         /// <param name="entity">新实体</param>
         public bool UpdateMany<T>(Expression<Func<T, bool>> filter, T entity)
@@ -710,6 +879,47 @@ namespace ZqUtils.Helpers
             var updateList = BuildUpdateDefinition<T>(entity);
             return collection.UpdateMany<T>(filter, Builders<T>.Update.Combine(updateList)).ModifiedCount > 0;
         }
+
+        /// <summary>
+        /// 更新多条操作
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="filter">条件</param>
+        /// <param name="parameters">要修改的参数</param>
+        /// <returns></returns>
+        public bool UpdateMany<T>(FilterDefinition<T> filter, Dictionary<string, object> parameters)
+        {
+            var list = new List<UpdateDefinition<T>>();
+            foreach (var item in typeof(T).GetType().GetProperties())
+            {
+                if (!parameters.ContainsKey(item.Name)) continue;
+                list.Add(Builders<T>.Update.Set(item.Name, parameters[item.Name]));
+            }
+            var update = Builders<T>.Update.Combine(list);
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
+            return collection.UpdateMany(filter, update).ModifiedCount > 0;
+        }
+
+        /// <summary>
+        /// 更新多条操作
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="collectionName">表名</param>
+        /// <param name="filter">条件</param>
+        /// <param name="parameters">要修改的参数</param>
+        /// <returns></returns>
+        public bool UpdateMany<T>(string collectionName, FilterDefinition<T> filter, Dictionary<string, object> parameters)
+        {
+            var list = new List<UpdateDefinition<T>>();
+            foreach (var item in typeof(T).GetType().GetProperties())
+            {
+                if (!parameters.ContainsKey(item.Name)) continue;
+                list.Add(Builders<T>.Update.Set(item.Name, parameters[item.Name]));
+            }
+            var update = Builders<T>.Update.Combine(list);
+            var collection = this.database.GetCollection<T>(collectionName);
+            return collection.UpdateMany(filter, update).ModifiedCount > 0;
+        }
         #endregion
         #endregion
 
@@ -718,7 +928,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 新增集合子项
         /// </summary>
-        /// <typeparam name="T">实体类型</typeparam>                
+        /// <typeparam name="T">泛型类型</typeparam>                
         /// <param name="item">要新增的子项值</param>
         /// <param name="filter">条件</param>
         /// <returns></returns>
@@ -731,7 +941,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 新增集合子项
         /// </summary>
-        /// <typeparam name="T">实体类型</typeparam>        
+        /// <typeparam name="T">泛型类型</typeparam>        
         /// <param name="collectionName">表名</param>
         /// <param name="item">要新增的子项值</param>
         /// <param name="filter">条件</param>
@@ -745,7 +955,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 新增集合子项
         /// </summary>
-        /// <typeparam name="T">实体类型</typeparam>        
+        /// <typeparam name="T">泛型类型</typeparam>        
         /// <param name="collectionName">表名</param>
         /// <param name="field">子项名称</param>
         /// <param name="item">要新增的子项值</param>
@@ -762,7 +972,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 删除集合子项
         /// </summary>
-        /// <typeparam name="T">实体类型</typeparam>        
+        /// <typeparam name="T">泛型类型</typeparam>        
         /// <param name="item">要删除的子项值</param>
         /// <param name="filter">条件</param>
         /// <returns></returns>
@@ -775,7 +985,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 删除集合子项
         /// </summary>
-        /// <typeparam name="T">实体类型</typeparam>        
+        /// <typeparam name="T">泛型类型</typeparam>        
         /// <param name="collectionName">表名</param>
         /// <param name="item">要删除的子项值</param>
         /// <param name="filter">条件</param>
@@ -789,7 +999,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 删除集合子项
         /// </summary>
-        /// <typeparam name="T">实体类型</typeparam>        
+        /// <typeparam name="T">泛型类型</typeparam>        
         /// <param name="collectionName">表名</param>
         /// <param name="field">子项名称</param>
         /// <param name="item">要删除的子项值</param>
@@ -806,7 +1016,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 更新单条操作
         /// </summary>
-        /// <typeparam name="T">类型</typeparam>        
+        /// <typeparam name="T">泛型类型</typeparam>        
         /// <param name="filter">条件</param>
         /// <param name="entity">新实体</param>
         public async Task<UpdateResult> UpdateOneAsync<T>(Expression<Func<T, bool>> filter, T entity) where T : class
@@ -819,7 +1029,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 更新单条操作
         /// </summary>
-        /// <typeparam name="T">类型</typeparam>
+        /// <typeparam name="T">泛型类型</typeparam>
         /// <param name="collectionName">表名</param>
         /// <param name="filter">条件</param>
         /// <param name="entity">新实体</param>
@@ -829,13 +1039,54 @@ namespace ZqUtils.Helpers
             var updateList = BuildUpdateDefinition<T>(entity);
             return await collection.UpdateOneAsync<T>(filter, Builders<T>.Update.Combine(updateList));
         }
+
+        /// <summary>
+        /// 更新单条操作
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="filter">条件</param>
+        /// <param name="parameters">要修改的参数</param>
+        /// <returns></returns>
+        public async Task<UpdateResult> UpdateOneAsync<T>(FilterDefinition<T> filter, Dictionary<string, object> parameters)
+        {
+            var list = new List<UpdateDefinition<T>>();
+            foreach (var item in typeof(T).GetType().GetProperties())
+            {
+                if (!parameters.ContainsKey(item.Name)) continue;
+                list.Add(Builders<T>.Update.Set(item.Name, parameters[item.Name]));
+            }
+            var update = Builders<T>.Update.Combine(list);
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
+            return await collection.UpdateOneAsync(filter, update);
+        }
+
+        /// <summary>
+        /// 更新单条操作
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="collectionName">表名</param>
+        /// <param name="filter">条件</param>
+        /// <param name="parameters">要修改的参数</param>
+        /// <returns></returns>
+        public async Task<UpdateResult> UpdateOneAsync<T>(string collectionName, FilterDefinition<T> filter, Dictionary<string, object> parameters)
+        {
+            var list = new List<UpdateDefinition<T>>();
+            foreach (var item in typeof(T).GetType().GetProperties())
+            {
+                if (!parameters.ContainsKey(item.Name)) continue;
+                list.Add(Builders<T>.Update.Set(item.Name, parameters[item.Name]));
+            }
+            var update = Builders<T>.Update.Combine(list);
+            var collection = this.database.GetCollection<T>(collectionName);
+            return await collection.UpdateOneAsync(filter, update);
+        }
         #endregion
 
         #region UpdateManyAsync
         /// <summary>
         /// 更新多条操作
         /// </summary>
-        /// <typeparam name="T">类型</typeparam>        
+        /// <typeparam name="T">泛型类型</typeparam>        
         /// <param name="filter">条件</param>
         /// <param name="entity">新实体</param>
         public async Task<UpdateResult> UpdateManyAsync<T>(Expression<Func<T, bool>> filter, T entity)
@@ -848,7 +1099,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 更新多条操作
         /// </summary>
-        /// <typeparam name="T">类型</typeparam>
+        /// <typeparam name="T">泛型类型</typeparam>
         /// <param name="collectionName">表名</param>
         /// <param name="filter">条件</param>
         /// <param name="entity">新实体</param>
@@ -858,149 +1109,458 @@ namespace ZqUtils.Helpers
             var updateList = BuildUpdateDefinition<T>(entity);
             return await collection.UpdateManyAsync<T>(filter, Builders<T>.Update.Combine(updateList));
         }
+
+        /// <summary>
+        /// 更新多条操作
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="filter">条件</param>
+        /// <param name="parameters">要修改的参数</param>
+        /// <returns></returns>
+        public async Task<UpdateResult> UpdateManyAsync<T>(FilterDefinition<T> filter, Dictionary<string, object> parameters)
+        {
+            var list = new List<UpdateDefinition<T>>();
+            foreach (var item in typeof(T).GetType().GetProperties())
+            {
+                if (!parameters.ContainsKey(item.Name)) continue;
+                list.Add(Builders<T>.Update.Set(item.Name, parameters[item.Name]));
+            }
+            var update = Builders<T>.Update.Combine(list);
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
+            return await collection.UpdateManyAsync(filter, update);
+        }
+
+        /// <summary>
+        /// 更新多条操作
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="collectionName">表名</param>
+        /// <param name="filter">条件</param>
+        /// <param name="parameters">要修改的参数</param>
+        /// <returns></returns>
+        public async Task<UpdateResult> UpdateManyAsync<T>(string collectionName, FilterDefinition<T> filter, Dictionary<string, object> parameters)
+        {
+            var list = new List<UpdateDefinition<T>>();
+            foreach (var item in typeof(T).GetType().GetProperties())
+            {
+                if (!parameters.ContainsKey(item.Name)) continue;
+                list.Add(Builders<T>.Update.Set(item.Name, parameters[item.Name]));
+            }
+            var update = Builders<T>.Update.Combine(list);
+            var collection = this.database.GetCollection<T>(collectionName);
+            return await collection.UpdateManyAsync(filter, update);
+        }
         #endregion
         #endregion
         #endregion
 
         #region 查询
         #region 同步方法
+        #region FindEntity
         /// <summary>
         /// 查询实体
         /// </summary>
-        /// <typeparam name="T"></typeparam>      
-        /// <param name="filter"></param>
-        /// <param name="options"></param>
+        /// <typeparam name="T">泛型类型</typeparam>      
+        /// <param name="filter">条件</param>
+        /// <param name="options">配置</param>
         /// <returns></returns>
         public T FindEntity<T>(Expression<Func<T, bool>> filter, FindOptions options = null)
         {
             var collection = this.database.GetCollection<T>(typeof(T).Name);
-            return collection.Find(filter, options).Skip(0).Limit(1).FirstOrDefault();
+            return collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip(0).Limit(1).FirstOrDefault();
         }
 
         /// <summary>
         /// 查询实体
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="collectionName"></param>
-        /// <param name="filter"></param>
-        /// <param name="options"></param>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="collectionName">表名</param>
+        /// <param name="filter">条件</param>
+        /// <param name="options">配置</param>
         /// <returns></returns>
         public T FindEntity<T>(string collectionName, Expression<Func<T, bool>> filter, FindOptions options = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
-            return collection.Find(filter, options).Skip(0).Limit(1).FirstOrDefault();
+            return collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip(0).Limit(1).FirstOrDefault();
         }
 
-        /// <summary>
-        /// 查询集合
-        /// </summary>
-        /// <typeparam name="T"></typeparam>        
-        /// <param name="filter"></param>
-        /// <param name="sort"></param>
-        /// <param name="isDesc"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
-        public List<T> FindList<T>(Expression<Func<T, bool>> filter = null, Expression<Func<T, object>> sort = null, bool isDesc = false, FindOptions options = null)
-        {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            if (sort == null)
-                return collection.Find(filter == null ? FilterDefinition<T>.Empty : filter, options).ToList();
-            if (!isDesc)
-                return collection.Find(filter, options).SortBy(sort).ToList();
-            else
-                return collection.Find(filter, options).SortByDescending(sort).ToList();
-        }
-
-        /// <summary>
-        /// 查询集合
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="collectionName"></param>
-        /// <param name="filter"></param>
-        /// <param name="sort"></param>
-        /// <param name="isDesc"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
-        public List<T> FindList<T>(string collectionName, Expression<Func<T, bool>> filter = null, Expression<Func<T, object>> sort = null, bool isDesc = false, FindOptions options = null)
-        {
-            var collection = this.database.GetCollection<T>(collectionName);
-            if (sort == null)
-                return collection.Find(filter == null ? FilterDefinition<T>.Empty : filter, options).ToList();
-            if (!isDesc)
-                return collection.Find(filter, options).SortBy(sort).ToList();
-            else
-                return collection.Find(filter, options).SortByDescending(sort).ToList();
-        }
-        #endregion
-
-        #region 异步方法
         /// <summary>
         /// 查询实体
         /// </summary>
-        /// <typeparam name="T"></typeparam>        
-        /// <param name="filter"></param>
-        /// <param name="options"></param>
+        /// <typeparam name="T">泛型类型</typeparam>      
+        /// <param name="filter">条件</param>
+        /// <param name="options">配置</param>
+        /// <returns></returns>
+        public T FindEntity<T>(FilterDefinition<T> filter, FindOptions options = null)
+        {
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
+            return collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip(0).Limit(1).FirstOrDefault();
+        }
+
+        /// <summary>
+        /// 查询实体
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="collectionName">表名</param>
+        /// <param name="filter">条件</param>
+        /// <param name="options">配置</param>
+        /// <returns></returns>
+        public T FindEntity<T>(string collectionName, FilterDefinition<T> filter, FindOptions options = null)
+        {
+            var collection = this.database.GetCollection<T>(collectionName);
+            return collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip(0).Limit(1).FirstOrDefault();
+        }
+        #endregion
+
+        #region FindList
+        /// <summary>
+        /// 查询集合
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="filter">条件</param>
+        /// <param name="sort">排序</param>
+        /// <param name="isDesc">是否降序</param>
+        /// <param name="options">配置</param>
+        /// <param name="pageIndex">当前页码</param>
+        /// <param name="pageSize">每页行数</param>
+        /// <returns>默认不分页，返回总条数为0</returns>
+        public (List<T> list, long total) FindList<T>(Expression<Func<T, bool>> filter = null, Expression<Func<T, object>> sort = null, bool isDesc = false, FindOptions options = null, int? pageIndex = null, int? pageSize = null)
+        {
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
+            //是否分页
+            if (pageIndex != null && pageSize != null)
+            {
+                var total = collection.CountDocuments(filter ?? FilterDefinition<T>.Empty);
+                var list = sort != null ?
+                    (
+                        !isDesc ?
+                        collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortBy(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToList() :
+                        collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortByDescending(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToList()
+                    ) :
+                    collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToList();
+                return (list, total);
+            }
+            else
+            {
+                var list = sort != null ?
+                    (
+                        !isDesc ?
+                        collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortBy(sort).ToList() :
+                        collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortByDescending(sort).ToList()
+                    ) :
+                    collection.Find(filter ?? FilterDefinition<T>.Empty, options).ToList();
+                return (list, 0);
+            }
+        }
+
+        /// <summary>
+        /// 查询集合
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="collectionName">表名</param>
+        /// <param name="filter">条件</param>
+        /// <param name="sort">排序</param>
+        /// <param name="isDesc">是否降序</param>
+        /// <param name="options">配置</param>
+        /// <param name="pageIndex">当前页码</param>
+        /// <param name="pageSize">每页行数</param>
+        /// <returns>默认不分页，返回总条数为0</returns>
+        public (List<T> list, long total) FindList<T>(string collectionName, Expression<Func<T, bool>> filter = null, Expression<Func<T, object>> sort = null, bool isDesc = false, FindOptions options = null, int? pageIndex = null, int? pageSize = null)
+        {
+            var collection = this.database.GetCollection<T>(collectionName);
+            //是否分页
+            if (pageIndex != null && pageSize != null)
+            {
+                var total = collection.CountDocuments(filter ?? FilterDefinition<T>.Empty);
+                var list = sort != null ?
+                    (
+                        !isDesc ?
+                        collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortBy(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToList() :
+                        collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortByDescending(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToList()
+                    ) :
+                    collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToList();
+                return (list, total);
+            }
+            else
+            {
+                var list = sort != null ?
+                    (
+                        !isDesc ?
+                        collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortBy(sort).ToList() :
+                        collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortByDescending(sort).ToList()
+                    ) :
+                    collection.Find(filter ?? FilterDefinition<T>.Empty, options).ToList();
+                return (list, 0);
+            }
+        }
+
+        /// <summary>
+        /// 查询集合
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="filter">条件</param>
+        /// <param name="sort">排序</param>
+        /// <param name="options">配置</param>
+        /// <param name="pageIndex">当前页码</param>
+        /// <param name="pageSize">每页行数</param>
+        /// <returns>默认不分页，返回总条数为0</returns>
+        public (List<T> list, long total) FindList<T>(FilterDefinition<T> filter = null, SortDefinition<T> sort = null, FindOptions options = null, int? pageIndex = null, int? pageSize = null)
+        {
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
+            //是否分页
+            if (pageIndex != null && pageSize != null)
+            {
+                var total = collection.CountDocuments(filter ?? FilterDefinition<T>.Empty);
+                var list = sort != null ?
+                    collection.Find(filter ?? FilterDefinition<T>.Empty, options).Sort(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToList() :
+                    collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToList();
+                return (list, total);
+            }
+            else
+            {
+                var list = sort != null ?
+                    collection.Find(filter ?? FilterDefinition<T>.Empty, options).Sort(sort).ToList() :
+                    collection.Find(filter ?? FilterDefinition<T>.Empty, options).ToList();
+                return (list, 0);
+            }
+        }
+
+        /// <summary>
+        /// 查询集合
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="collectionName">表名</param>
+        /// <param name="filter">条件</param>
+        /// <param name="sort">排序</param>
+        /// <param name="options">配置</param>
+        /// <param name="pageIndex">当前页码</param>
+        /// <param name="pageSize">每页行数</param>
+        /// <returns>默认不分页，返回总条数为0</returns>
+        public (List<T> list, long total) FindList<T>(string collectionName, FilterDefinition<T> filter = null, SortDefinition<T> sort = null, FindOptions options = null, int? pageIndex = null, int? pageSize = null)
+        {
+            var collection = this.database.GetCollection<T>(collectionName);
+            //是否分页
+            if (pageIndex != null && pageSize != null)
+            {
+                var total = collection.CountDocuments(filter ?? FilterDefinition<T>.Empty);
+                var list = sort != null ?
+                    collection.Find(filter ?? FilterDefinition<T>.Empty, options).Sort(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToList() :
+                    collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToList();
+                return (list, total);
+            }
+            else
+            {
+                var list = sort != null ?
+                    collection.Find(filter ?? FilterDefinition<T>.Empty, options).Sort(sort).ToList() :
+                    collection.Find(filter ?? FilterDefinition<T>.Empty, options).ToList();
+                return (list, 0);
+            }
+        }
+        #endregion
+        #endregion
+
+        #region 异步方法
+        #region FindEntityAsync
+        /// <summary>
+        /// 查询实体
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>        
+        /// <param name="filter">条件</param>
+        /// <param name="options">配置</param>
         /// <returns></returns>
         public async Task<T> FindEntityAsync<T>(Expression<Func<T, bool>> filter, FindOptions options = null)
         {
             var collection = this.database.GetCollection<T>(typeof(T).Name);
-            return await collection.Find(filter, options).Skip(0).Limit(1).FirstOrDefaultAsync();
+            return await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip(0).Limit(1).FirstOrDefaultAsync();
         }
 
         /// <summary>
         /// 查询实体
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="collectionName"></param>
-        /// <param name="filter"></param>
-        /// <param name="options"></param>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="collectionName">表名</param>
+        /// <param name="filter">条件</param>
+        /// <param name="options">配置</param>
         /// <returns></returns>
         public async Task<T> FindEntityAsync<T>(string collectionName, Expression<Func<T, bool>> filter, FindOptions options = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
-            return await collection.Find(filter, options).Skip(0).Limit(1).FirstOrDefaultAsync();
+            return await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip(0).Limit(1).FirstOrDefaultAsync();
         }
 
         /// <summary>
-        /// 查询集合
+        /// 查询实体
         /// </summary>
-        /// <typeparam name="T"></typeparam>        
-        /// <param name="filter"></param>
-        /// <param name="sort"></param>
-        /// <param name="isDesc"></param>
-        /// <param name="options"></param>
+        /// <typeparam name="T">泛型类型</typeparam>      
+        /// <param name="filter">条件</param>
+        /// <param name="options">配置</param>
         /// <returns></returns>
-        public async Task<List<T>> FindListAsync<T>(Expression<Func<T, bool>> filter = null, Expression<Func<T, object>> sort = null, bool isDesc = false, FindOptions options = null)
+        public async Task<T> FindEntityAsync<T>(FilterDefinition<T> filter, FindOptions options = null)
         {
             var collection = this.database.GetCollection<T>(typeof(T).Name);
-            if (sort == null)
-                return await collection.Find(filter == null ? FilterDefinition<T>.Empty : filter, options).ToListAsync();
-            if (!isDesc)
-                return await collection.Find(filter, options).SortBy(sort).ToListAsync();
+            return await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip(0).Limit(1).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// 查询实体
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="collectionName">表名</param>
+        /// <param name="filter">条件</param>
+        /// <param name="options">配置</param>
+        /// <returns></returns>
+        public async Task<T> FindEntityAsync<T>(string collectionName, FilterDefinition<T> filter, FindOptions options = null)
+        {
+            var collection = this.database.GetCollection<T>(collectionName);
+            return await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip(0).Limit(1).FirstOrDefaultAsync();
+        }
+        #endregion
+
+        #region FindListAsync
+        /// <summary>
+        /// 查询集合
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="filter">条件</param>
+        /// <param name="sort">排序</param>
+        /// <param name="isDesc">是否降序</param>
+        /// <param name="options">配置</param>
+        /// <param name="pageIndex">当前页码</param>
+        /// <param name="pageSize">每页行数</param>
+        /// <returns>默认不分页，返回总条数为0</returns>
+        public async Task<(List<T> list, long total)> FindListAsync<T>(Expression<Func<T, bool>> filter = null, Expression<Func<T, object>> sort = null, bool isDesc = false, FindOptions options = null, int? pageIndex = null, int? pageSize = null)
+        {
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
+            //是否分页
+            if (pageIndex != null && pageSize != null)
+            {
+                var total = await collection.CountDocumentsAsync(filter ?? FilterDefinition<T>.Empty);
+                var list = sort != null ?
+                    (
+                        !isDesc ?
+                        await collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortBy(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToListAsync() :
+                        await collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortByDescending(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToListAsync()
+                    ) :
+                    await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToListAsync();
+                return (list, total);
+            }
             else
-                return await collection.Find(filter, options).SortByDescending(sort).ToListAsync();
+            {
+                var list = sort != null ?
+                    (
+                        !isDesc ?
+                        await collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortBy(sort).ToListAsync() :
+                        await collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortByDescending(sort).ToListAsync()
+                    ) :
+                    await collection.Find(filter ?? FilterDefinition<T>.Empty, options).ToListAsync();
+                return (list, 0);
+            }
         }
 
         /// <summary>
         /// 查询集合
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="collectionName"></param>
-        /// <param name="filter"></param>
-        /// <param name="sort"></param>
-        /// <param name="isDesc"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
-        public async Task<List<T>> FindListAsync<T>(string collectionName, Expression<Func<T, bool>> filter = null, Expression<Func<T, object>> sort = null, bool isDesc = false, FindOptions options = null)
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="collectionName">表名</param>
+        /// <param name="filter">条件</param>
+        /// <param name="sort">排序</param>
+        /// <param name="isDesc">是否降序</param>
+        /// <param name="options">配置</param>
+        /// <param name="pageIndex">当前页码</param>
+        /// <param name="pageSize">每页行数</param>
+        /// <returns>默认不分页，返回总条数为0</returns>
+        public async Task<(List<T> list, long total)> FindListAsync<T>(string collectionName, Expression<Func<T, bool>> filter = null, Expression<Func<T, object>> sort = null, bool isDesc = false, FindOptions options = null, int? pageIndex = null, int? pageSize = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
-            if (sort == null)
-                return await collection.Find(filter == null ? FilterDefinition<T>.Empty : filter, options).ToListAsync();
-            if (!isDesc)
-                return await collection.Find(filter, options).SortBy(sort).ToListAsync();
+            //是否分页
+            if (pageIndex != null && pageSize != null)
+            {
+                var total = await collection.CountDocumentsAsync(filter ?? FilterDefinition<T>.Empty);
+                var list = sort != null ?
+                    (
+                        !isDesc ?
+                        await collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortBy(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToListAsync() :
+                        await collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortByDescending(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToListAsync()
+                    ) :
+                    await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToListAsync();
+                return (list, total);
+            }
             else
-                return await collection.Find(filter, options).SortByDescending(sort).ToListAsync();
+            {
+                var list = sort != null ?
+                    (
+                        !isDesc ?
+                        await collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortBy(sort).ToListAsync() :
+                        await collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortByDescending(sort).ToListAsync()
+                    ) :
+                    await collection.Find(filter ?? FilterDefinition<T>.Empty, options).ToListAsync();
+                return (list, 0);
+            }
         }
+
+        /// <summary>
+        /// 查询集合
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="filter">条件</param>
+        /// <param name="sort">排序</param>
+        /// <param name="options">配置</param>
+        /// <param name="pageIndex">当前页码</param>
+        /// <param name="pageSize">每页行数</param>
+        /// <returns>默认不分页，返回总条数为0</returns>
+        public async Task<(List<T> list, long total)> FindListAsync<T>(FilterDefinition<T> filter = null, SortDefinition<T> sort = null, FindOptions options = null, int? pageIndex = null, int? pageSize = null)
+        {
+            var collection = this.database.GetCollection<T>(typeof(T).Name);
+            //是否分页
+            if (pageIndex != null && pageSize != null)
+            {
+                var total = await collection.CountDocumentsAsync(filter ?? FilterDefinition<T>.Empty);
+                var list = sort != null ?
+                    await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Sort(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToListAsync() :
+                    await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToListAsync();
+                return (list, total);
+            }
+            else
+            {
+                var list = sort != null ?
+                    await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Sort(sort).ToListAsync() :
+                    await collection.Find(filter ?? FilterDefinition<T>.Empty, options).ToListAsync();
+                return (list, 0);
+            }
+        }
+
+        /// <summary>
+        /// 查询集合
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="collectionName">表名</param>
+        /// <param name="filter">条件</param>
+        /// <param name="sort">排序</param>
+        /// <param name="options">配置</param>
+        /// <param name="pageIndex">当前页码</param>
+        /// <param name="pageSize">每页行数</param>
+        /// <returns>默认不分页，返回总条数为0</returns>
+        public async Task<(List<T> list, long total)> FindListAsync<T>(string collectionName, FilterDefinition<T> filter = null, SortDefinition<T> sort = null, FindOptions options = null, int? pageIndex = null, int? pageSize = null)
+        {
+            var collection = this.database.GetCollection<T>(collectionName);
+            //是否分页
+            if (pageIndex != null && pageSize != null)
+            {
+                var total = await collection.CountDocumentsAsync(filter ?? FilterDefinition<T>.Empty);
+                var list = sort != null ?
+                    await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Sort(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToListAsync() :
+                    await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToListAsync();
+                return (list, total);
+            }
+            else
+            {
+                var list = sort != null ?
+                    await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Sort(sort).ToListAsync() :
+                    await collection.Find(filter ?? FilterDefinition<T>.Empty, options).ToListAsync();
+                return (list, 0);
+            }
+        }
+        #endregion
         #endregion
         #endregion
     }
