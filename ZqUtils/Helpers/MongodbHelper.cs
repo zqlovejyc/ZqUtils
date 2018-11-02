@@ -564,6 +564,17 @@ namespace ZqUtils.Helpers
             this.database.DropCollection(collectionName);
         }
         #endregion
+
+        #region DropDatabase
+        /// <summary>
+        /// 删除数据库
+        /// </summary>
+        /// <param name="databaseName">数据库名称</param>
+        public void DropDatabase(string databaseName)
+        {
+            this.client.DropDatabase(databaseName);
+        }
+        #endregion
         #endregion
 
         #region 异步方法
@@ -687,6 +698,18 @@ namespace ZqUtils.Helpers
         public async Task DropCollectionAsync(string collectionName)
         {
             await this.database.DropCollectionAsync(collectionName);
+        }
+        #endregion
+
+        #region DropDatabaseAsync
+        /// <summary>
+        /// 删除数据库
+        /// </summary>
+        /// <param name="databaseName">数据库名称</param>
+        /// <returns></returns>
+        public async Task DropDatabaseAsync(string databaseName)
+        {
+            await this.client.DropDatabaseAsync(databaseName);
         }
         #endregion
         #endregion
