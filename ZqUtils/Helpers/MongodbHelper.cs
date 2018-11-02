@@ -334,6 +334,179 @@ namespace ZqUtils.Helpers
         }
         #endregion
 
+        #region 索引
+        #region 同步方法
+        #region CreateIndex
+        /// <summary>
+        /// 创建索引
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="property">属性</param>
+        /// <param name="collection">mongo集合</param>
+        /// <param name="father">父级字段</param>
+        public void CreateIndex<T>(PropertyInfo property, IMongoCollection<T> collection, string father)
+        {
+            foreach (var prop in property.PropertyType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+            {
+                //判断是否有索引
+                var customAttributes = prop.GetCustomAttributes(typeof(MongoIndexAttribute), false);
+                if (customAttributes?.Length > 0 && customAttributes.FirstOrDefault() is MongoIndexAttribute mongoIndex)
+                {
+                    var name = (string.IsNullOrWhiteSpace(father) ? prop.Name : $"{father}.{prop.Name}");
+                    var keys = mongoIndex.Ascending ?
+                            Builders<T>.IndexKeys.Ascending(name) :
+                            Builders<T>.IndexKeys.Descending(name);
+                    var model = new CreateIndexModel<T>(keys, new CreateIndexOptions
+                    {
+                        Name = mongoIndex.Name,
+                        Unique = mongoIndex.Unique
+                    });
+                    collection.Indexes.CreateOne(model);
+                }
+                //实体
+                else if (prop.PropertyType.IsClass && prop.PropertyType != typeof(string))
+                {
+                    this.CreateIndex(prop, collection, (string.IsNullOrWhiteSpace(father) ? prop.Name : $"{father}.{prop.Name}"));
+                }
+            }
+        }
+
+        /// <summary>
+        /// 创建索引
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="collectionName">表名</param>
+        public void CreateIndex<T>(string collectionName = null)
+        {
+            var collection = this.database.GetCollection<T>(collectionName ?? typeof(T).Name);
+            var props = typeof(T).GetProperties(BindingFlags.Instance | BindingFlags.Public);
+            foreach (var prop in props)
+            {
+                //判断是否有索引
+                var customAttributes = prop.GetCustomAttributes(typeof(MongoIndexAttribute), false);
+                if (customAttributes?.Length > 0 && customAttributes.FirstOrDefault() is MongoIndexAttribute mongoIndex)
+                {
+                    var keys = mongoIndex.Ascending ?
+                            Builders<T>.IndexKeys.Ascending(prop.Name) :
+                            Builders<T>.IndexKeys.Descending(prop.Name);
+                    var model = new CreateIndexModel<T>(keys, new CreateIndexOptions
+                    {
+                        Name = mongoIndex.Name,
+                        Unique = mongoIndex.Unique
+                    });
+                    collection.Indexes.CreateOne(model);
+                }
+                //实体
+                else if (prop.PropertyType.IsClass && prop.PropertyType != typeof(string))
+                {
+                    this.CreateIndex(prop, collection, prop.Name);
+                }
+            }
+        }
+        #endregion
+
+        #region DropIndex
+        /// <summary>
+        /// 删除索引
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="indexName">索引名称</param>
+        /// <param name="collectionName">表名</param>
+        public void DropIndex<T>(string indexName, string collectionName = null)
+        {
+            var collection = this.database.GetCollection<T>(collectionName ?? typeof(T).Name);
+            collection.Indexes.DropOne(indexName);
+        }
+        #endregion
+        #endregion
+
+        #region 异步方法
+        #region CreateIndexAsync
+        /// <summary>
+        /// 创建索引
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="property">属性</param>
+        /// <param name="collection">mongo集合</param>
+        /// <param name="father">父级字段</param>
+        /// <returns></returns>
+        public async Task CreateIndexAsync<T>(PropertyInfo property, IMongoCollection<T> collection, string father)
+        {
+            foreach (var prop in property.PropertyType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+            {
+                //判断是否有索引
+                var customAttributes = prop.GetCustomAttributes(typeof(MongoIndexAttribute), false);
+                if (customAttributes?.Length > 0 && customAttributes.FirstOrDefault() is MongoIndexAttribute mongoIndex)
+                {
+                    var name = (string.IsNullOrWhiteSpace(father) ? prop.Name : $"{father}.{prop.Name}");
+                    var keys = mongoIndex.Ascending ?
+                            Builders<T>.IndexKeys.Ascending(name) :
+                            Builders<T>.IndexKeys.Descending(name);
+                    var model = new CreateIndexModel<T>(keys, new CreateIndexOptions
+                    {
+                        Name = mongoIndex.Name,
+                        Unique = mongoIndex.Unique
+                    });
+                    await collection.Indexes.CreateOneAsync(model);
+                }
+                //实体
+                else if (prop.PropertyType.IsClass && prop.PropertyType != typeof(string))
+                {
+                    await this.CreateIndexAsync(prop, collection, (string.IsNullOrWhiteSpace(father) ? prop.Name : $"{father}.{prop.Name}"));
+                }
+            }
+        }
+
+        /// <summary>
+        /// 创建索引
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="collectionName">表名</param>
+        public async Task CreateIndexAsync<T>(string collectionName = null)
+        {
+            var collection = this.database.GetCollection<T>(collectionName ?? typeof(T).Name);
+            var props = typeof(T).GetProperties(BindingFlags.Instance | BindingFlags.Public);
+            foreach (var prop in props)
+            {
+                //判断是否有索引
+                var customAttributes = prop.GetCustomAttributes(typeof(MongoIndexAttribute), false);
+                if (customAttributes?.Length > 0 && customAttributes.FirstOrDefault() is MongoIndexAttribute mongoIndex)
+                {
+                    var keys = mongoIndex.Ascending ?
+                            Builders<T>.IndexKeys.Ascending(prop.Name) :
+                            Builders<T>.IndexKeys.Descending(prop.Name);
+                    var model = new CreateIndexModel<T>(keys, new CreateIndexOptions
+                    {
+                        Name = mongoIndex.Name,
+                        Unique = mongoIndex.Unique
+                    });
+                    await collection.Indexes.CreateOneAsync(model);
+                }
+                //实体
+                else if (prop.PropertyType.IsClass && prop.PropertyType != typeof(string))
+                {
+                    await this.CreateIndexAsync(prop, collection, prop.Name);
+                }
+            }
+        }
+        #endregion
+
+        #region DropIndexAsync
+        /// <summary>
+        /// 删除索引
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="indexName">索引名称</param>
+        /// <param name="collectionName">表名</param>
+        public async Task DropIndexAsync<T>(string indexName, string collectionName = null)
+        {
+            var collection = this.database.GetCollection<T>(collectionName ?? typeof(T).Name);
+            await collection.Indexes.DropOneAsync(indexName);
+        }
+        #endregion
+        #endregion
+        #endregion
+
         #region 新增
         #region 同步方法
         #region InsertOne
@@ -346,6 +519,7 @@ namespace ZqUtils.Helpers
         {
             var collection = this.database.GetCollection<T>(typeof(T).Name);
             collection.InsertOne(entity);
+            this.CreateIndex<T>();
         }
 
         /// <summary>
@@ -358,6 +532,7 @@ namespace ZqUtils.Helpers
         {
             var collection = this.database.GetCollection<T>(collectionName);
             collection.InsertOne(entity);
+            this.CreateIndex<T>(collectionName);
         }
         #endregion
 
@@ -371,6 +546,7 @@ namespace ZqUtils.Helpers
         {
             var collection = this.database.GetCollection<T>(typeof(T).Name);
             collection.InsertMany(entity);
+            this.CreateIndex<T>();
         }
 
         /// <summary>
@@ -383,6 +559,7 @@ namespace ZqUtils.Helpers
         {
             var collection = this.database.GetCollection<T>(collectionName);
             collection.InsertMany(entity);
+            this.CreateIndex<T>(collectionName);
         }
         #endregion
         #endregion
@@ -398,6 +575,7 @@ namespace ZqUtils.Helpers
         {
             var collection = this.database.GetCollection<T>(typeof(T).Name);
             await collection.InsertOneAsync(entity);
+            await this.CreateIndexAsync<T>();
         }
 
         /// <summary>
@@ -410,6 +588,7 @@ namespace ZqUtils.Helpers
         {
             var collection = this.database.GetCollection<T>(collectionName);
             await collection.InsertOneAsync(entity);
+            await this.CreateIndexAsync<T>(collectionName);
         }
         #endregion
 
@@ -423,6 +602,7 @@ namespace ZqUtils.Helpers
         {
             var collection = this.database.GetCollection<T>(typeof(T).Name);
             await collection.InsertManyAsync(entity);
+            await this.CreateIndexAsync<T>();
         }
 
         /// <summary>
@@ -435,6 +615,7 @@ namespace ZqUtils.Helpers
         {
             var collection = this.database.GetCollection<T>(collectionName);
             await collection.InsertManyAsync(entity);
+            await this.CreateIndexAsync<T>(collectionName);
         }
         #endregion
         #endregion
@@ -1586,5 +1767,40 @@ namespace ZqUtils.Helpers
         #endregion
         #endregion
         #endregion
+    }
+
+    /// <summary>  
+    /// MongoDB索引
+    /// </summary>  
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
+    public class MongoIndexAttribute : Attribute
+    {
+        /// <summary>
+        /// 索引名称
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>  
+        /// 是否是唯一的，默认flase  
+        /// </summary>  
+        public bool Unique { get; set; }
+
+        /// <summary>  
+        /// 是否是升序，默认true  
+        /// </summary>  
+        public bool Ascending { get; set; }
+
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="name">索引名称</param>
+        /// <param name="unique">是否唯一索引</param>
+        /// <param name="ascding">是否升序</param>
+        public MongoIndexAttribute(string name, bool unique = false, bool ascding = true)
+        {
+            this.Name = name;
+            this.Unique = unique;
+            this.Ascending = ascding;
+        }
     }
 }
