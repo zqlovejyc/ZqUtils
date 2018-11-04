@@ -1781,12 +1781,12 @@ namespace ZqUtils.Helpers
         public string Name { get; set; }
 
         /// <summary>  
-        /// 是否是唯一的，默认flase  
+        /// 是否唯一索引，默认false
         /// </summary>  
         public bool Unique { get; set; }
 
         /// <summary>  
-        /// 是否是升序，默认true  
+        /// 是否升序，默认true
         /// </summary>  
         public bool Ascending { get; set; }
 
