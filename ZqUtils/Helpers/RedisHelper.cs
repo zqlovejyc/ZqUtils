@@ -21,7 +21,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using StackExchange.Redis;
-using Newtonsoft.Json;
+using ZqUtils.Extensions;
 /****************************
 * [Author] 张强
 * [Date] 2018-03-21
@@ -173,17 +173,7 @@ namespace ZqUtils.Helpers
         {
             return string.IsNullOrEmpty(defaultKey) ? key : $"{defaultKey}:{key}";
         }
-
-        /// <summary>
-        /// 转换为字符串
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="list"></param>
-        /// <returns></returns>
-        private IEnumerable<string> ConvertToString<T>(IEnumerable<T> list) where T : struct
-        {
-            return list?.Select(x => x.ToString());
-        }
+        #endregion
 
         #region 注册事件
         /// <summary>
@@ -271,32 +261,6 @@ namespace ZqUtils.Helpers
         }
         #endregion
 
-        #region 序列化/反序列化
-        /// <summary>
-        /// 序列化
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        private string Serialize(object obj)
-        {
-            if (obj == null) return null;
-            return JsonConvert.SerializeObject(obj);
-        }
-
-        /// <summary>
-        /// 反序列化
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        private T Deserialize<T>(string data)
-        {
-            if (string.IsNullOrEmpty(data)) return default(T);
-            return JsonConvert.DeserializeObject<T>(data);
-        }
-        #endregion
-        #endregion
-
         #region 公有方法
         #region string 操作
         #region string-同步
@@ -345,8 +309,7 @@ namespace ZqUtils.Helpers
         public bool StringSet<T>(string redisKey, T redisValue, TimeSpan? expiry = null)
         {
             redisKey = AddKeyPrefix(redisKey);
-            var json = Serialize(redisValue);
-            return db.StringSet(redisKey, json, expiry);
+            return db.StringSet(redisKey, redisValue.ToJson(), expiry);
         }
 
         /// <summary>
@@ -357,7 +320,7 @@ namespace ZqUtils.Helpers
         public T StringGet<T>(string redisKey)
         {
             redisKey = AddKeyPrefix(redisKey);
-            return Deserialize<T>(db.StringGet(redisKey));
+            return db.StringGet(redisKey).ToString().ToObject<T>();
         }
         #endregion
 
@@ -407,8 +370,7 @@ namespace ZqUtils.Helpers
         public async Task<bool> StringSetAsync<T>(string redisKey, T redisValue, TimeSpan? expiry = null)
         {
             redisKey = AddKeyPrefix(redisKey);
-            var json = Serialize(redisValue);
-            return await db.StringSetAsync(redisKey, json, expiry);
+            return await db.StringSetAsync(redisKey, redisValue.ToJson(), expiry);
         }
 
         /// <summary>
@@ -419,7 +381,7 @@ namespace ZqUtils.Helpers
         public async Task<T> StringGetAsync<T>(string redisKey)
         {
             redisKey = AddKeyPrefix(redisKey);
-            return Deserialize<T>(await db.StringGetAsync(redisKey));
+            return (await db.StringGetAsync(redisKey)).ToString().ToObject<T>();
         }
         #endregion
         #endregion
@@ -522,8 +484,8 @@ namespace ZqUtils.Helpers
         {
             redisKey = AddKeyPrefix(redisKey);
             var fields = hashFields.Select(x => (RedisValue)x);
-            var result = ConvertToString(db.HashGet(redisKey, fields.ToArray()));
-            return typeof(T) == typeof(string) ? result as IEnumerable<T> : result.Select(o => Deserialize<T>(o));
+            var result = db.HashGet(redisKey, fields.ToArray()).Select(o => o.ToString());
+            return result.Select(o => o.ToString().ToObject<T>());
         }
 
         /// <summary>
@@ -545,7 +507,7 @@ namespace ZqUtils.Helpers
         public IEnumerable<string> HashKeys(string redisKey)
         {
             redisKey = AddKeyPrefix(redisKey);
-            return ConvertToString(db.HashKeys(redisKey));
+            return db.HashKeys(redisKey).Select(o => o.ToString());
         }
 
         /// <summary>
@@ -556,7 +518,7 @@ namespace ZqUtils.Helpers
         public IEnumerable<string> HashValues(string redisKey)
         {
             redisKey = AddKeyPrefix(redisKey);
-            return ConvertToString(db.HashValues(redisKey));
+            return db.HashValues(redisKey).Select(o => o.ToString());
         }
 
         /// <summary>
@@ -569,8 +531,7 @@ namespace ZqUtils.Helpers
         public bool HashSet<T>(string redisKey, string hashField, T redisValue)
         {
             redisKey = AddKeyPrefix(redisKey);
-            var json = Serialize(redisValue);
-            return db.HashSet(redisKey, hashField, json);
+            return db.HashSet(redisKey, hashField, redisValue.ToJson());
         }
 
         /// <summary>
@@ -582,7 +543,7 @@ namespace ZqUtils.Helpers
         public T HashGet<T>(string redisKey, string hashField)
         {
             redisKey = AddKeyPrefix(redisKey);
-            return Deserialize<T>(db.HashGet(redisKey, hashField));
+            return db.HashGet(redisKey, hashField).ToString().ToObject<T>();
         }
         #endregion
 
@@ -683,8 +644,8 @@ namespace ZqUtils.Helpers
         {
             redisKey = AddKeyPrefix(redisKey);
             var fields = hashFields.Select(x => (RedisValue)x);
-            var result = ConvertToString(await db.HashGetAsync(redisKey, fields.ToArray()));
-            return typeof(T) == typeof(string) ? result as IEnumerable<T> : result.Select(o => Deserialize<T>(o));
+            var result = (await db.HashGetAsync(redisKey, fields.ToArray())).Select(o => o.ToString());
+            return result.Select(o => o.ToString().ToObject<T>());
         }
 
         /// <summary>
@@ -706,7 +667,7 @@ namespace ZqUtils.Helpers
         public async Task<IEnumerable<string>> HashKeysAsync(string redisKey)
         {
             redisKey = AddKeyPrefix(redisKey);
-            return ConvertToString(await db.HashKeysAsync(redisKey));
+            return (await db.HashKeysAsync(redisKey)).Select(o => o.ToString());
         }
 
         /// <summary>
@@ -717,7 +678,7 @@ namespace ZqUtils.Helpers
         public async Task<IEnumerable<string>> HashValuesAsync(string redisKey)
         {
             redisKey = AddKeyPrefix(redisKey);
-            return ConvertToString(await db.HashValuesAsync(redisKey));
+            return (await db.HashValuesAsync(redisKey)).Select(o => o.ToString());
         }
 
         /// <summary>
@@ -730,8 +691,7 @@ namespace ZqUtils.Helpers
         public async Task<bool> HashSetAsync<T>(string redisKey, string hashField, T value)
         {
             redisKey = AddKeyPrefix(redisKey);
-            var json = Serialize(value);
-            return await db.HashSetAsync(redisKey, hashField, json);
+            return await db.HashSetAsync(redisKey, hashField, value.ToJson());
         }
 
         /// <summary>
@@ -743,7 +703,7 @@ namespace ZqUtils.Helpers
         public async Task<T> HashGetAsync<T>(string redisKey, string hashField)
         {
             redisKey = AddKeyPrefix(redisKey);
-            return Deserialize<T>(await db.HashGetAsync(redisKey, hashField));
+            return (await db.HashGetAsync(redisKey, hashField)).ToString().ToObject<T>();
         }
         #endregion
         #endregion
@@ -829,7 +789,7 @@ namespace ZqUtils.Helpers
         public IEnumerable<string> ListRange(string redisKey, long start = 0L, long stop = -1L)
         {
             redisKey = AddKeyPrefix(redisKey);
-            return ConvertToString(db.ListRange(redisKey, start, stop));
+            return db.ListRange(redisKey, start, stop).Select(o => o.ToString());
         }
 
         /// <summary>
@@ -840,7 +800,7 @@ namespace ZqUtils.Helpers
         public T ListLeftPop<T>(string redisKey)
         {
             redisKey = AddKeyPrefix(redisKey);
-            return Deserialize<T>(db.ListLeftPop(redisKey));
+            return db.ListLeftPop(redisKey).ToString().ToObject<T>();
         }
 
         /// <summary>
@@ -851,7 +811,7 @@ namespace ZqUtils.Helpers
         public T ListRightPop<T>(string redisKey)
         {
             redisKey = AddKeyPrefix(redisKey);
-            return Deserialize<T>(db.ListRightPop(redisKey));
+            return db.ListRightPop(redisKey).ToString().ToObject<T>();
         }
 
         /// <summary>
@@ -863,7 +823,7 @@ namespace ZqUtils.Helpers
         public long ListRightPush<T>(string redisKey, T redisValue)
         {
             redisKey = AddKeyPrefix(redisKey);
-            return db.ListRightPush(redisKey, Serialize(redisValue));
+            return db.ListRightPush(redisKey, redisValue.ToJson());
         }
 
         /// <summary>
@@ -875,7 +835,7 @@ namespace ZqUtils.Helpers
         public long ListLeftPush<T>(string redisKey, T redisValue)
         {
             redisKey = AddKeyPrefix(redisKey);
-            return db.ListLeftPush(redisKey, Serialize(redisValue));
+            return db.ListLeftPush(redisKey, redisValue.ToJson());
         }
 
         /// <summary>
@@ -1004,7 +964,7 @@ namespace ZqUtils.Helpers
         public async Task<T> ListLeftPopAsync<T>(string redisKey)
         {
             redisKey = AddKeyPrefix(redisKey);
-            return Deserialize<T>(await db.ListLeftPopAsync(redisKey));
+            return (await db.ListLeftPopAsync(redisKey)).ToString().ToObject<T>();
         }
 
         /// <summary>
@@ -1015,7 +975,7 @@ namespace ZqUtils.Helpers
         public async Task<T> ListRightPopAsync<T>(string redisKey)
         {
             redisKey = AddKeyPrefix(redisKey);
-            return Deserialize<T>(await db.ListRightPopAsync(redisKey));
+            return (await db.ListRightPopAsync(redisKey)).ToString().ToObject<T>();
         }
 
         /// <summary>
@@ -1027,7 +987,7 @@ namespace ZqUtils.Helpers
         public async Task<long> ListRightPushAsync<T>(string redisKey, T redisValue)
         {
             redisKey = AddKeyPrefix(redisKey);
-            return await db.ListRightPushAsync(redisKey, Serialize(redisValue));
+            return await db.ListRightPushAsync(redisKey, redisValue.ToJson());
         }
 
         /// <summary>
@@ -1039,7 +999,7 @@ namespace ZqUtils.Helpers
         public async Task<long> ListLeftPushAsync<T>(string redisKey, T redisValue)
         {
             redisKey = AddKeyPrefix(redisKey);
-            return await db.ListLeftPushAsync(redisKey, Serialize(redisValue));
+            return await db.ListLeftPushAsync(redisKey, redisValue.ToJson());
         }
 
         /// <summary>
@@ -1093,17 +1053,41 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
-        /// 在有序集合中返回指定范围的元素，默认情况下从低到高。
+        /// SortedSet 新增
         /// </summary>
         /// <param name="redisKey"></param>
-        /// <param name="start"></param>
-        /// <param name="stop"></param>
-        /// <param name="order"></param>
+        /// <param name="member"></param>
+        /// <param name="score"></param>
         /// <returns></returns>
-        public IEnumerable<string> SortedSetRangeByRank(string redisKey, long start = 0L, long stop = -1L, OrderType order = OrderType.Ascending)
+        public bool SortedSetAdd<T>(string redisKey, T member, double score)
         {
             redisKey = AddKeyPrefix(redisKey);
-            return db.SortedSetRangeByRank(redisKey, start, stop, (Order)order).Select(x => x.ToString());
+            return SortedSetAdd(redisKey, member.ToJson(), score);
+        }
+
+        /// <summary>
+        /// SortedSet 移除
+        /// </summary>
+        /// <param name="redisKey"></param>
+        /// <param name="memebr"></param>
+        /// <returns></returns>
+        public bool SortedSetLength(string redisKey, string memebr)
+        {
+            redisKey = AddKeyPrefix(redisKey);
+            return db.SortedSetRemove(redisKey, memebr);
+        }
+
+        /// <summary>
+        /// 增量的得分排序的集合中的成员存储键值键按增量
+        /// </summary>
+        /// <param name="redisKey"></param>
+        /// <param name="member"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public double SortedSetIncrement(string redisKey, string member, double value = 1)
+        {
+            redisKey = AddKeyPrefix(redisKey);
+            return db.SortedSetIncrement(redisKey, member, value);
         }
 
         /// <summary>
@@ -1118,42 +1102,93 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
-        /// 返回有序集合的元素个数
-        /// </summary>
-        /// <param name="redisKey"></param>
-        /// <param name="memebr"></param>
-        /// <returns></returns>
-        public bool SortedSetLength(string redisKey, string memebr)
-        {
-            redisKey = AddKeyPrefix(redisKey);
-            return db.SortedSetRemove(redisKey, memebr);
-        }
-
-        /// <summary>
-        /// SortedSet 新增
+        /// 返回排名
         /// </summary>
         /// <param name="redisKey"></param>
         /// <param name="member"></param>
-        /// <param name="score"></param>
+        /// <param name="order"></param>
         /// <returns></returns>
-        public bool SortedSetAdd<T>(string redisKey, T member, double score)
+        public long? SortedSetRank(string redisKey, string member, Order order = Order.Ascending)
         {
             redisKey = AddKeyPrefix(redisKey);
-            var json = Serialize(member);
-            return db.SortedSetAdd(redisKey, json, score);
+            return db.SortedSetRank(redisKey, member, order);
         }
 
         /// <summary>
-        /// 增量的得分排序的集合中的成员存储键值键按增量
+        /// 在有序集合中返回指定范围的元素，默认情况下从低到高。
         /// </summary>
         /// <param name="redisKey"></param>
-        /// <param name="member"></param>
-        /// <param name="value"></param>
+        /// <param name="start"></param>
+        /// <param name="stop"></param>
+        /// <param name="order"></param>        
         /// <returns></returns>
-        public double SortedSetIncrement(string redisKey, string member, double value = 1)
+        public IEnumerable<string> SortedSetRangeByRank(string redisKey, long start = 0, long stop = -1, Order order = Order.Ascending)
         {
             redisKey = AddKeyPrefix(redisKey);
-            return db.SortedSetIncrement(redisKey, member, value);
+            return db.SortedSetRangeByRank(redisKey, start, stop, order).Select(x => x.ToString());
+        }
+
+        /// <summary>
+        /// 在有序集合中返回指定范围的元素，默认情况下从低到高。
+        /// </summary>
+        /// <param name="redisKey"></param>
+        /// <param name="start"></param>
+        /// <param name="stop"></param>
+        /// <param name="order"></param>        
+        /// <returns></returns>
+        public Dictionary<string, double> SortedSetRangeByRankWithScores(string redisKey, long start = 0, long stop = -1, Order order = Order.Ascending)
+        {
+            redisKey = AddKeyPrefix(redisKey);
+            var result = db.SortedSetRangeByRankWithScores(redisKey, start, stop, order);
+            return result.Select(x => new { x.Score, Value = x.Element.ToString() }).ToDictionary(x => x.Value, x => x.Score);
+        }
+
+        /// <summary>
+        /// 在有序集合中返回指定范围的元素，默认情况下从低到高。
+        /// </summary>
+        /// <param name="redisKey"></param>
+        /// <param name="start"></param>
+        /// <param name="stop"></param>
+        /// <param name="skip"></param>
+        /// <param name="take"></param>
+        /// <param name="order"></param>
+        /// <returns></returns>
+        public IEnumerable<string> SortedSetRangeByScore(string redisKey, double start = double.NegativeInfinity, double stop = double.PositiveInfinity, long skip = 0, long take = -1, Order order = Order.Ascending)
+        {
+            redisKey = AddKeyPrefix(redisKey);
+            return db.SortedSetRangeByScore(redisKey, start, stop, order: order, skip: skip, take: take).Select(o => o.ToString());
+        }
+
+        /// <summary>
+        /// 在有序集合中返回指定范围的元素，默认情况下从低到高。
+        /// </summary>
+        /// <param name="redisKey"></param>
+        /// <param name="start"></param>
+        /// <param name="stop"></param>
+        /// <param name="skip"></param>
+        /// <param name="take"></param>
+        /// <param name="order"></param>
+        /// <returns></returns>
+        public Dictionary<string, double> SortedSetRangeByScoreWithScores(string redisKey, double start = double.NegativeInfinity, double stop = double.PositiveInfinity, long skip = 0, long take = -1, Order order = Order.Ascending)
+        {
+            redisKey = AddKeyPrefix(redisKey);
+            var result = db.SortedSetRangeByScoreWithScores(redisKey, start, stop, order: order, skip: skip, take: take);
+            return result.Select(x => new { x.Score, Value = x.Element.ToString() }).ToDictionary(x => x.Value, x => x.Score);
+        }
+
+        /// <summary>
+        /// 当有序集合中的Score相同时，按照值从小到大进行排序
+        /// </summary>
+        /// <param name="redisKey"></param>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <param name="skip"></param>
+        /// <param name="take"></param>        
+        /// <returns></returns>
+        public IEnumerable<string> SortedSetRangeByValue(string redisKey, RedisValue min = default(RedisValue), RedisValue max = default(RedisValue), long skip = 0, long take = -1)
+        {
+            redisKey = AddKeyPrefix(redisKey);
+            return db.SortedSetRangeByValue(redisKey, min, max, skip: skip, take: take).Select(o => o.ToString());
         }
         #endregion
 
@@ -1172,14 +1207,41 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
-        /// 在有序集合中返回指定范围的元素，默认情况下从低到高。
+        /// SortedSet 新增
         /// </summary>
         /// <param name="redisKey"></param>
+        /// <param name="member"></param>
+        /// <param name="score"></param>
         /// <returns></returns>
-        public async Task<IEnumerable<string>> SortedSetRangeByRankAsync(string redisKey)
+        public async Task<bool> SortedSetAddAsync<T>(string redisKey, T member, double score)
         {
             redisKey = AddKeyPrefix(redisKey);
-            return ConvertToString(await db.SortedSetRangeByRankAsync(redisKey));
+            return await SortedSetAddAsync(redisKey, member.ToJson(), score);
+        }
+
+        /// <summary>
+        /// SortedSet 移除
+        /// </summary>
+        /// <param name="redisKey"></param>
+        /// <param name="memebr"></param>
+        /// <returns></returns>
+        public async Task<bool> SortedSetRemoveAsync(string redisKey, string memebr)
+        {
+            redisKey = AddKeyPrefix(redisKey);
+            return await db.SortedSetRemoveAsync(redisKey, memebr);
+        }
+
+        /// <summary>
+        /// 增量的得分排序的集合中的成员存储键值键按增量
+        /// </summary>
+        /// <param name="redisKey"></param>
+        /// <param name="member"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public Task<double> SortedSetIncrementAsync(string redisKey, string member, double value = 1)
+        {
+            redisKey = AddKeyPrefix(redisKey);
+            return db.SortedSetIncrementAsync(redisKey, member, value);
         }
 
         /// <summary>
@@ -1194,42 +1256,93 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
-        /// 返回有序集合的元素个数
-        /// </summary>
-        /// <param name="redisKey"></param>
-        /// <param name="memebr"></param>
-        /// <returns></returns>
-        public async Task<bool> SortedSetRemoveAsync(string redisKey, string memebr)
-        {
-            redisKey = AddKeyPrefix(redisKey);
-            return await db.SortedSetRemoveAsync(redisKey, memebr);
-        }
-
-        /// <summary>
-        /// SortedSet 新增
+        /// 返回排名
         /// </summary>
         /// <param name="redisKey"></param>
         /// <param name="member"></param>
-        /// <param name="score"></param>
+        /// <param name="order"></param>
         /// <returns></returns>
-        public async Task<bool> SortedSetAddAsync<T>(string redisKey, T member, double score)
+        public async Task<long?> SortedSetRankAsync(string redisKey, string member, Order order = Order.Ascending)
         {
             redisKey = AddKeyPrefix(redisKey);
-            var json = Serialize(member);
-            return await db.SortedSetAddAsync(redisKey, json, score);
+            return await db.SortedSetRankAsync(redisKey, member, order);
         }
 
         /// <summary>
-        /// 增量的得分排序的集合中的成员存储键值键按增量
+        /// 在有序集合中返回指定范围的元素，默认情况下从低到高。
         /// </summary>
         /// <param name="redisKey"></param>
-        /// <param name="member"></param>
-        /// <param name="value"></param>
+        /// <param name="start"></param>
+        /// <param name="stop"></param>
+        /// <param name="order"></param>
         /// <returns></returns>
-        public Task<double> SortedSetIncrementAsync(string redisKey, string member, double value = 1)
+        public async Task<IEnumerable<string>> SortedSetRangeByRankAsync(string redisKey, long start = 0, long stop = -1, Order order = Order.Ascending)
         {
             redisKey = AddKeyPrefix(redisKey);
-            return db.SortedSetIncrementAsync(redisKey, member, value);
+            return (await db.SortedSetRangeByRankAsync(redisKey, start, stop, order)).Select(o => o.ToString());
+        }
+
+        /// <summary>
+        /// 在有序集合中返回指定范围的元素，默认情况下从低到高。
+        /// </summary>
+        /// <param name="redisKey"></param>
+        /// <param name="start"></param>
+        /// <param name="stop"></param>
+        /// <param name="order"></param>        
+        /// <returns></returns>
+        public async Task<Dictionary<string, double>> SortedSetRangeByRankWithScoresAsync(string redisKey, long start = 0, long stop = -1, Order order = Order.Ascending)
+        {
+            redisKey = AddKeyPrefix(redisKey);
+            var result = await db.SortedSetRangeByRankWithScoresAsync(redisKey, start, stop, order);
+            return result.Select(x => new { x.Score, Value = x.Element.ToString() }).ToDictionary(x => x.Value, x => x.Score);
+        }
+
+        /// <summary>
+        /// 在有序集合中返回指定范围的元素，默认情况下从低到高。
+        /// </summary>
+        /// <param name="redisKey"></param>
+        /// <param name="start"></param>
+        /// <param name="stop"></param>
+        /// <param name="skip"></param>
+        /// <param name="take"></param>
+        /// <param name="order"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<string>> SortedSetRangeByScoreAsync(string redisKey, double start = double.NegativeInfinity, double stop = double.PositiveInfinity, long skip = 0, long take = -1, Order order = Order.Ascending)
+        {
+            redisKey = AddKeyPrefix(redisKey);
+            return (await db.SortedSetRangeByScoreAsync(redisKey, start, stop, order: order, skip: skip, take: take)).Select(o => o.ToString());
+        }
+
+        /// <summary>
+        /// 在有序集合中返回指定范围的元素，默认情况下从低到高。
+        /// </summary>
+        /// <param name="redisKey"></param>
+        /// <param name="start"></param>
+        /// <param name="stop"></param>
+        /// <param name="skip"></param>
+        /// <param name="take"></param>
+        /// <param name="order"></param>
+        /// <returns></returns>
+        public async Task<Dictionary<string, double>> SortedSetRangeByScoreWithScoresAsync(string redisKey, double start = double.NegativeInfinity, double stop = double.PositiveInfinity, long skip = 0, long take = -1, Order order = Order.Ascending)
+        {
+            redisKey = AddKeyPrefix(redisKey);
+            var result = await db.SortedSetRangeByScoreWithScoresAsync(redisKey, start, stop, order: order, skip: skip, take: take);
+            return result.Select(x => new { x.Score, Value = x.Element.ToString() }).ToDictionary(x => x.Value, x => x.Score);
+        }
+
+        /// <summary>
+        /// 当有序集合中的Score相同时，按照值从小到大进行排序
+        /// </summary>
+        /// <param name="redisKey"></param>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <param name="skip"></param>
+        /// <param name="take"></param>        
+        /// <returns></returns>
+        public async Task<IEnumerable<string>> SortedSetRangeByValueAsync(string redisKey, RedisValue min = default(RedisValue), RedisValue max = default(RedisValue), long skip = 0, long take = -1)
+        {
+            redisKey = AddKeyPrefix(redisKey);
+            return (await db.SortedSetRangeByValueAsync(redisKey, min, max, skip: skip, take: take)).Select(o => o.ToString());
         }
         #endregion
         #endregion
@@ -1529,20 +1642,5 @@ namespace ZqUtils.Helpers
         }
         #endregion
         #endregion
-    }
-
-    /// <summary>
-    /// Redis排序类型
-    /// </summary>
-    public enum OrderType
-    {
-        /// <summary>
-        /// 升序
-        /// </summary>
-        Ascending,
-        /// <summary>
-        /// 降序
-        /// </summary>
-        Descending
     }
 }
