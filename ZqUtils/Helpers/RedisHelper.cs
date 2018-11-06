@@ -46,11 +46,6 @@ namespace ZqUtils.Helpers
         private static readonly object locker = new object();
 
         /// <summary>
-        /// 静态私有对象
-        /// </summary>
-        private static RedisHelper _instance;
-
-        /// <summary>
         /// redis 连接对象
         /// </summary>
         private static IConnectionMultiplexer connMultiplexer;
@@ -65,43 +60,50 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 单例实例
         /// </summary>
-        public static RedisHelper Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    lock (locker)
-                    {
-                        if (_instance == null)
-                        {
-                            _instance = new RedisHelper();
-                        }
-                    }
-                }
-                return _instance;
-            }
-        }
+        public static RedisHelper Instance => SingletonHelper<RedisHelper>.GetInstance();
         #endregion
 
         #region 构造函数
         /// <summary>
         /// 构造函数
         /// </summary>
-        /// <param name="defaultDatabase">数据库索引</param>
-        /// <param name="configurationOptions">连接配置</param>
-        public RedisHelper(int defaultDatabase = 0, ConfigurationOptions configurationOptions = null)
+        public RedisHelper()
         {
             try
             {
-                if (configurationOptions?.DefaultDatabase != null)
-                {
-                    db = GetConnectionRedisMultiplexer(configurationOptions).GetDatabase();
-                }
-                else
-                {
-                    db = GetConnectionRedisMultiplexer(configurationOptions).GetDatabase(defaultDatabase);
-                }
+                db = GetConnectionRedisMultiplexer().GetDatabase();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="defaultDatabase">数据库索引</param>
+        public RedisHelper(int defaultDatabase)
+        {
+            try
+            {
+                db = GetConnectionRedisMultiplexer().GetDatabase(defaultDatabase);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        /// <summary>
+        /// 构造函数
+        /// </summary>        
+        /// <param name="configurationOptions">连接配置</param>
+        public RedisHelper(ConfigurationOptions configurationOptions)
+        {
+            try
+            {
+                db = GetConnectionRedisMultiplexer(configurationOptions).GetDatabase();
             }
             catch (Exception ex)
             {
@@ -1183,7 +1185,7 @@ namespace ZqUtils.Helpers
         /// <param name="min"></param>
         /// <param name="max"></param>
         /// <param name="skip"></param>
-        /// <param name="take"></param>        
+        /// <param name="take"></param>
         /// <returns></returns>
         public IEnumerable<string> SortedSetRangeByValue(string redisKey, RedisValue min = default(RedisValue), RedisValue max = default(RedisValue), long skip = 0, long take = -1)
         {
