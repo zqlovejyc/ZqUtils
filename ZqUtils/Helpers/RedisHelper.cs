@@ -1073,10 +1073,49 @@ namespace ZqUtils.Helpers
         /// <param name="redisKey"></param>
         /// <param name="memebr"></param>
         /// <returns></returns>
-        public bool SortedSetLength(string redisKey, string memebr)
+        public bool SortedSetRemove(string redisKey, string memebr)
         {
             redisKey = AddKeyPrefix(redisKey);
             return db.SortedSetRemove(redisKey, memebr);
+        }
+
+        /// <summary>
+        /// SortedSet 移除
+        /// </summary>
+        /// <param name="redisKey"></param>
+        /// <param name="start"></param>
+        /// <param name="stop"></param>
+        /// <returns></returns>
+        public long SortedSetRemoveRangeByRank(string redisKey, long start, long stop)
+        {
+            redisKey = AddKeyPrefix(redisKey);
+            return db.SortedSetRemoveRangeByRank(redisKey, start, stop);
+        }
+
+        /// <summary>
+        /// SortedSet 移除
+        /// </summary>
+        /// <param name="redisKey"></param>
+        /// <param name="start"></param>
+        /// <param name="stop"></param>
+        /// <returns></returns>
+        public long SortedSetRemoveRangeByScore(string redisKey, double start, double stop)
+        {
+            redisKey = AddKeyPrefix(redisKey);
+            return db.SortedSetRemoveRangeByScore(redisKey, start, stop);
+        }
+
+        /// <summary>
+        /// SortedSet 移除
+        /// </summary>
+        /// <param name="redisKey"></param>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <returns></returns>
+        public long SortedSetRemoveRangeByValue(string redisKey, string min, string max)
+        {
+            redisKey = AddKeyPrefix(redisKey);
+            return db.SortedSetRemoveRangeByValue(redisKey, min, max);
         }
 
         /// <summary>
@@ -1093,6 +1132,19 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
+        /// 减量的得分排序的集合中的成员存储键值键按减量
+        /// </summary>
+        /// <param name="redisKey"></param>
+        /// <param name="member"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public double SortedSetDecrement(string redisKey, string member, double value)
+        {
+            redisKey = AddKeyPrefix(redisKey);
+            return db.SortedSetDecrement(redisKey, member, value);
+        }
+
+        /// <summary>
         /// 返回有序集合的元素个数
         /// </summary>
         /// <param name="redisKey"></param>
@@ -1104,7 +1156,7 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
-        /// 返回排名
+        /// 获取集合中的索引位置，从0开始
         /// </summary>
         /// <param name="redisKey"></param>
         /// <param name="member"></param>
@@ -1114,6 +1166,18 @@ namespace ZqUtils.Helpers
         {
             redisKey = AddKeyPrefix(redisKey);
             return db.SortedSetRank(redisKey, member, order);
+        }
+
+        /// <summary>
+        /// 获取Score
+        /// </summary>
+        /// <param name="redisKey"></param>
+        /// <param name="memebr"></param>
+        /// <returns></returns>
+        public double? SortedSetScore(string redisKey, string memebr)
+        {
+            redisKey = AddKeyPrefix(redisKey);
+            return db.SortedSetScore(redisKey, memebr);
         }
 
         /// <summary>
@@ -1185,7 +1249,7 @@ namespace ZqUtils.Helpers
         /// <param name="min"></param>
         /// <param name="max"></param>
         /// <param name="skip"></param>
-        /// <param name="take"></param>
+        /// <param name="take"></param>        
         /// <returns></returns>
         public IEnumerable<string> SortedSetRangeByValue(string redisKey, RedisValue min = default(RedisValue), RedisValue max = default(RedisValue), long skip = 0, long take = -1)
         {
@@ -1234,6 +1298,45 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
+        /// SortedSet 移除
+        /// </summary>
+        /// <param name="redisKey"></param>
+        /// <param name="start"></param>
+        /// <param name="stop"></param>
+        /// <returns></returns>
+        public async Task<long> SortedSetRemoveRangeByRankAsync(string redisKey, long start, long stop)
+        {
+            redisKey = AddKeyPrefix(redisKey);
+            return await db.SortedSetRemoveRangeByRankAsync(redisKey, start, stop);
+        }
+
+        /// <summary>
+        /// SortedSet 移除
+        /// </summary>
+        /// <param name="redisKey"></param>
+        /// <param name="start"></param>
+        /// <param name="stop"></param>
+        /// <returns></returns>
+        public async Task<long> SortedSetRemoveRangeByScoreAsync(string redisKey, double start, double stop)
+        {
+            redisKey = AddKeyPrefix(redisKey);
+            return await db.SortedSetRemoveRangeByScoreAsync(redisKey, start, stop);
+        }
+
+        /// <summary>
+        /// SortedSet 移除
+        /// </summary>
+        /// <param name="redisKey"></param>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <returns></returns>
+        public async Task<long> SortedSetRemoveRangeByValueAsync(string redisKey, string min, string max)
+        {
+            redisKey = AddKeyPrefix(redisKey);
+            return await db.SortedSetRemoveRangeByValueAsync(redisKey, min, max);
+        }
+
+        /// <summary>
         /// 增量的得分排序的集合中的成员存储键值键按增量
         /// </summary>
         /// <param name="redisKey"></param>
@@ -1244,6 +1347,19 @@ namespace ZqUtils.Helpers
         {
             redisKey = AddKeyPrefix(redisKey);
             return db.SortedSetIncrementAsync(redisKey, member, value);
+        }
+
+        /// <summary>
+        /// 减量的得分排序的集合中的成员存储键值键按减量
+        /// </summary>
+        /// <param name="redisKey"></param>
+        /// <param name="member"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public async Task<double> SortedSetDecrementAsync(string redisKey, string member, double value)
+        {
+            redisKey = AddKeyPrefix(redisKey);
+            return await db.SortedSetDecrementAsync(redisKey, member, value);
         }
 
         /// <summary>
@@ -1258,7 +1374,7 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
-        /// 返回排名
+        /// 获取集合中的索引位置，从0开始
         /// </summary>
         /// <param name="redisKey"></param>
         /// <param name="member"></param>
@@ -1268,6 +1384,18 @@ namespace ZqUtils.Helpers
         {
             redisKey = AddKeyPrefix(redisKey);
             return await db.SortedSetRankAsync(redisKey, member, order);
+        }
+
+        /// <summary>
+        /// 获取Score
+        /// </summary>
+        /// <param name="redisKey"></param>
+        /// <param name="memebr"></param>
+        /// <returns></returns>
+        public async Task<double?> SortedSetScoreAsync(string redisKey, string memebr)
+        {
+            redisKey = AddKeyPrefix(redisKey);
+            return await db.SortedSetScoreAsync(redisKey, memebr);
         }
 
         /// <summary>
@@ -1339,7 +1467,7 @@ namespace ZqUtils.Helpers
         /// <param name="min"></param>
         /// <param name="max"></param>
         /// <param name="skip"></param>
-        /// <param name="take"></param>        
+        /// <param name="take"></param>
         /// <returns></returns>
         public async Task<IEnumerable<string>> SortedSetRangeByValueAsync(string redisKey, RedisValue min = default(RedisValue), RedisValue max = default(RedisValue), long skip = 0, long take = -1)
         {
