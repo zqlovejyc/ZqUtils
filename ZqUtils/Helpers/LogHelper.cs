@@ -165,7 +165,7 @@ namespace ZqUtils.Helpers
             //获取物理路径
             var infoDir = (ConfigHelper.GetAppSettings<string>("logInfo") ?? @"Logs\Info").GetPhysicalPath();
             var errorDir = (ConfigHelper.GetAppSettings<string>("logError") ?? @"Logs\Error").GetPhysicalPath();
-            //判断是否按照当天日期创建日志文件
+            //根据当天日期创建日志文件
             var fileName = $"{DateTime.Now.ToString("yyyy-MM-dd")}.log";
             var infoPath = infoDir + fileName;
             var errorPath = errorDir + fileName;
@@ -187,7 +187,7 @@ namespace ZqUtils.Helpers
                 {
                     swError = new StreamWriter(errorPath, true, Encoding.UTF8);
                 }
-                //判断是否有内容需要如磁盘 从列队中获取内容，并删除列队中的内容
+                //判断日志队列中是否有内容，从列队中获取内容，并删除列队中的内容
                 while (_que?.Count > 0 && _que.TryDequeue(out LogMessage logMessage))
                 {
                     var sf = logMessage.StackFrame;
