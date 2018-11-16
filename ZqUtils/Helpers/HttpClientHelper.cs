@@ -23,7 +23,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+using ZqUtils.Extensions;
 /****************************
 * [Author] 张强
 * [Date] 2018-07-09
@@ -36,14 +36,14 @@ namespace ZqUtils.Helpers
     /// </summary>
     public static class HttpClientHelper
     {
-        #region 公有字段
+        #region Public Static Property
         /// <summary>
         /// UserAgent
         /// </summary>
         public static string UserAgent { get; set; } = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36";
         #endregion
 
-        #region 扩展方法
+        #region Extension Method
         /// <summary>
         /// 处理参数
         /// </summary>
@@ -160,7 +160,7 @@ namespace ZqUtils.Helpers
         }
         #endregion
 
-        #region GET请求
+        #region GetAsync
         /// <summary>
         /// 根据Url地址Get请求返回数据
         /// </summary>
@@ -237,7 +237,7 @@ namespace ZqUtils.Helpers
                                 using (var reader = new StreamReader(stream))
                                 {
                                     var str = await reader.ReadToEndAsync();
-                                    return (JsonConvert.DeserializeObject<T>(str), httpStatusCode);
+                                    return (str.ToObject<T>(), httpStatusCode);
                                 }
                             }
 
@@ -253,51 +253,7 @@ namespace ZqUtils.Helpers
         }
         #endregion
 
-        #region POST请求
-        /// <summary>
-        /// Post请求返回字符
-        /// </summary>
-        /// <param name="url">请求地址</param>
-        /// <param name="data">请求数据</param>
-        /// <param name="decompressionMethods">解压缩方式，默认：GZip</param>
-        /// <param name="mediaType">互联网媒体类型</param>
-        /// <returns>返回请求结果和状态结果</returns>
-        public static async Task<(string result, HttpStatusCode code)> PostAsync(string url, string data, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string mediaType = "application/json")
-        {
-            try
-            {
-                using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
-                {                    
-                    httpClient.CancelPendingRequests();
-                    httpClient.DefaultRequestHeaders.Clear();
-                    httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
-                    if (!string.IsNullOrEmpty(mediaType))
-                    {
-                        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(mediaType));
-                    }
-                    using (var response = await httpClient.PostAsync(url, new StringContent(data)))
-                    {
-                        var httpStatusCode = response.StatusCode;
-                        if (response.IsSuccessStatusCode)
-                        {
-                            using (var stream = await response.Content.ReadAsStreamAsync())
-                            {
-                                using (var reader = new StreamReader(stream))
-                                {
-                                    return (await reader.ReadToEndAsync(), httpStatusCode);
-                                }
-                            }
-                        }
-                        return (null, httpStatusCode);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
-
+        #region PostAsync
         /// <summary>
         /// Post请求返回字符
         /// </summary>
@@ -311,7 +267,7 @@ namespace ZqUtils.Helpers
             try
             {
                 using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
-                {                    
+                {
                     httpClient.CancelPendingRequests();
                     httpClient.DefaultRequestHeaders.Clear();
                     httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
@@ -319,7 +275,8 @@ namespace ZqUtils.Helpers
                     {
                         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(mediaType));
                     }
-                    using (var response = await httpClient.PostAsync(url, new StringContent(JsonConvert.SerializeObject(data))))
+                    var content = new StringContent(data.GetType() == typeof(string) ? data.ToString() : data.ToJson());
+                    using (var response = await httpClient.PostAsync(url, content))
                     {
                         var httpStatusCode = response.StatusCode;
                         if (response.IsSuccessStatusCode)
@@ -333,52 +290,6 @@ namespace ZqUtils.Helpers
                             }
                         }
                         return (null, httpStatusCode);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
-
-        /// <summary>
-        /// Post请求返回实体
-        /// </summary>
-        /// <typeparam name="T">泛型类型</typeparam>
-        /// <param name="url">请求地址</param>
-        /// <param name="data">请求数据</param>
-        /// <param name="decompressionMethods">解压缩方式，默认：GZip</param>
-        /// <param name="mediaType">互联网媒体类型</param>
-        /// <returns>返回请求结果和状态结果</returns>
-        public static async Task<(T result, HttpStatusCode code)> PostAsync<T>(string url, string data, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string mediaType = "application/json")
-        {
-            try
-            {
-                using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
-                {                    
-                    httpClient.CancelPendingRequests();
-                    httpClient.DefaultRequestHeaders.Clear();
-                    httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
-                    if (!string.IsNullOrEmpty(mediaType))
-                    {
-                        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(mediaType));
-                    }
-                    using (var response = await httpClient.PostAsync(url, new StringContent(data)))
-                    {
-                        var httpStatusCode = response.StatusCode;
-                        if (response.IsSuccessStatusCode)
-                        {
-                            using (var stream = await response.Content.ReadAsStreamAsync())
-                            {
-                                using (var reader = new StreamReader(stream))
-                                {
-                                    var str = await reader.ReadToEndAsync();
-                                    return (JsonConvert.DeserializeObject<T>(str), httpStatusCode);
-                                }
-                            }
-                        }
-                        return (default(T), httpStatusCode);
                     }
                 }
             }
@@ -402,7 +313,7 @@ namespace ZqUtils.Helpers
             try
             {
                 using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
-                {                    
+                {
                     httpClient.CancelPendingRequests();
                     httpClient.DefaultRequestHeaders.Clear();
                     httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
@@ -410,7 +321,8 @@ namespace ZqUtils.Helpers
                     {
                         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(mediaType));
                     }
-                    using (var response = await httpClient.PostAsync(url, new StringContent(JsonConvert.SerializeObject(data))))
+                    var content = new StringContent(data.GetType() == typeof(string) ? data.ToString() : data.ToJson());
+                    using (var response = await httpClient.PostAsync(url, content))
                     {
                         var httpStatusCode = response.StatusCode;
                         if (response.IsSuccessStatusCode)
@@ -420,7 +332,109 @@ namespace ZqUtils.Helpers
                                 using (var reader = new StreamReader(stream))
                                 {
                                     var str = await reader.ReadToEndAsync();
-                                    return (JsonConvert.DeserializeObject<T>(str), httpStatusCode);
+                                    return (str.ToObject<T>(), httpStatusCode);
+                                }
+                            }
+                        }
+                        return (default(T), httpStatusCode);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        #endregion
+
+        #region SendAsync
+        /// <summary>
+        /// HttpClient SendAsync方式请求
+        /// </summary>
+        /// <param name="url">请求地址</param>
+        /// <param name="data">请求参数</param>
+        /// <param name="method">请求方式</param>
+        /// <param name="decompressionMethods">解压缩方式，默认：GZip</param>
+        /// <param name="mediaType">互联网媒体类型</param>
+        /// <returns>返回请求结果和状态结果</returns>
+        public static async Task<(string result, HttpStatusCode code)> SendAsync(string url, object data, HttpMethod method, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string mediaType = "application/json")
+        {
+            try
+            {
+                using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
+                {
+                    httpClient.CancelPendingRequests();
+                    httpClient.DefaultRequestHeaders.Clear();
+                    httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
+                    var req = new HttpRequestMessage(method, url)
+                    {
+                        Content = new StringContent(data.GetType() == typeof(string) ? data.ToString() : data.ToJson())
+                    };
+                    if (!string.IsNullOrEmpty(mediaType))
+                    {
+                        req.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(mediaType);
+                    }
+                    using (var response = await httpClient.SendAsync(req))
+                    {
+                        var httpStatusCode = response.StatusCode;
+                        if (response.IsSuccessStatusCode)
+                        {
+                            using (var stream = await response.Content.ReadAsStreamAsync())
+                            {
+                                using (var reader = new StreamReader(stream))
+                                {
+                                    return (await reader.ReadToEndAsync(), httpStatusCode);
+                                }
+                            }
+                        }
+                        return (null, httpStatusCode);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        /// <summary>
+        ///  HttpClient SendAsync方式请求
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="url">请求地址</param>
+        /// <param name="data">请求参数</param>
+        /// <param name="method">请求方式</param>
+        /// <param name="decompressionMethods">解压缩方式，默认：GZip</param>
+        /// <param name="mediaType">互联网媒体类型</param>
+        /// <returns>返回请求结果和状态结果</returns>
+        public static async Task<(T result, HttpStatusCode code)> SendAsync<T>(string url, object data, HttpMethod method, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string mediaType = "application/json")
+        {
+            try
+            {
+                using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
+                {
+                    httpClient.CancelPendingRequests();
+                    httpClient.DefaultRequestHeaders.Clear();
+                    httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
+                    var req = new HttpRequestMessage(method, url)
+                    {
+                        Content = new StringContent(data.GetType() == typeof(string) ? data.ToString() : data.ToJson())
+                    };
+                    if (!string.IsNullOrEmpty(mediaType))
+                    {
+                        req.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(mediaType);
+                    }
+                    using (var response = await httpClient.SendAsync(req))
+                    {
+                        var httpStatusCode = response.StatusCode;
+                        if (response.IsSuccessStatusCode)
+                        {
+                            using (var stream = await response.Content.ReadAsStreamAsync())
+                            {
+                                using (var reader = new StreamReader(stream))
+                                {
+                                    var str = await reader.ReadToEndAsync();
+                                    return (str.ToObject<T>(), httpStatusCode);
                                 }
                             }
                         }
