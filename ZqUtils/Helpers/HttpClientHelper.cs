@@ -16,13 +16,11 @@
  */
 #endregion
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using ZqUtils.Extensions;
 /****************************
 * [Author] 张强
@@ -171,37 +169,24 @@ namespace ZqUtils.Helpers
         /// <returns>返回请求结果和状态结果</returns>
         public static async Task<(string result, HttpStatusCode code)> GetAsync(string url, Dictionary<string, string> parameters, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string mediaType = "application/json")
         {
-            try
+            using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
             {
-                using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
+                httpClient.CancelPendingRequests();
+                httpClient.DefaultRequestHeaders.Clear();
+                httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
+                if (!string.IsNullOrEmpty(mediaType))
                 {
-                    httpClient.CancelPendingRequests();
-                    httpClient.DefaultRequestHeaders.Clear();
-                    httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
-                    if (!string.IsNullOrEmpty(mediaType))
-                    {
-                        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(mediaType));
-                    }
-                    using (var response = await httpClient.GetAsync(url + parameters.ToUrlParameters()))
-                    {
-                        var httpStatusCode = response.StatusCode;
-                        if (response.IsSuccessStatusCode)
-                        {
-                            using (var stream = await response.Content.ReadAsStreamAsync())
-                            {
-                                using (var reader = new StreamReader(stream))
-                                {
-                                    return (await reader.ReadToEndAsync(), httpStatusCode);
-                                }
-                            }
-                        }
-                        return (null, httpStatusCode);
-                    }
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(mediaType));
                 }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
+                using (var response = await httpClient.GetAsync(url + parameters.ToUrlParameters()))
+                {
+                    var httpStatusCode = response.StatusCode;
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return (await response.Content.ReadAsStringAsync(), httpStatusCode);
+                    }
+                    return (null, httpStatusCode);
+                }
             }
         }
 
@@ -216,39 +201,24 @@ namespace ZqUtils.Helpers
         /// <returns>返回请求结果和状态结果</returns>
         public static async Task<(T result, HttpStatusCode code)> GetAsync<T>(string url, Dictionary<string, string> parameters, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string mediaType = "application/json")
         {
-            try
+            using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
             {
-                using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
+                httpClient.CancelPendingRequests();
+                httpClient.DefaultRequestHeaders.Clear();
+                httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
+                if (!string.IsNullOrEmpty(mediaType))
                 {
-                    httpClient.CancelPendingRequests();
-                    httpClient.DefaultRequestHeaders.Clear();
-                    httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
-                    if (!string.IsNullOrEmpty(mediaType))
-                    {
-                        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(mediaType));
-                    }
-                    using (var response = await httpClient.GetAsync(url + parameters.ToUrlParameters()))
-                    {
-                        var httpStatusCode = response.StatusCode;
-                        if (response.IsSuccessStatusCode)
-                        {
-                            using (var stream = await response.Content.ReadAsStreamAsync())
-                            {
-                                using (var reader = new StreamReader(stream))
-                                {
-                                    var str = await reader.ReadToEndAsync();
-                                    return (str.ToObject<T>(), httpStatusCode);
-                                }
-                            }
-
-                        }
-                        return (default(T), httpStatusCode);
-                    }
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(mediaType));
                 }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
+                using (var response = await httpClient.GetAsync(url + parameters.ToUrlParameters()))
+                {
+                    var httpStatusCode = response.StatusCode;
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return ((await response.Content.ReadAsStringAsync()).ToObject<T>(), httpStatusCode);
+                    }
+                    return (default(T), httpStatusCode);
+                }
             }
         }
         #endregion
@@ -264,38 +234,25 @@ namespace ZqUtils.Helpers
         /// <returns>返回请求结果和状态结果</returns>
         public static async Task<(string result, HttpStatusCode code)> PostAsync(string url, object data, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string mediaType = "application/json")
         {
-            try
+            using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
             {
-                using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
+                httpClient.CancelPendingRequests();
+                httpClient.DefaultRequestHeaders.Clear();
+                httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
+                if (!string.IsNullOrEmpty(mediaType))
                 {
-                    httpClient.CancelPendingRequests();
-                    httpClient.DefaultRequestHeaders.Clear();
-                    httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
-                    if (!string.IsNullOrEmpty(mediaType))
-                    {
-                        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(mediaType));
-                    }
-                    var content = new StringContent(data.GetType() == typeof(string) ? data.ToString() : data.ToJson());
-                    using (var response = await httpClient.PostAsync(url, content))
-                    {
-                        var httpStatusCode = response.StatusCode;
-                        if (response.IsSuccessStatusCode)
-                        {
-                            using (var stream = await response.Content.ReadAsStreamAsync())
-                            {
-                                using (var reader = new StreamReader(stream))
-                                {
-                                    return (await reader.ReadToEndAsync(), httpStatusCode);
-                                }
-                            }
-                        }
-                        return (null, httpStatusCode);
-                    }
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(mediaType));
                 }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
+                var content = new StringContent(data.GetType() == typeof(string) ? data.ToString() : data.ToJson());
+                using (var response = await httpClient.PostAsync(url, content))
+                {
+                    var httpStatusCode = response.StatusCode;
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return (await response.Content.ReadAsStringAsync(), httpStatusCode);
+                    }
+                    return (null, httpStatusCode);
+                }
             }
         }
 
@@ -310,39 +267,25 @@ namespace ZqUtils.Helpers
         /// <returns>返回请求结果和状态结果</returns>
         public static async Task<(T result, HttpStatusCode code)> PostAsync<T>(string url, object data, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string mediaType = "application/json")
         {
-            try
+            using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
             {
-                using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
+                httpClient.CancelPendingRequests();
+                httpClient.DefaultRequestHeaders.Clear();
+                httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
+                if (!string.IsNullOrEmpty(mediaType))
                 {
-                    httpClient.CancelPendingRequests();
-                    httpClient.DefaultRequestHeaders.Clear();
-                    httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
-                    if (!string.IsNullOrEmpty(mediaType))
-                    {
-                        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(mediaType));
-                    }
-                    var content = new StringContent(data.GetType() == typeof(string) ? data.ToString() : data.ToJson());
-                    using (var response = await httpClient.PostAsync(url, content))
-                    {
-                        var httpStatusCode = response.StatusCode;
-                        if (response.IsSuccessStatusCode)
-                        {
-                            using (var stream = await response.Content.ReadAsStreamAsync())
-                            {
-                                using (var reader = new StreamReader(stream))
-                                {
-                                    var str = await reader.ReadToEndAsync();
-                                    return (str.ToObject<T>(), httpStatusCode);
-                                }
-                            }
-                        }
-                        return (default(T), httpStatusCode);
-                    }
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(mediaType));
                 }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
+                var content = new StringContent(data.GetType() == typeof(string) ? data.ToString() : data.ToJson());
+                using (var response = await httpClient.PostAsync(url, content))
+                {
+                    var httpStatusCode = response.StatusCode;
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return ((await response.Content.ReadAsStringAsync()).ToObject<T>(), httpStatusCode);
+                    }
+                    return (default(T), httpStatusCode);
+                }
             }
         }
         #endregion
@@ -359,41 +302,28 @@ namespace ZqUtils.Helpers
         /// <returns>返回请求结果和状态结果</returns>
         public static async Task<(string result, HttpStatusCode code)> SendAsync(string url, object data, HttpMethod method, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string mediaType = "application/json")
         {
-            try
+            using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
             {
-                using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
+                httpClient.CancelPendingRequests();
+                httpClient.DefaultRequestHeaders.Clear();
+                httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
+                var req = new HttpRequestMessage(method, url)
                 {
-                    httpClient.CancelPendingRequests();
-                    httpClient.DefaultRequestHeaders.Clear();
-                    httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
-                    var req = new HttpRequestMessage(method, url)
-                    {
-                        Content = new StringContent(data.GetType() == typeof(string) ? data.ToString() : data.ToJson())
-                    };
-                    if (!string.IsNullOrEmpty(mediaType))
-                    {
-                        req.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(mediaType);
-                    }
-                    using (var response = await httpClient.SendAsync(req))
-                    {
-                        var httpStatusCode = response.StatusCode;
-                        if (response.IsSuccessStatusCode)
-                        {
-                            using (var stream = await response.Content.ReadAsStreamAsync())
-                            {
-                                using (var reader = new StreamReader(stream))
-                                {
-                                    return (await reader.ReadToEndAsync(), httpStatusCode);
-                                }
-                            }
-                        }
-                        return (null, httpStatusCode);
-                    }
+                    Content = new StringContent(data.GetType() == typeof(string) ? data.ToString() : data.ToJson())
+                };
+                if (!string.IsNullOrEmpty(mediaType))
+                {
+                    req.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(mediaType);
                 }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
+                using (var response = await httpClient.SendAsync(req))
+                {
+                    var httpStatusCode = response.StatusCode;
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return (await response.Content.ReadAsStringAsync(), httpStatusCode);
+                    }
+                    return (null, httpStatusCode);
+                }
             }
         }
 
@@ -409,42 +339,28 @@ namespace ZqUtils.Helpers
         /// <returns>返回请求结果和状态结果</returns>
         public static async Task<(T result, HttpStatusCode code)> SendAsync<T>(string url, object data, HttpMethod method, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string mediaType = "application/json")
         {
-            try
+            using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
             {
-                using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
+                httpClient.CancelPendingRequests();
+                httpClient.DefaultRequestHeaders.Clear();
+                httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
+                var req = new HttpRequestMessage(method, url)
                 {
-                    httpClient.CancelPendingRequests();
-                    httpClient.DefaultRequestHeaders.Clear();
-                    httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
-                    var req = new HttpRequestMessage(method, url)
-                    {
-                        Content = new StringContent(data.GetType() == typeof(string) ? data.ToString() : data.ToJson())
-                    };
-                    if (!string.IsNullOrEmpty(mediaType))
-                    {
-                        req.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(mediaType);
-                    }
-                    using (var response = await httpClient.SendAsync(req))
-                    {
-                        var httpStatusCode = response.StatusCode;
-                        if (response.IsSuccessStatusCode)
-                        {
-                            using (var stream = await response.Content.ReadAsStreamAsync())
-                            {
-                                using (var reader = new StreamReader(stream))
-                                {
-                                    var str = await reader.ReadToEndAsync();
-                                    return (str.ToObject<T>(), httpStatusCode);
-                                }
-                            }
-                        }
-                        return (default(T), httpStatusCode);
-                    }
+                    Content = new StringContent(data.GetType() == typeof(string) ? data.ToString() : data.ToJson())
+                };
+                if (!string.IsNullOrEmpty(mediaType))
+                {
+                    req.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(mediaType);
                 }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
+                using (var response = await httpClient.SendAsync(req))
+                {
+                    var httpStatusCode = response.StatusCode;
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return ((await response.Content.ReadAsStringAsync()).ToObject<T>(), httpStatusCode);
+                    }
+                    return (default(T), httpStatusCode);
+                }
             }
         }
         #endregion
