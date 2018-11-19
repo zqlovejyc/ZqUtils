@@ -1696,7 +1696,7 @@ namespace ZqUtils.Helpers
         /// 移除指定key
         /// </summary>
         /// <param name="redisKey">redis存储key</param>
-        /// <returns></returns>
+        /// <returns>返回是否移除成功</returns>
         public async Task<bool> KeyDeleteAsync(string redisKey)
         {
             redisKey = this.AddKeyPrefix(redisKey);
