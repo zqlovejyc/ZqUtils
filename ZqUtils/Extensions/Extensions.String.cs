@@ -1252,7 +1252,7 @@ namespace ZqUtils.Extensions
                 {
                     sb.Append(current(item));
                 }
-                if (!string.IsNullOrEmpty(remove))
+                if (array.Count() > 0 && !string.IsNullOrEmpty(remove))
                 {
                     sb = sb.Remove(sb.ToString().LastIndexOf(remove), remove.Length);
                 }
@@ -1288,7 +1288,7 @@ namespace ZqUtils.Extensions
                 {
                     sb.Append(current(item));
                 }
-                if (!string.IsNullOrEmpty(remove))
+                if (@this.Count() > 0 && !string.IsNullOrEmpty(remove))
                 {
                     sb = sb.Remove(sb.ToString().LastIndexOf(remove), remove.Length);
                 }
