@@ -25,7 +25,6 @@ using System.Threading;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using ICSharpCode.SharpZipLib.Zip;
-using Newtonsoft.Json;
 using ZqUtils.Extensions;
 /****************************
 * [Author] 张强
@@ -357,7 +356,7 @@ namespace ZqUtils.Helpers
                     {
                         result.Append("{")
                               .Append($"\"dirName\":\"{o.dirName}\",")
-                              .Append($"\"filesName\":{JsonConvert.SerializeObject(o.filesName.OrderBy(s => s.Contains(".") ? s.Substring(0, s.LastIndexOf(".")) : s, new OrderKeyCompare<string>()))},")
+                              .Append($"\"filesName\":{o.filesName.OrderBy(s => s.Contains(".") ? s.Substring(0, s.LastIndexOf(".")) : s, new OrderKeyCompare<string>()).ToJson()},")
                               .Append($"\"childrensDirInfo\":{GetDirectoryInfo(o.dirsName)}")
                               .Append("},");
                     });
@@ -387,7 +386,7 @@ namespace ZqUtils.Helpers
                 var dirs = di.GetDirectories();
                 result.Append("{")
                       .Append($"\"dirName\":\"{path.Substring("\\")}\",")
-                      .Append($"\"filesName\":{JsonConvert.SerializeObject(files.Select(o => o.Name).OrderBy(o => o.Contains(".") ? o.Substring(0, o.LastIndexOf(".")) : o, new OrderKeyCompare<string>()))},")
+                      .Append($"\"filesName\":{files.Select(o => o.Name).OrderBy(o => o.Contains(".") ? o.Substring(0, o.LastIndexOf(".")) : o, new OrderKeyCompare<string>()).ToJson()},")
                       .Append($"\"childrensDirInfo\":{GetDirectoryInfo(dirs)}")
                       .Append("}");
             }
