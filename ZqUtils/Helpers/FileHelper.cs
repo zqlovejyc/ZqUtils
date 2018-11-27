@@ -102,6 +102,8 @@ namespace ZqUtils.Helpers
                     HttpContext.Current.Response.AddHeader("Content-Length", (dataToRead - p).ToString());
                     HttpContext.Current.Response.ContentType = "application/octet-stream";
                     HttpContext.Current.Response.AddHeader("Content-Disposition", $"attachment; filename={HttpUtility.UrlEncode(HttpContext.Current.Request.ContentEncoding.GetBytes(fileName))}");
+                    //jquery.fileDownload插件必须添加以下Cookie设置，否则successCallback回调无效                
+                    HttpContext.Current.Response.Cookies.Add(new HttpCookie("fileDownload", "true"));
                     fileStream.Position = p;
                     dataToRead = dataToRead - p;
                     while (dataToRead > 0)
@@ -169,6 +171,8 @@ namespace ZqUtils.Helpers
                         response.AddHeader("Connection", "Keep-Alive");
                         response.ContentType = "application/octet-stream";
                         response.AddHeader("Content-Disposition", "attachment;filename=" + HttpUtility.UrlEncode(fileName, Encoding.UTF8));
+                        //jquery.fileDownload插件必须添加以下Cookie设置，否则successCallback回调无效                
+                        HttpContext.Current.Response.Cookies.Add(new HttpCookie("fileDownload", "true"));
                         binaryReader.BaseStream.Seek(startBytes, SeekOrigin.Begin);
                         var maxCount = Math.Floor((double)((fileLength - startBytes) / pack)) + 1;
                         for (var i = 0d; i < maxCount; i++)
@@ -216,6 +220,8 @@ namespace ZqUtils.Helpers
                 HttpContext.Current.Response.AddHeader("Content-Type", contentType);
                 HttpContext.Current.Response.AddHeader("Content-Transfer-Encoding", "binary");
                 HttpContext.Current.Response.AddHeader("Content-Length", new FileInfo(filePath).Length.ToString());
+                //jquery.fileDownload插件必须添加以下Cookie设置，否则successCallback回调无效                
+                HttpContext.Current.Response.Cookies.Add(new HttpCookie("fileDownload", "true"));
                 HttpContext.Current.Response.TransmitFile(filePath);
                 HttpContext.Current.Response.Flush();//输出缓存，此部不可少
             }
@@ -244,6 +250,8 @@ namespace ZqUtils.Helpers
                 {
                     HttpContext.Current.Response.ContentType = "application/zip";
                     HttpContext.Current.Response.AddHeader("content-disposition", $"filename={zipName}");
+                    //jquery.fileDownload插件必须添加以下Cookie设置，否则successCallback回调无效                
+                    HttpContext.Current.Response.Cookies.Add(new HttpCookie("fileDownload", "true"));
                     using (var zipOutputStream = new ZipOutputStream(HttpContext.Current.Response.OutputStream))
                     {
                         zipOutputStream.SetLevel(3); //0-9, 9 being the highest level of compression
