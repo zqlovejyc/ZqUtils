@@ -885,6 +885,17 @@ namespace ZqUtils.Helpers
         #region Queue
         /// <summary>
         /// 队列入队
+        /// </summary>       
+        /// <param name="redisKey">redis存储key</param>
+        /// <param name="redisValue">redis存储value</param>
+        /// <returns>返回入队后队列的长度</returns>
+        public long EnqueueItemOnList(string redisKey, string redisValue)
+        {
+            return this.ListRightPush(redisKey, redisValue);
+        }
+
+        /// <summary>
+        /// 队列入队
         /// </summary>
         /// <typeparam name="T">泛型类型</typeparam>
         /// <param name="redisKey">redis存储key</param>
@@ -893,6 +904,16 @@ namespace ZqUtils.Helpers
         public long EnqueueItemOnList<T>(string redisKey, T redisValue)
         {
             return this.ListRightPush(redisKey, redisValue);
+        }
+
+        /// <summary>
+        /// 队列出队
+        /// </summary>        
+        /// <param name="redisKey">redis存储key</param>
+        /// <returns>返回出队元素的值</returns>
+        public string DequeueItemFromList(string redisKey)
+        {
+            return this.ListLeftPop(redisKey);
         }
 
         /// <summary>
@@ -1061,6 +1082,17 @@ namespace ZqUtils.Helpers
         #region QueueAsync
         /// <summary>
         /// 队列入队
+        /// </summary>        
+        /// <param name="redisKey">redis存储key</param>
+        /// <param name="redisValue">redis存储value</param>
+        /// <returns>返回入队后队列的长度</returns>
+        public async Task<long> EnqueueItemOnListAsync(string redisKey, string redisValue)
+        {
+            return await this.ListRightPushAsync(redisKey, redisValue);
+        }
+
+        /// <summary>
+        /// 队列入队
         /// </summary>
         /// <typeparam name="T">泛型类型</typeparam>
         /// <param name="redisKey">redis存储key</param>
@@ -1069,6 +1101,16 @@ namespace ZqUtils.Helpers
         public async Task<long> EnqueueItemOnListAsync<T>(string redisKey, T redisValue)
         {
             return await this.ListRightPushAsync(redisKey, redisValue);
+        }
+
+        /// <summary>
+        /// 队列出队
+        /// </summary>        
+        /// <param name="redisKey">redis存储key</param>
+        /// <returns>返回出队元素的值</returns>
+        public async Task<string> DequeueItemFromListAsync(string redisKey)
+        {
+            return await this.ListLeftPopAsync(redisKey);
         }
 
         /// <summary>
