@@ -34,6 +34,47 @@ namespace ZqUtils.Helpers
     /// </summary>
     public static class TypeHelper
     {
+        #region CreateInstanceFrom
+        /// <summary>
+        ///  使用命名的程序集文件和默认构造函数，创建名称已指定的类型的实例。
+        /// </summary>
+        /// <param name="assemblyFile">包含某程序集的文件的名称，将在该程序集内查找名为 typeName 的类型。</param>
+        /// <param name="typeName">首选类型的名称。</param>
+        /// <returns>创建的实例</returns>
+        public static object CreateInstanceFrom(string assemblyFile, string typeName)
+        {
+            return Activator.CreateInstanceFrom(assemblyFile, typeName).Unwrap();
+        }
+
+        /// <summary>
+        /// 使用命名的程序集文件和默认构造函数，创建名称已指定的类型的实例。
+        /// </summary>
+        /// <param name="assemblyFile">包含某程序集的文件的名称，将在该程序集内查找名为 typeName 的类型。</param>
+        /// <param name="typeName">首选类型的名称。</param>
+        /// <param name="activationAttributes">
+        /// 包含一个或多个可以参与激活的特性的数组。 这通常为包含单个 System.Runtime.Remoting.Activation.UrlAttribute
+        /// 对象的数组，该对象指定激活远程对象所需的 URL。 此参数与客户端激活的对象相关。 客户端激活是一项传统技术，保留用于向后兼容，但不建议用于新的开发。 应改用
+        /// Windows Communication Foundation 来开发分布式应用程序。
+        /// </param>
+        /// <returns>创建的实例</returns>
+        public static object CreateInstanceFrom(string assemblyFile, string typeName, object[] activationAttributes)
+        {
+            return Activator.CreateInstanceFrom(assemblyFile, typeName, activationAttributes).Unwrap();
+        }
+
+        /// <summary>
+        ///  使用命名的程序集文件和默认构造函数，来创建其名称在指定的远程域中指定的类型的实例。
+        /// </summary>
+        /// <param name="domain">在其中创建名为 typeName 的类型的远程域。</param>
+        /// <param name="assemblyFile">包含某程序集的文件的名称，将在该程序集内查找名为 typeName 的类型。</param>
+        /// <param name="typeName">首选类型的名称。</param>
+        /// <returns>创建的实例</returns>
+        public static object CreateInstanceFrom(AppDomain domain, string assemblyFile, string typeName)
+        {
+            return Activator.CreateInstanceFrom(domain,assemblyFile, typeName).Unwrap();
+        }
+        #endregion
+
         #region GetElementType
         /// <summary>
         /// GetElementType
