@@ -34,14 +34,37 @@ namespace ZqUtils.Helpers
     /// </summary>
     public static class TypeHelper
     {
-        #region CreateInstanceFrom
+        #region CreateInstance
+        /// <summary>
+        /// 使用区分大小写的搜索，从此程序集中查找指定的类型，然后使用系统激活器创建它的实例。
+        /// </summary>
+        /// <param name="assembly">程序集</param>
+        /// <param name="typeName">要查找类型的 System.Type.FullName。</param>
+        /// <returns>返回创建的实例</returns>
+        public static object CreateInstance(Assembly assembly, string typeName)
+        {
+            return assembly.CreateInstance(typeName);
+        }
+
+        /// <summary>
+        /// 使用可选的区分大小写搜索，从此程序集中查找指定的类型，然后使用系统激活器创建它的实例。
+        /// </summary>
+        /// <param name="assembly">程序集</param>
+        /// <param name="typeName">要查找类型的 System.Type.FullName。</param>
+        /// <param name="ignoreCase">如果为 true，则忽略类型名的大小写；否则，为 false。</param>
+        /// <returns>返回创建的实例</returns>
+        public static object CreateInstance(Assembly assembly, string typeName, bool ignoreCase)
+        {
+            return assembly.CreateInstance(typeName, ignoreCase);
+        }
+
         /// <summary>
         ///  使用命名的程序集文件和默认构造函数，创建名称已指定的类型的实例。
         /// </summary>
         /// <param name="assemblyFile">包含某程序集的文件的名称，将在该程序集内查找名为 typeName 的类型。</param>
         /// <param name="typeName">首选类型的名称。</param>
         /// <returns>创建的实例</returns>
-        public static object CreateInstanceFrom(string assemblyFile, string typeName)
+        public static object CreateInstance(string assemblyFile, string typeName)
         {
             return Activator.CreateInstanceFrom(assemblyFile, typeName).Unwrap();
         }
@@ -57,7 +80,7 @@ namespace ZqUtils.Helpers
         /// Windows Communication Foundation 来开发分布式应用程序。
         /// </param>
         /// <returns>创建的实例</returns>
-        public static object CreateInstanceFrom(string assemblyFile, string typeName, object[] activationAttributes)
+        public static object CreateInstance(string assemblyFile, string typeName, object[] activationAttributes)
         {
             return Activator.CreateInstanceFrom(assemblyFile, typeName, activationAttributes).Unwrap();
         }
@@ -69,9 +92,9 @@ namespace ZqUtils.Helpers
         /// <param name="assemblyFile">包含某程序集的文件的名称，将在该程序集内查找名为 typeName 的类型。</param>
         /// <param name="typeName">首选类型的名称。</param>
         /// <returns>创建的实例</returns>
-        public static object CreateInstanceFrom(AppDomain domain, string assemblyFile, string typeName)
+        public static object CreateInstance(AppDomain domain, string assemblyFile, string typeName)
         {
-            return Activator.CreateInstanceFrom(domain,assemblyFile, typeName).Unwrap();
+            return Activator.CreateInstanceFrom(domain, assemblyFile, typeName).Unwrap();
         }
         #endregion
 
