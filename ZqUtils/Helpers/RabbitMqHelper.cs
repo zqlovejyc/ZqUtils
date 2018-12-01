@@ -328,7 +328,8 @@ namespace ZqUtils.Helpers
         /// <returns>Task</returns>
         public async Task<ISubscriptionResult> SubscribeAsync<TMessage>(string subscriptionId, Func<TMessage, Task> process) where TMessage : class
         {
-            return await Task.Run(() => bus.SubscribeAsync(subscriptionId, process));
+            var result = bus.SubscribeAsync(subscriptionId, process);
+            return await Task.FromResult(result);
         }
 
         /// <summary>
@@ -353,7 +354,8 @@ namespace ZqUtils.Helpers
         /// <returns>Task</returns>
         public async Task<ISubscriptionResult> SubscribeWithTopicAsync<TMessage>(string subscriptionId, Func<TMessage, Task> process, string topic) where TMessage : class
         {
-            return await Task.Run(() => bus.SubscribeAsync<TMessage>(subscriptionId, message => process(message), x => x.WithTopic(topic)));
+            var result = bus.SubscribeAsync<TMessage>(subscriptionId, message => process(message), x => x.WithTopic(topic));
+            return await Task.FromResult(result);
         }
 
         /// <summary>
@@ -368,7 +370,8 @@ namespace ZqUtils.Helpers
             var subscriber = new AutoSubscriber(bus, subscriptionIdPrefix);
             if (!string.IsNullOrEmpty(topic))
                 subscriber.ConfigureSubscriptionConfiguration = x => x.WithTopic(topic);
-            await Task.Run(() => subscriber.SubscribeAsync(Assembly.Load(assemblyName)));
+            subscriber.SubscribeAsync(Assembly.Load(assemblyName));
+            await Task.FromResult(0);
         }
         #endregion
 
@@ -421,7 +424,8 @@ namespace ZqUtils.Helpers
         /// <returns>Task</returns>
         public async Task ReceiveAsync<TMessage>(string queue, Func<TMessage, Task> process) where TMessage : class
         {
-            await Task.Run(() => bus.Receive(queue, process));
+            bus.Receive(queue, process);
+            await Task.FromResult(0);
         }
 
         /// <summary>
@@ -433,7 +437,8 @@ namespace ZqUtils.Helpers
         /// <returns>Task</returns>
         public async Task ReceiveAsync<TMessage>(string queue, Action<TMessage> process) where TMessage : class
         {
-            await Task.Run(() => bus.Receive(queue, process));
+            bus.Receive(queue, process);
+            await Task.FromResult(0);
         }
         #endregion
         #endregion
@@ -444,7 +449,7 @@ namespace ZqUtils.Helpers
         /// </summary>
         public void Dispose()
         {
-            bus?.Dispose();            
+            bus?.Dispose();
         }
         #endregion
     }
