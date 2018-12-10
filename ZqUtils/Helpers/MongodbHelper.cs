@@ -517,9 +517,7 @@ namespace ZqUtils.Helpers
         /// <param name="entity">插入实体</param>
         public void InsertOne<T>(T entity)
         {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            collection.InsertOne(entity);
-            this.CreateIndex<T>();
+            this.InsertOne(typeof(T).Name, entity);
         }
 
         /// <summary>
@@ -544,9 +542,7 @@ namespace ZqUtils.Helpers
         /// <param name="entity">插入实体</param>
         public void InsertMany<T>(List<T> entity)
         {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            collection.InsertMany(entity);
-            this.CreateIndex<T>();
+            this.InsertMany(typeof(T).Name, entity);
         }
 
         /// <summary>
@@ -573,9 +569,7 @@ namespace ZqUtils.Helpers
         /// <param name="entity">插入实体</param>
         public async Task InsertOneAsync<T>(T entity)
         {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            await collection.InsertOneAsync(entity);
-            await this.CreateIndexAsync<T>();
+            await this.InsertOneAsync(typeof(T).Name, entity);
         }
 
         /// <summary>
@@ -600,9 +594,7 @@ namespace ZqUtils.Helpers
         /// <param name="entity">插入实体</param>
         public async Task InsertManyAsync<T>(List<T> entity)
         {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            await collection.InsertManyAsync(entity);
-            await this.CreateIndexAsync<T>();
+            await this.InsertManyAsync(typeof(T).Name, entity);
         }
 
         /// <summary>
@@ -633,8 +625,7 @@ namespace ZqUtils.Helpers
         /// <returns>返回是否删除成功</returns>
         public bool DeleteOne<T>(Expression<Func<T, bool>> filter, DeleteOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            return collection.DeleteOne(filter, options).DeletedCount > 0;
+            return this.DeleteOne(typeof(T).Name, filter, options);
         }
 
         /// <summary>
@@ -658,10 +649,9 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回是否删除成功</returns>
-        public bool DeleteOne<T>(FilterDefinition<T> filter, DeleteOptions options = null)
+        public bool DeleteOneByDefinition<T>(FilterDefinition<T> filter, DeleteOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            return collection.DeleteOne(filter, options).DeletedCount > 0;
+            return this.DeleteOneByDefinition(typeof(T).Name, filter, options);
         }
 
         /// <summary>
@@ -672,7 +662,7 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回是否删除成功</returns>
-        public bool DeleteOne<T>(string collectionName, FilterDefinition<T> filter, DeleteOptions options = null)
+        public bool DeleteOneByDefinition<T>(string collectionName, FilterDefinition<T> filter, DeleteOptions options = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             return collection.DeleteOne(filter, options).DeletedCount > 0;
@@ -689,8 +679,7 @@ namespace ZqUtils.Helpers
         /// <returns>返回是否删除成功</returns>
         public bool DeleteMany<T>(Expression<Func<T, bool>> filter, DeleteOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            return collection.DeleteMany(filter, options).DeletedCount > 0;
+            return this.DeleteMany(typeof(T).Name, filter, options);
         }
 
         /// <summary>
@@ -714,10 +703,9 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回是否删除成功</returns>
-        public bool DeleteMany<T>(FilterDefinition<T> filter, DeleteOptions options = null)
+        public bool DeleteManyByDefinition<T>(FilterDefinition<T> filter, DeleteOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            return collection.DeleteMany(filter, options).DeletedCount > 0;
+            return this.DeleteManyByDefinition(typeof(T).Name, filter, options);
         }
 
         /// <summary>
@@ -728,7 +716,7 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回是否删除成功</returns>
-        public bool DeleteMany<T>(string collectionName, FilterDefinition<T> filter, DeleteOptions options = null)
+        public bool DeleteManyByDefinition<T>(string collectionName, FilterDefinition<T> filter, DeleteOptions options = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             return collection.DeleteMany(filter, options).DeletedCount > 0;
@@ -769,8 +757,7 @@ namespace ZqUtils.Helpers
         /// <returns>返回是否删除成功</returns>
         public async Task<DeleteResult> DeleteOneAsync<T>(Expression<Func<T, bool>> filter, DeleteOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            return await collection.DeleteOneAsync(filter, options);
+            return await this.DeleteOneAsync(typeof(T).Name, filter, options);
         }
 
         /// <summary>
@@ -794,10 +781,9 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回是否删除成功</returns>
-        public async Task<DeleteResult> DeleteOneAsync<T>(FilterDefinition<T> filter, DeleteOptions options = null)
+        public async Task<DeleteResult> DeleteOneByDefinitionAsync<T>(FilterDefinition<T> filter, DeleteOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            return await collection.DeleteOneAsync(filter, options);
+            return await this.DeleteOneByDefinitionAsync(typeof(T).Name, filter, options);
         }
 
         /// <summary>
@@ -808,7 +794,7 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回是否删除成功</returns>
-        public async Task<DeleteResult> DeleteOneAsync<T>(string collectionName, FilterDefinition<T> filter, DeleteOptions options = null)
+        public async Task<DeleteResult> DeleteOneByDefinitionAsync<T>(string collectionName, FilterDefinition<T> filter, DeleteOptions options = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             return await collection.DeleteOneAsync(filter, options);
@@ -825,8 +811,7 @@ namespace ZqUtils.Helpers
         /// <returns>返回是否删除成功</returns>
         public async Task<DeleteResult> DeleteManyAsync<T>(Expression<Func<T, bool>> filter, DeleteOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            return await collection.DeleteManyAsync(filter, options);
+            return await this.DeleteManyAsync(typeof(T).Name, filter, options);
         }
 
         /// <summary>
@@ -850,10 +835,9 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回是否删除成功</returns>
-        public async Task<DeleteResult> DeleteManyAsync<T>(FilterDefinition<T> filter, DeleteOptions options = null)
+        public async Task<DeleteResult> DeleteManyByDefinitionAsync<T>(FilterDefinition<T> filter, DeleteOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            return await collection.DeleteManyAsync(filter, options);
+            return await this.DeleteManyByDefinitionAsync(typeof(T).Name, filter, options);
         }
 
         /// <summary>
@@ -864,7 +848,7 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回是否删除成功</returns>
-        public async Task<DeleteResult> DeleteManyAsync<T>(string collectionName, FilterDefinition<T> filter, DeleteOptions options = null)
+        public async Task<DeleteResult> DeleteManyByDefinitionAsync<T>(string collectionName, FilterDefinition<T> filter, DeleteOptions options = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             return await collection.DeleteManyAsync(filter, options);
@@ -908,8 +892,7 @@ namespace ZqUtils.Helpers
         /// <returns>返回是否新增成功</returns>
         public bool UpdatePushItem<T>(object item, Expression<Func<T, bool>> filter) where T : class
         {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            return collection.UpdateOne<T>(filter, Builders<T>.Update.Push(GetFields<T>(item).FirstOrDefault(), item)).ModifiedCount > 0;
+            return this.UpdatePushItem(typeof(T).Name, item, filter);
         }
 
         /// <summary>
@@ -922,8 +905,7 @@ namespace ZqUtils.Helpers
         /// <returns>返回是否新增成功</returns>
         public bool UpdatePushItem<T>(string collectionName, object item, Expression<Func<T, bool>> filter) where T : class
         {
-            var collection = this.database.GetCollection<T>(collectionName);
-            return collection.UpdateOne<T>(filter, Builders<T>.Update.Push(GetFields<T>(item).FirstOrDefault(), item)).ModifiedCount > 0;
+            return this.UpdatePushItem(collectionName, GetFields<T>(item).FirstOrDefault(), item, filter);
         }
 
         /// <summary>
@@ -952,8 +934,7 @@ namespace ZqUtils.Helpers
         /// <returns>返回是否删除成功</returns>
         public bool UpdatePullItem<T>(object item, Expression<Func<T, bool>> filter) where T : class
         {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            return collection.UpdateOne<T>(filter, Builders<T>.Update.Pull(GetFields<T>(item).FirstOrDefault(), item)).ModifiedCount > 0;
+            return this.UpdatePullItem(typeof(T).Name, item, filter);
         }
 
         /// <summary>
@@ -966,8 +947,7 @@ namespace ZqUtils.Helpers
         /// <returns>返回是否删除成功</returns>
         public bool UpdatePullItem<T>(string collectionName, object item, Expression<Func<T, bool>> filter) where T : class
         {
-            var collection = this.database.GetCollection<T>(collectionName);
-            return collection.UpdateOne<T>(filter, Builders<T>.Update.Pull(GetFields<T>(item).FirstOrDefault(), item)).ModifiedCount > 0;
+            return this.UpdatePushItem(collectionName, GetFields<T>(item).FirstOrDefault(), item, filter);
         }
 
         /// <summary>
@@ -996,9 +976,7 @@ namespace ZqUtils.Helpers
         /// <returns>返回是否更新成功</returns>
         public bool UpdateOne<T>(Expression<Func<T, bool>> filter, T entity) where T : class
         {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            var updateList = BuildUpdateDefinition<T>(entity);
-            return collection.UpdateOne<T>(filter, Builders<T>.Update.Combine(updateList)).ModifiedCount > 0;
+            return this.UpdateOne(typeof(T).Name, filter, entity);
         }
 
         /// <summary>
@@ -1023,17 +1001,9 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="parameters">要修改的参数</param>
         /// <returns>返回是否更新成功</returns>
-        public bool UpdateOne<T>(FilterDefinition<T> filter, Dictionary<string, object> parameters)
+        public bool UpdateOneByDefinition<T>(FilterDefinition<T> filter, Dictionary<string, object> parameters)
         {
-            var list = new List<UpdateDefinition<T>>();
-            foreach (var item in typeof(T).GetType().GetProperties())
-            {
-                if (!parameters.ContainsKey(item.Name)) continue;
-                list.Add(Builders<T>.Update.Set(item.Name, parameters[item.Name]));
-            }
-            var update = Builders<T>.Update.Combine(list);
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            return collection.UpdateOne(filter, update).ModifiedCount > 0;
+            return this.UpdateOneByDefinition(typeof(T).Name, filter, parameters);
         }
 
         /// <summary>
@@ -1044,7 +1014,7 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="parameters">要修改的参数</param>
         /// <returns>返回是否更新成功</returns>
-        public bool UpdateOne<T>(string collectionName, FilterDefinition<T> filter, Dictionary<string, object> parameters)
+        public bool UpdateOneByDefinition<T>(string collectionName, FilterDefinition<T> filter, Dictionary<string, object> parameters)
         {
             var list = new List<UpdateDefinition<T>>();
             foreach (var item in typeof(T).GetType().GetProperties())
@@ -1068,9 +1038,7 @@ namespace ZqUtils.Helpers
         /// <returns>返回是否更新成功</returns>
         public bool UpdateMany<T>(Expression<Func<T, bool>> filter, T entity)
         {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            var updateList = BuildUpdateDefinition<T>(entity);
-            return collection.UpdateMany<T>(filter, Builders<T>.Update.Combine(updateList)).ModifiedCount > 0;
+            return this.UpdateMany(typeof(T).Name, filter, entity);
         }
 
         /// <summary>
@@ -1095,17 +1063,9 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="parameters">要修改的参数</param>
         /// <returns>返回是否更新成功</returns>
-        public bool UpdateMany<T>(FilterDefinition<T> filter, Dictionary<string, object> parameters)
+        public bool UpdateManyByDefinition<T>(FilterDefinition<T> filter, Dictionary<string, object> parameters)
         {
-            var list = new List<UpdateDefinition<T>>();
-            foreach (var item in typeof(T).GetType().GetProperties())
-            {
-                if (!parameters.ContainsKey(item.Name)) continue;
-                list.Add(Builders<T>.Update.Set(item.Name, parameters[item.Name]));
-            }
-            var update = Builders<T>.Update.Combine(list);
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            return collection.UpdateMany(filter, update).ModifiedCount > 0;
+            return this.UpdateManyByDefinition(typeof(T).Name, filter, parameters);
         }
 
         /// <summary>
@@ -1116,7 +1076,7 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="parameters">要修改的参数</param>
         /// <returns>返回是否更新成功</returns>
-        public bool UpdateMany<T>(string collectionName, FilterDefinition<T> filter, Dictionary<string, object> parameters)
+        public bool UpdateManyByDefinition<T>(string collectionName, FilterDefinition<T> filter, Dictionary<string, object> parameters)
         {
             var list = new List<UpdateDefinition<T>>();
             foreach (var item in typeof(T).GetType().GetProperties())
@@ -1142,8 +1102,7 @@ namespace ZqUtils.Helpers
         /// <returns>返回更新结果</returns>
         public async Task<UpdateResult> UpdatePushItemAsync<T>(object item, Expression<Func<T, bool>> filter) where T : class
         {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            return await collection.UpdateOneAsync<T>(filter, Builders<T>.Update.Push(GetFields<T>(item).FirstOrDefault(), item));
+            return await this.UpdatePushItemAsync(typeof(T).Name, item, filter);
         }
 
         /// <summary>
@@ -1156,8 +1115,7 @@ namespace ZqUtils.Helpers
         /// <returns>返回更新结果</returns>
         public async Task<UpdateResult> UpdatePushItemAsync<T>(string collectionName, object item, Expression<Func<T, bool>> filter) where T : class
         {
-            var collection = this.database.GetCollection<T>(collectionName);
-            return await collection.UpdateOneAsync<T>(filter, Builders<T>.Update.Push(GetFields<T>(item).FirstOrDefault(), item));
+            return await this.UpdatePushItemAsync(collectionName, GetFields<T>(item).FirstOrDefault(), item, filter);
         }
 
         /// <summary>
@@ -1186,8 +1144,7 @@ namespace ZqUtils.Helpers
         /// <returns>返回更新结果</returns>
         public async Task<UpdateResult> UpdatePullItemAsync<T>(object item, Expression<Func<T, bool>> filter) where T : class
         {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            return await collection.UpdateOneAsync<T>(filter, Builders<T>.Update.Pull(GetFields<T>(item).FirstOrDefault(), item));
+            return await this.UpdatePullItemAsync(typeof(T).Name, item, filter);
         }
 
         /// <summary>
@@ -1200,8 +1157,7 @@ namespace ZqUtils.Helpers
         /// <returns>返回更新结果</returns>
         public async Task<UpdateResult> UpdatePullItemAsync<T>(string collectionName, object item, Expression<Func<T, bool>> filter) where T : class
         {
-            var collection = this.database.GetCollection<T>(collectionName);
-            return await collection.UpdateOneAsync<T>(filter, Builders<T>.Update.Pull(GetFields<T>(item).FirstOrDefault(), item));
+            return await this.UpdatePullItemAsync(collectionName, GetFields<T>(item).FirstOrDefault(), item, filter);
         }
 
         /// <summary>
@@ -1230,9 +1186,7 @@ namespace ZqUtils.Helpers
         /// <returns>返回更新结果</returns>
         public async Task<UpdateResult> UpdateOneAsync<T>(Expression<Func<T, bool>> filter, T entity) where T : class
         {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            var updateList = BuildUpdateDefinition<T>(entity);
-            return await collection.UpdateOneAsync<T>(filter, Builders<T>.Update.Combine(updateList));
+            return await this.UpdateOneAsync(typeof(T).Name, filter, entity);
         }
 
         /// <summary>
@@ -1257,17 +1211,9 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="parameters">要修改的参数</param>
         /// <returns>返回更新结果</returns>
-        public async Task<UpdateResult> UpdateOneAsync<T>(FilterDefinition<T> filter, Dictionary<string, object> parameters)
+        public async Task<UpdateResult> UpdateOneByDefinitionAsync<T>(FilterDefinition<T> filter, Dictionary<string, object> parameters)
         {
-            var list = new List<UpdateDefinition<T>>();
-            foreach (var item in typeof(T).GetType().GetProperties())
-            {
-                if (!parameters.ContainsKey(item.Name)) continue;
-                list.Add(Builders<T>.Update.Set(item.Name, parameters[item.Name]));
-            }
-            var update = Builders<T>.Update.Combine(list);
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            return await collection.UpdateOneAsync(filter, update);
+            return await this.UpdateOneByDefinitionAsync(typeof(T).Name, filter, parameters);
         }
 
         /// <summary>
@@ -1278,7 +1224,7 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="parameters">要修改的参数</param>
         /// <returns>返回更新结果</returns>
-        public async Task<UpdateResult> UpdateOneAsync<T>(string collectionName, FilterDefinition<T> filter, Dictionary<string, object> parameters)
+        public async Task<UpdateResult> UpdateOneByDefinitionAsync<T>(string collectionName, FilterDefinition<T> filter, Dictionary<string, object> parameters)
         {
             var list = new List<UpdateDefinition<T>>();
             foreach (var item in typeof(T).GetType().GetProperties())
@@ -1302,9 +1248,7 @@ namespace ZqUtils.Helpers
         /// <returns>返回更新结果</returns>
         public async Task<UpdateResult> UpdateManyAsync<T>(Expression<Func<T, bool>> filter, T entity)
         {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            var updateList = BuildUpdateDefinition<T>(entity);
-            return await collection.UpdateManyAsync<T>(filter, Builders<T>.Update.Combine(updateList));
+            return await this.UpdateManyAsync(typeof(T).Name, filter, entity);
         }
 
         /// <summary>
@@ -1329,17 +1273,9 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="parameters">要修改的参数</param>
         /// <returns>返回更新结果</returns>
-        public async Task<UpdateResult> UpdateManyAsync<T>(FilterDefinition<T> filter, Dictionary<string, object> parameters)
+        public async Task<UpdateResult> UpdateManyByDefinitionAsync<T>(FilterDefinition<T> filter, Dictionary<string, object> parameters)
         {
-            var list = new List<UpdateDefinition<T>>();
-            foreach (var item in typeof(T).GetType().GetProperties())
-            {
-                if (!parameters.ContainsKey(item.Name)) continue;
-                list.Add(Builders<T>.Update.Set(item.Name, parameters[item.Name]));
-            }
-            var update = Builders<T>.Update.Combine(list);
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            return await collection.UpdateManyAsync(filter, update);
+            return await this.UpdateManyByDefinitionAsync(typeof(T).Name, filter, parameters);
         }
 
         /// <summary>
@@ -1350,7 +1286,7 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="parameters">要修改的参数</param>
         /// <returns>返回更新结果</returns>
-        public async Task<UpdateResult> UpdateManyAsync<T>(string collectionName, FilterDefinition<T> filter, Dictionary<string, object> parameters)
+        public async Task<UpdateResult> UpdateManyByDefinitionAsync<T>(string collectionName, FilterDefinition<T> filter, Dictionary<string, object> parameters)
         {
             var list = new List<UpdateDefinition<T>>();
             foreach (var item in typeof(T).GetType().GetProperties())
@@ -1378,8 +1314,7 @@ namespace ZqUtils.Helpers
         /// <returns>返回查询结果实体</returns>
         public T FindEntity<T>(Expression<Func<T, bool>> filter, FindOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            return collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip(0).Limit(1).FirstOrDefault();
+            return this.FindEntity(typeof(T).Name, filter, options);
         }
 
         /// <summary>
@@ -1403,10 +1338,9 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回查询结果实体</returns>
-        public T FindEntity<T>(FilterDefinition<T> filter, FindOptions options = null)
+        public T FindEntityByDefinition<T>(FilterDefinition<T> filter, FindOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            return collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip(0).Limit(1).FirstOrDefault();
+            return this.FindEntityByDefinition(typeof(T).Name, filter, options);
         }
 
         /// <summary>
@@ -1417,7 +1351,7 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回查询结果实体</returns>
-        public T FindEntity<T>(string collectionName, FilterDefinition<T> filter, FindOptions options = null)
+        public T FindEntityByDefinition<T>(string collectionName, FilterDefinition<T> filter, FindOptions options = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             return collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip(0).Limit(1).FirstOrDefault();
@@ -1438,31 +1372,7 @@ namespace ZqUtils.Helpers
         /// <returns>返回查询结果集合和总条数，默认不分页，返回总条数为0</returns>
         public (List<T> list, long total) FindList<T>(Expression<Func<T, bool>> filter = null, Expression<Func<T, object>> sort = null, bool isDesc = false, FindOptions options = null, int? pageIndex = null, int? pageSize = null)
         {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            //是否分页
-            if (pageIndex != null && pageSize != null)
-            {
-                var total = collection.CountDocuments(filter ?? FilterDefinition<T>.Empty);
-                var list = sort != null ?
-                    (
-                        !isDesc ?
-                        collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortBy(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToList() :
-                        collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortByDescending(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToList()
-                    ) :
-                    collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToList();
-                return (list, total);
-            }
-            else
-            {
-                var list = sort != null ?
-                    (
-                        !isDesc ?
-                        collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortBy(sort).ToList() :
-                        collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortByDescending(sort).ToList()
-                    ) :
-                    collection.Find(filter ?? FilterDefinition<T>.Empty, options).ToList();
-                return (list, 0);
-            }
+            return this.FindList(typeof(T).Name, filter, sort, isDesc, options, pageIndex, pageSize);
         }
 
         /// <summary>
@@ -1516,25 +1426,9 @@ namespace ZqUtils.Helpers
         /// <param name="pageIndex">当前页码</param>
         /// <param name="pageSize">每页行数</param>
         /// <returns>返回查询结果集合和总条数，默认不分页，返回总条数为0</returns>
-        public (List<T> list, long total) FindList<T>(FilterDefinition<T> filter = null, SortDefinition<T> sort = null, FindOptions options = null, int? pageIndex = null, int? pageSize = null)
+        public (List<T> list, long total) FindListByDefinition<T>(FilterDefinition<T> filter = null, SortDefinition<T> sort = null, FindOptions options = null, int? pageIndex = null, int? pageSize = null)
         {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            //是否分页
-            if (pageIndex != null && pageSize != null)
-            {
-                var total = collection.CountDocuments(filter ?? FilterDefinition<T>.Empty);
-                var list = sort != null ?
-                    collection.Find(filter ?? FilterDefinition<T>.Empty, options).Sort(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToList() :
-                    collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToList();
-                return (list, total);
-            }
-            else
-            {
-                var list = sort != null ?
-                    collection.Find(filter ?? FilterDefinition<T>.Empty, options).Sort(sort).ToList() :
-                    collection.Find(filter ?? FilterDefinition<T>.Empty, options).ToList();
-                return (list, 0);
-            }
+            return this.FindListByDefinition(typeof(T).Name, sort, options, pageIndex, pageSize);
         }
 
         /// <summary>
@@ -1548,7 +1442,7 @@ namespace ZqUtils.Helpers
         /// <param name="pageIndex">当前页码</param>
         /// <param name="pageSize">每页行数</param>
         /// <returns>返回查询结果集合和总条数，默认不分页，返回总条数为0</returns>
-        public (List<T> list, long total) FindList<T>(string collectionName, FilterDefinition<T> filter = null, SortDefinition<T> sort = null, FindOptions options = null, int? pageIndex = null, int? pageSize = null)
+        public (List<T> list, long total) FindListByDefinition<T>(string collectionName, FilterDefinition<T> filter = null, SortDefinition<T> sort = null, FindOptions options = null, int? pageIndex = null, int? pageSize = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             //是否分页
@@ -1582,8 +1476,7 @@ namespace ZqUtils.Helpers
         /// <returns>返回查询结果实体</returns>
         public async Task<T> FindEntityAsync<T>(Expression<Func<T, bool>> filter, FindOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            return await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip(0).Limit(1).FirstOrDefaultAsync();
+            return await this.FindEntityAsync(typeof(T).Name, filter, options);
         }
 
         /// <summary>
@@ -1607,10 +1500,9 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回查询结果实体</returns>
-        public async Task<T> FindEntityAsync<T>(FilterDefinition<T> filter, FindOptions options = null)
+        public async Task<T> FindEntityByDefinitionAsync<T>(FilterDefinition<T> filter, FindOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            return await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip(0).Limit(1).FirstOrDefaultAsync();
+            return await this.FindEntityByDefinitionAsync(typeof(T).Name, filter, options);
         }
 
         /// <summary>
@@ -1621,7 +1513,7 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回查询结果实体</returns>
-        public async Task<T> FindEntityAsync<T>(string collectionName, FilterDefinition<T> filter, FindOptions options = null)
+        public async Task<T> FindEntityByDefinitionAsync<T>(string collectionName, FilterDefinition<T> filter, FindOptions options = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             return await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip(0).Limit(1).FirstOrDefaultAsync();
@@ -1642,31 +1534,7 @@ namespace ZqUtils.Helpers
         /// <returns>返回查询结果集合和总条数，默认不分页，返回总条数为0</returns>
         public async Task<(List<T> list, long total)> FindListAsync<T>(Expression<Func<T, bool>> filter = null, Expression<Func<T, object>> sort = null, bool isDesc = false, FindOptions options = null, int? pageIndex = null, int? pageSize = null)
         {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            //是否分页
-            if (pageIndex != null && pageSize != null)
-            {
-                var total = await collection.CountDocumentsAsync(filter ?? FilterDefinition<T>.Empty);
-                var list = sort != null ?
-                    (
-                        !isDesc ?
-                        await collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortBy(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToListAsync() :
-                        await collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortByDescending(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToListAsync()
-                    ) :
-                    await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToListAsync();
-                return (list, total);
-            }
-            else
-            {
-                var list = sort != null ?
-                    (
-                        !isDesc ?
-                        await collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortBy(sort).ToListAsync() :
-                        await collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortByDescending(sort).ToListAsync()
-                    ) :
-                    await collection.Find(filter ?? FilterDefinition<T>.Empty, options).ToListAsync();
-                return (list, 0);
-            }
+            return await this.FindListAsync(typeof(T).Name, filter, sort, isDesc, options, pageIndex, pageSize);
         }
 
         /// <summary>
@@ -1720,25 +1588,9 @@ namespace ZqUtils.Helpers
         /// <param name="pageIndex">当前页码</param>
         /// <param name="pageSize">每页行数</param>
         /// <returns>返回查询结果集合和总条数，默认不分页，返回总条数为0</returns>
-        public async Task<(List<T> list, long total)> FindListAsync<T>(FilterDefinition<T> filter = null, SortDefinition<T> sort = null, FindOptions options = null, int? pageIndex = null, int? pageSize = null)
+        public async Task<(List<T> list, long total)> FindListByDefinitionAsync<T>(FilterDefinition<T> filter = null, SortDefinition<T> sort = null, FindOptions options = null, int? pageIndex = null, int? pageSize = null)
         {
-            var collection = this.database.GetCollection<T>(typeof(T).Name);
-            //是否分页
-            if (pageIndex != null && pageSize != null)
-            {
-                var total = await collection.CountDocumentsAsync(filter ?? FilterDefinition<T>.Empty);
-                var list = sort != null ?
-                    await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Sort(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToListAsync() :
-                    await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToListAsync();
-                return (list, total);
-            }
-            else
-            {
-                var list = sort != null ?
-                    await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Sort(sort).ToListAsync() :
-                    await collection.Find(filter ?? FilterDefinition<T>.Empty, options).ToListAsync();
-                return (list, 0);
-            }
+            return await this.FindListByDefinitionAsync(typeof(T).Name, sort, options, pageIndex, pageSize);
         }
 
         /// <summary>
@@ -1752,7 +1604,7 @@ namespace ZqUtils.Helpers
         /// <param name="pageIndex">当前页码</param>
         /// <param name="pageSize">每页行数</param>
         /// <returns>返回查询结果集合和总条数，默认不分页，返回总条数为0</returns>
-        public async Task<(List<T> list, long total)> FindListAsync<T>(string collectionName, FilterDefinition<T> filter = null, SortDefinition<T> sort = null, FindOptions options = null, int? pageIndex = null, int? pageSize = null)
+        public async Task<(List<T> list, long total)> FindListByDefinitionAsync<T>(string collectionName, FilterDefinition<T> filter = null, SortDefinition<T> sort = null, FindOptions options = null, int? pageIndex = null, int? pageSize = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             //是否分页
