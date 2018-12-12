@@ -49,7 +49,7 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public static string ToUrlParameters(this Dictionary<string, string> dic)
         {
-            if (dic != null)
+            if (dic?.Count > 0)
             {
                 string result = "?";
                 foreach (var item in dic)
@@ -243,7 +243,7 @@ namespace ZqUtils.Helpers
                 {
                     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(mediaType));
                 }
-                var content = new StringContent(data.GetType() == typeof(string) ? data.ToString() : data.ToJson());
+                var content = new StringContent(data?.GetType() == typeof(string) ? data?.ToString() : data?.ToJson());
                 using (var response = await httpClient.PostAsync(url, content))
                 {
                     var httpStatusCode = response.StatusCode;
@@ -276,7 +276,7 @@ namespace ZqUtils.Helpers
                 {
                     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(mediaType));
                 }
-                var content = new StringContent(data.GetType() == typeof(string) ? data.ToString() : data.ToJson());
+                var content = new StringContent(data?.GetType() == typeof(string) ? data?.ToString() : data?.ToJson());
                 using (var response = await httpClient.PostAsync(url, content))
                 {
                     var httpStatusCode = response.StatusCode;
@@ -309,7 +309,7 @@ namespace ZqUtils.Helpers
                 httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
                 var req = new HttpRequestMessage(method, url)
                 {
-                    Content = new StringContent(data.GetType() == typeof(string) ? data.ToString() : data.ToJson())
+                    Content = new StringContent(data?.GetType() == typeof(string) ? data?.ToString() : data?.ToJson())
                 };
                 if (!string.IsNullOrEmpty(mediaType))
                 {
@@ -346,7 +346,7 @@ namespace ZqUtils.Helpers
                 httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
                 var req = new HttpRequestMessage(method, url)
                 {
-                    Content = new StringContent(data.GetType() == typeof(string) ? data.ToString() : data.ToJson())
+                    Content = new StringContent(data?.GetType() == typeof(string) ? data?.ToString() : data?.ToJson())
                 };
                 if (!string.IsNullOrEmpty(mediaType))
                 {
