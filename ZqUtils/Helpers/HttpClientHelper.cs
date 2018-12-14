@@ -16,11 +16,14 @@
  */
 #endregion
 
+using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using ZqUtils.Extensions;
 /****************************
 * [Author] 张强
@@ -169,6 +172,10 @@ namespace ZqUtils.Helpers
         /// <returns>返回请求结果和状态结果</returns>
         public static async Task<(string result, HttpStatusCode code)> GetAsync(string url, Dictionary<string, string> parameters, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string mediaType = "application/json")
         {
+            if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                ServicePointManager.ServerCertificateValidationCallback = (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) => true;
+            }
             using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
             {
                 httpClient.CancelPendingRequests();
@@ -201,6 +208,10 @@ namespace ZqUtils.Helpers
         /// <returns>返回请求结果和状态结果</returns>
         public static async Task<(T result, HttpStatusCode code)> GetAsync<T>(string url, Dictionary<string, string> parameters, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string mediaType = "application/json")
         {
+            if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                ServicePointManager.ServerCertificateValidationCallback = (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) => true;
+            }
             using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
             {
                 httpClient.CancelPendingRequests();
@@ -234,6 +245,10 @@ namespace ZqUtils.Helpers
         /// <returns>返回请求结果和状态结果</returns>
         public static async Task<(string result, HttpStatusCode code)> PostAsync(string url, object data, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string mediaType = "application/json")
         {
+            if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                ServicePointManager.ServerCertificateValidationCallback = (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) => true;
+            }
             using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
             {
                 httpClient.CancelPendingRequests();
@@ -267,6 +282,10 @@ namespace ZqUtils.Helpers
         /// <returns>返回请求结果和状态结果</returns>
         public static async Task<(T result, HttpStatusCode code)> PostAsync<T>(string url, object data, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string mediaType = "application/json")
         {
+            if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                ServicePointManager.ServerCertificateValidationCallback = (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) => true;
+            }
             using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
             {
                 httpClient.CancelPendingRequests();
@@ -302,6 +321,10 @@ namespace ZqUtils.Helpers
         /// <returns>返回请求结果和状态结果</returns>
         public static async Task<(string result, HttpStatusCode code)> SendAsync(string url, object data, HttpMethod method, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string mediaType = "application/json")
         {
+            if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                ServicePointManager.ServerCertificateValidationCallback = (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) => true;
+            }
             using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
             {
                 httpClient.CancelPendingRequests();
@@ -339,6 +362,10 @@ namespace ZqUtils.Helpers
         /// <returns>返回请求结果和状态结果</returns>
         public static async Task<(T result, HttpStatusCode code)> SendAsync<T>(string url, object data, HttpMethod method, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string mediaType = "application/json")
         {
+            if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                ServicePointManager.ServerCertificateValidationCallback = (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) => true;
+            }
             using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
             {
                 httpClient.CancelPendingRequests();
