@@ -52,7 +52,25 @@ namespace ZqUtils.Helpers
         private readonly IBus bus;
         #endregion
 
+        #region 公有属性
+        /// <summary>
+        /// 静态单例
+        /// </summary>
+        public static RabbitMqHelper Instance => SingletonHelper<RabbitMqHelper>.GetInstance();
+        #endregion
+
         #region 构造函数
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        public RabbitMqHelper()
+        {
+            var connectionString = ConfigHelper.GetAppSettings<string>("RabbitMqConnectionString");
+            if (string.IsNullOrEmpty(connectionString))
+                throw new ArgumentNullException("RabbitMqConnectionString连接字符串未进行配置！");
+            bus = RabbitHutch.CreateBus(connectionString);
+        }
+
         /// <summary>
         /// 构造函数
         /// </summary>

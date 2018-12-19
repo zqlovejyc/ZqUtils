@@ -56,9 +56,9 @@ namespace ZqUtils.Helpers
         private readonly IDatabase database;
         #endregion
 
-        #region 单例实例
+        #region 公有属性
         /// <summary>
-        /// 单例实例
+        /// 静态单例
         /// </summary>
         public static RedisHelper Instance => SingletonHelper<RedisHelper>.GetInstance();
         #endregion
