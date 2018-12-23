@@ -46,7 +46,7 @@ namespace ZqUtils.Helpers
         /// </summary>  
         /// <typeparam name="T">泛型类型</typeparam>  
         /// <param name="function">有返回值委托</param>  
-        /// <param name="callback">委托方法</param>  
+        /// <param name="callback">回调方法</param>  
         public static async void RunAsync<T>(Func<T> function, Action<T> callback = null)
         {
             var result = await Task.Run(() => function == null ? default(T) : function());
