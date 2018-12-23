@@ -31,27 +31,25 @@ namespace ZqUtils.Helpers
     public class TaskHelper
     {
         /// <summary>  
-        /// 将一个方法function异步运行，在执行完毕时执行回调callback  
+        /// 异步执行同步方法  
         /// </summary>  
-        /// <param name="function">异步方法，该方法没有参数，返回类型必须是void</param>  
-        /// <param name="callback">异步方法执行完毕时执行的回调方法，该方法没有参数，返回类型必须是void</param>  
+        /// <param name="function">无返回值委托</param>  
+        /// <param name="callback">回调方法</param>  
         public static async void RunAsync(Action function, Action callback = null)
         {
-            Task taskFunc() => Task.Run(() => function?.Invoke());
-            await taskFunc();
+            await Task.Run(() => function?.Invoke());
             callback?.Invoke();
         }
 
         /// <summary>  
-        /// 将一个方法function异步运行，在执行完毕时执行回调callback  
+        /// 异步执行同步方法
         /// </summary>  
-        /// <typeparam name="T">异步方法的返回类型</typeparam>  
-        /// <param name="function">异步方法，该方法没有参数，返回类型必须是TResult</param>  
-        /// <param name="callback">异步方法执行完毕时执行的回调方法，该方法参数为TResult，返回类型必须是void</param>  
+        /// <typeparam name="T">泛型类型</typeparam>  
+        /// <param name="function">有返回值委托</param>  
+        /// <param name="callback">委托方法</param>  
         public static async void RunAsync<T>(Func<T> function, Action<T> callback = null)
         {
-            Task<T> taskFunc() => Task.Run(() => function == null ? default(T) : function());
-            var result = await taskFunc();
+            var result = await Task.Run(() => function == null ? default(T) : function());
             callback?.Invoke(result);
         }
     }
