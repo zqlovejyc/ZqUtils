@@ -7036,7 +7036,23 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static bool IsValid(this object @this)
         {
-            return Validator.TryValidateObject(@this, new ValidationContext(@this, null, null), new Collection<ValidationResult>(), true);
+            var isValid = true;
+            if (@this is IEnumerable list)
+            {
+                foreach (var item in list)
+                {
+                    if (!item.IsValid())
+                    {
+                        isValid = false;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                isValid = Validator.TryValidateObject(@this, new ValidationContext(@this, null, null), new Collection<ValidationResult>(), true);
+            }
+            return isValid;
         }
 
         /// <summary>
@@ -7046,8 +7062,25 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static (bool isValid, Collection<ValidationResult> validationResults) IsValidWithResult(this object @this)
         {
+            var isValid = true;
             var validationResults = new Collection<ValidationResult>();
-            var isValid = Validator.TryValidateObject(@this, new ValidationContext(@this, null, null), validationResults, true);
+            if (@this is IEnumerable list)
+            {
+                foreach (var item in list)
+                {
+                    var (r, results) = item.IsValidWithResult();
+                    if (!r && results?.Count > 0)
+                    {
+                        isValid = false;
+                        results.ToList().ForEach(o => validationResults.Add(o));
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                isValid = Validator.TryValidateObject(@this, new ValidationContext(@this, null, null), validationResults, true);
+            }
             return (isValid, validationResults);
         }
         #endregion
