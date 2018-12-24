@@ -7044,7 +7044,7 @@ namespace ZqUtils.Extensions
         /// </summary>
         /// <param name="this">要验证的对象</param>
         /// <returns></returns>
-        public static (bool isValid, Collection<ValidationResult> errorMessages) IsValidWithResult(this object @this)
+        public static (bool isValid, Collection<ValidationResult> validationResults) IsValidWithResult(this object @this)
         {
             var validationResults = new Collection<ValidationResult>();
             var isValid = Validator.TryValidateObject(@this, new ValidationContext(@this, null, null), validationResults, true);
