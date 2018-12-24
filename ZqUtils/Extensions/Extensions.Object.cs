@@ -16,12 +16,12 @@
  */
 #endregion
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Dynamic;
 using System.Globalization;
 using System.IO;
@@ -31,6 +31,8 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Web.Routing;
 using System.Xml.Serialization;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using ZqUtils.Reflection;
 /****************************
 * [Author] 张强
@@ -7023,6 +7025,30 @@ namespace ZqUtils.Extensions
                 }
             }
             return dic;
+        }
+        #endregion
+
+        #region IsValid
+        /// <summary>
+        /// 验证对象是否有效
+        /// </summary>
+        /// <param name="this">要验证的对象</param>
+        /// <returns></returns>
+        public static bool IsValid(this object @this)
+        {
+            return Validator.TryValidateObject(@this, new ValidationContext(@this, null, null), new Collection<ValidationResult>(), true);
+        }
+
+        /// <summary>
+        /// 验证对象是否有效
+        /// </summary>
+        /// <param name="this">要验证的对象</param>
+        /// <returns></returns>
+        public static (bool isValid, Collection<ValidationResult> errorMessages) IsValidWithResult(this object @this)
+        {
+            var validationResults = new Collection<ValidationResult>();
+            var isValid = Validator.TryValidateObject(@this, new ValidationContext(@this, null, null), validationResults, true);
+            return (isValid, validationResults);
         }
         #endregion
     }
