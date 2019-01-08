@@ -1245,6 +1245,20 @@ namespace ZqUtils.Helpers
             redisKey = this.AddKeyPrefix(redisKey);
             return this.database.SortedSetIncrement(redisKey, member, value);
         }
+
+        /// <summary>
+        /// 按增量增加按键存储的有序集合中成员的score
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="redisKey">redis存储key</param>
+        /// <param name="member">redis存储value</param>
+        /// <param name="value">增量值</param>
+        /// <returns>返回新的score</returns>
+        public double SortedSetIncrement<T>(string redisKey, T member, double value = 1)
+        {
+            redisKey = this.AddKeyPrefix(redisKey);
+            return this.database.SortedSetIncrement(redisKey, member.ToJson(), value);
+        }
         #endregion
 
         #region SortedSetDecrement
@@ -1259,6 +1273,20 @@ namespace ZqUtils.Helpers
         {
             redisKey = this.AddKeyPrefix(redisKey);
             return this.database.SortedSetDecrement(redisKey, member, value);
+        }
+
+        /// <summary>
+        /// 通过递减递减存储在键处的有序集中的成员的score
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="redisKey">redis存储key</param>
+        /// <param name="member">redis存储value</param>
+        /// <param name="value">递减值</param>
+        /// <returns>返回新的score</returns>
+        public double SortedSetDecrement<T>(string redisKey, T member, double value)
+        {
+            redisKey = this.AddKeyPrefix(redisKey);
+            return this.database.SortedSetDecrement(redisKey, member.ToJson(), value);
         }
         #endregion
 
@@ -1288,6 +1316,20 @@ namespace ZqUtils.Helpers
             redisKey = this.AddKeyPrefix(redisKey);
             return this.database.SortedSetRank(redisKey, member, order);
         }
+
+        /// <summary>
+        /// 获取集合中的索引位置，从0开始
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="redisKey">redis存储key</param>
+        /// <param name="member">redis存储value</param>
+        /// <param name="order">排序方式</param>
+        /// <returns>返回索引位置</returns>
+        public long? SortedSetRank<T>(string redisKey, T member, Order order = Order.Ascending)
+        {
+            redisKey = this.AddKeyPrefix(redisKey);
+            return this.database.SortedSetRank(redisKey, member.ToJson(), order);
+        }
         #endregion
 
         #region SortedSetScore
@@ -1301,6 +1343,19 @@ namespace ZqUtils.Helpers
         {
             redisKey = this.AddKeyPrefix(redisKey);
             return this.database.SortedSetScore(redisKey, memebr);
+        }
+
+        /// <summary>
+        /// 获取有序集合中指定元素的score
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="redisKey">redis存储key</param>
+        /// <param name="memebr">redis存储value</param>
+        /// <returns>返回指定元素的score</returns>
+        public double? SortedSetScore<T>(string redisKey, T memebr)
+        {
+            redisKey = this.AddKeyPrefix(redisKey);
+            return this.database.SortedSetScore(redisKey, memebr.ToJson());
         }
         #endregion
 
@@ -1491,6 +1546,20 @@ namespace ZqUtils.Helpers
             redisKey = this.AddKeyPrefix(redisKey);
             return this.database.SortedSetIncrementAsync(redisKey, member, value);
         }
+
+        /// <summary>
+        /// 按增量增加按键存储的有序集合中成员的score
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="redisKey">redis存储key</param>
+        /// <param name="member">redis存储value</param>
+        /// <param name="value">增量值</param>
+        /// <returns>返回新的score</returns>
+        public Task<double> SortedSetIncrementAsync<T>(string redisKey, T member, double value = 1)
+        {
+            redisKey = this.AddKeyPrefix(redisKey);
+            return this.database.SortedSetIncrementAsync(redisKey, member.ToJson(), value);
+        }
         #endregion
 
         #region SortedSetDecrementAsync
@@ -1505,6 +1574,20 @@ namespace ZqUtils.Helpers
         {
             redisKey = this.AddKeyPrefix(redisKey);
             return await this.database.SortedSetDecrementAsync(redisKey, member, value);
+        }
+
+        /// <summary>
+        /// 通过递减递减存储在键处的有序集中的成员的score
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="redisKey">redis存储key</param>
+        /// <param name="member">redis存储value</param>
+        /// <param name="value">递减值</param>
+        /// <returns>返回新的score</returns>
+        public async Task<double> SortedSetDecrementAsync<T>(string redisKey, T member, double value)
+        {
+            redisKey = this.AddKeyPrefix(redisKey);
+            return await this.database.SortedSetDecrementAsync(redisKey, member.ToJson(), value);
         }
         #endregion
 
@@ -1534,6 +1617,20 @@ namespace ZqUtils.Helpers
             redisKey = this.AddKeyPrefix(redisKey);
             return await this.database.SortedSetRankAsync(redisKey, member, order);
         }
+
+        /// <summary>
+        /// 获取集合中的索引位置，从0开始
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="redisKey">redis存储key</param>
+        /// <param name="member">redis存储value</param>
+        /// <param name="order">排序方式</param>
+        /// <returns>返回索引位置</returns>
+        public async Task<long?> SortedSetRankAsync<T>(string redisKey, T member, Order order = Order.Ascending)
+        {
+            redisKey = this.AddKeyPrefix(redisKey);
+            return await this.database.SortedSetRankAsync(redisKey, member.ToJson(), order);
+        }
         #endregion
 
         #region SortedSetScoreAsync
@@ -1547,6 +1644,19 @@ namespace ZqUtils.Helpers
         {
             redisKey = this.AddKeyPrefix(redisKey);
             return await this.database.SortedSetScoreAsync(redisKey, memebr);
+        }
+
+        /// <summary>
+        /// 获取有序集合中指定元素的score
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="redisKey">redis存储key</param>
+        /// <param name="memebr">redis存储value</param>
+        /// <returns>返回指定元素的score</returns>
+        public async Task<double?> SortedSetScoreAsync<T>(string redisKey, T memebr)
+        {
+            redisKey = this.AddKeyPrefix(redisKey);
+            return await this.database.SortedSetScoreAsync(redisKey, memebr.ToJson());
         }
         #endregion
 

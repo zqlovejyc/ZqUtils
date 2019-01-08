@@ -137,7 +137,7 @@ namespace ZqUtils.Extensions
         /// </summary>
         /// <param name="this">IDictionary数据源</param>
         /// <returns>强类型实体</returns>
-        public static T ToEntity<T>(this IDictionary<string, object> @this)
+        public static T ToEntity<T>(this IDictionary<string, object> @this) where T : class, new()
         {
             if (@this?.Count > 0)
             {
