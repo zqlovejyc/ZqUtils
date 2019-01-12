@@ -25,6 +25,8 @@ using System.Collections.Generic;
 using OfficeOpenXml;
 using OfficeOpenXml.Table;
 using System.Reflection;
+using System.Drawing;
+using OfficeOpenXml.Style;
 /****************************
 * [Author] 张强
 * [Date] 2015-10-26
@@ -484,5 +486,133 @@ namespace ZqUtils.Helpers
             }
         }
         #endregion
+
+        #region 构建Excel头部
+        /// <summary>
+        /// 构建Excel表头
+        /// </summary>
+        /// <param name="prevCell">前一个单元格</param>
+        /// <param name="parentSell">父级单元格</param>
+        /// <param name="currCell">当前单元格</param>
+        /// <param name="sheet">Excel WorkSheet</param>
+        public static void BuildExcelHeader(ExcelHeaderCell prevCell, ExcelHeaderCell parentSell, ExcelHeaderCell currCell, ExcelWorksheet sheet)
+        {
+            currCell.FromRow = prevCell != null ? prevCell.FromRow : (parentSell != null ? parentSell.FromRow + 1 : 1);
+            currCell.FromCol = prevCell != null ? prevCell.ToCol + 1 : (parentSell != null ? parentSell.FromCol : 1);
+            currCell.ToRow = currCell.FromRow;
+            currCell.ToCol = currCell.FromCol;
+            if (currCell.IsRowspan)
+            {
+                currCell.ToRow = currCell.FromRow - 1 + currCell.Rowspan;
+            }
+            if (currCell.IsColspan)
+            {
+                currCell.ToCol = currCell.FromCol - 1 + currCell.Colspan;
+            }
+            var sell = sheet.Cells[currCell.FromRow, currCell.FromCol, currCell.ToRow, currCell.ToCol];
+            //设置单元格属性
+            sell.Value = currCell.Title;
+            sell.Style.Font.Bold = currCell.Bold;
+            sell.Style.Font.Color.SetColor(currCell.FontColor);
+            if (currCell.HorizontalAlignment != null)
+            {
+                sell.Style.HorizontalAlignment = currCell.HorizontalAlignment.Value;
+            }
+            if (currCell.VerticalAlignment != null)
+            {
+                sell.Style.VerticalAlignment = currCell.VerticalAlignment.Value;
+            }
+            //合并单元格
+            if (currCell.IsColspan || currCell.IsRowspan)
+            {
+                sheet.Cells[currCell.FromRow, currCell.FromCol, currCell.ToRow, currCell.ToCol].Merge = true;
+            }
+            //判断是否有子元素，递归调用
+            if (currCell.ChildHeaderCells?.Count > 0)
+            {
+                foreach (var item in currCell.ChildHeaderCells)
+                {
+                    var index = currCell.ChildHeaderCells.IndexOf(item);
+                    BuildExcelHeader(index == 0 ? null : currCell.ChildHeaderCells[index - 1], currCell, item, sheet);
+                }
+            }
+        }
+        #endregion
+    }
+
+    /// <summary>
+    /// Excel标题单元格实体
+    /// </summary>
+    public class ExcelHeaderCell
+    {
+        /// <summary>
+        /// 标题
+        /// </summary>
+        public string Title { get; set; }
+
+        /// <summary>
+        /// 是否加粗
+        /// </summary>
+        public bool Bold { get; set; }
+
+        /// <summary>
+        /// 字体颜色，默认黑色
+        /// </summary>
+        public Color FontColor { get; set; } = Color.Black;
+
+        /// <summary>
+        /// 水平方向布局，默认水平居中
+        /// </summary>
+        public ExcelHorizontalAlignment? HorizontalAlignment { get; set; }
+
+        /// <summary>
+        /// 垂直方向布局，默认垂直居中
+        /// </summary>
+        public ExcelVerticalAlignment? VerticalAlignment { get; set; }
+
+        /// <summary>
+        /// 是否跨行
+        /// </summary>
+        public bool IsRowspan { get; set; }
+
+        /// <summary>
+        /// 跨行个数
+        /// </summary>
+        public int Rowspan { get; set; }
+
+        /// <summary>
+        /// 是否跨列
+        /// </summary>
+        public bool IsColspan { get; set; }
+
+        /// <summary>
+        /// 跨列个数
+        /// </summary>
+        public int Colspan { get; set; }
+
+        /// <summary>
+        /// 行开始位置
+        /// </summary>
+        public int FromRow { get; set; }
+
+        /// <summary>
+        /// 列开始位置
+        /// </summary>
+        public int FromCol { get; set; }
+
+        /// <summary>
+        /// 行结束位置
+        /// </summary>
+        public int ToRow { get; set; }
+
+        /// <summary>
+        /// 列结束位置
+        /// </summary>
+        public int ToCol { get; set; }
+
+        /// <summary>
+        /// 子单元格集合
+        /// </summary>
+        public List<ExcelHeaderCell> ChildHeaderCells { get; set; }
     }
 }
