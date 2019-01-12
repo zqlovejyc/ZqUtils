@@ -27,6 +27,7 @@ using OfficeOpenXml.Table;
 using System.Reflection;
 using System.Drawing;
 using OfficeOpenXml.Style;
+using System.Linq;
 /****************************
 * [Author] 张强
 * [Date] 2015-10-26
@@ -227,6 +228,71 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// EPPlus导出Excel(2003/2007)
         /// </summary>
+        /// <param name="headerCell">Excel表头</param>
+        /// <param name="table">源DataTable</param>
+        /// <param name="fileName">文件名</param>
+        /// <param name="ext">扩展名(.xls|.xlsx)可选参数</param>
+        /// <param name="responseEnd">是否输出结束，默认：是</param>
+        /// <param name="action">sheet自定义处理委托</param>
+        public static void EPPlusExportExcel(ExcelHeaderCell headerCell, DataTable table, string fileName, string ext = ".xlsx", bool responseEnd = true, Action<ExcelWorksheet> action = null)
+        {
+            if (table != null && table.Rows.Count > 0)
+            {
+                try
+                {
+                    using (var package = new ExcelPackage())
+                    {
+                        //配置文件属性
+                        package.Workbook.Properties.Category = "类别";
+                        package.Workbook.Properties.Author = "作者";
+                        package.Workbook.Properties.Comments = "备注";
+                        package.Workbook.Properties.Company = "公司名称";
+                        package.Workbook.Properties.Keywords = "关键字";
+                        package.Workbook.Properties.Manager = "张强";
+                        package.Workbook.Properties.Status = "内容状态";
+                        package.Workbook.Properties.Subject = "主题";
+                        package.Workbook.Properties.Title = "标题";
+                        package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
+                        var sheet = package.Workbook.Worksheets.Add(string.IsNullOrEmpty(table.TableName) ? table.GetType().Name : table.TableName);
+                        //设置边框样式
+                        sheet.Cells.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+                        sheet.Cells.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+                        sheet.Cells.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+                        sheet.Cells.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+                        //水平居中
+                        sheet.Cells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
+                        //垂直居中
+                        sheet.Cells.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                        //单元格自动适应大小();
+                        sheet.Cells.AutoFitColumns();
+                        //构建表头
+                        BuildExcelHeader(null, null, headerCell, sheet);
+                        //加载数据
+                        var firstCell = headerCell.ChildHeaderCells.FirstOrDefault();
+                        sheet.Cells[firstCell.ToRow + 1, firstCell.ToCol].LoadFromDataTable(table, false);
+                        //单独设置单元格
+                        action?.Invoke(sheet);
+                        //写到客户端（下载）
+                        HttpContext.Current.Response.Clear();
+                        HttpContext.Current.Response.Charset = "utf-8";
+                        HttpContext.Current.Response.AddHeader("content-disposition", $"attachment;filename={HttpUtility.UrlEncode(fileName + ext, Encoding.UTF8)}");
+                        HttpContext.Current.Response.ContentType = "application/ms-excel";
+                        HttpContext.Current.Response.ContentEncoding = Encoding.GetEncoding("utf-8");
+                        HttpContext.Current.Response.BinaryWrite(package.GetAsByteArray());
+                        HttpContext.Current.Response.Flush();
+                        if (responseEnd) HttpContext.Current.Response.End();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogHelper.Error(ex, "EPPlus导出Excel(2003/2007)");
+                }
+            }
+        }
+
+        /// <summary>
+        /// EPPlus导出Excel(2003/2007)
+        /// </summary>
         /// <param name="ds">源DataSet</param>
         /// <param name="fileName">文件名</param>
         /// <param name="ext">扩展名(.xls|.xlsx)可选参数</param>
@@ -348,6 +414,72 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// EPPlus导出Excel(2003/2007)
         /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="headerCell">Excel表头</param>
+        /// <param name="list">源泛型集合</param>
+        /// <param name="fileName">文件名</param>
+        /// <param name="ext">扩展名(.xls|.xlsx)可选参数</param>
+        /// <param name="responseEnd">是否输出结束，默认：是</param>
+        /// <param name="action">sheet自定义处理委托</param>
+        public static void EPPlusExportExcel<T>(ExcelHeaderCell headerCell, List<T> list, string fileName, string ext = ".xlsx", bool responseEnd = true, Action<ExcelWorksheet> action = null) where T : class, new()
+        {
+            if (list != null && list.Count > 0)
+            {
+                try
+                {
+                    using (var package = new ExcelPackage())
+                    {
+                        //配置文件属性
+                        package.Workbook.Properties.Category = "类别";
+                        package.Workbook.Properties.Author = "作者";
+                        package.Workbook.Properties.Comments = "备注";
+                        package.Workbook.Properties.Company = "公司名称";
+                        package.Workbook.Properties.Keywords = "关键字";
+                        package.Workbook.Properties.Manager = "张强";
+                        package.Workbook.Properties.Status = "内容状态";
+                        package.Workbook.Properties.Subject = "主题";
+                        package.Workbook.Properties.Title = "标题";
+                        package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
+                        var sheet = package.Workbook.Worksheets.Add(typeof(T).Name);
+                        //设置边框样式
+                        sheet.Cells.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+                        sheet.Cells.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+                        sheet.Cells.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+                        sheet.Cells.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+                        //水平居中
+                        sheet.Cells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
+                        //垂直居中
+                        sheet.Cells.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                        //单元格自动适应大小();
+                        sheet.Cells.AutoFitColumns();
+                        //构建表头
+                        BuildExcelHeader(null, null, headerCell, sheet);
+                        //加载数据
+                        var firstCell = headerCell.ChildHeaderCells.FirstOrDefault();
+                        sheet.Cells[firstCell.ToRow + 1, firstCell.ToCol].LoadFromCollection(list, false);
+                        //单独设置单元格
+                        action?.Invoke(sheet);
+                        //写到客户端（下载）
+                        HttpContext.Current.Response.Clear();
+                        HttpContext.Current.Response.Charset = "utf-8";
+                        HttpContext.Current.Response.AddHeader("content-disposition", $"attachment;filename={HttpUtility.UrlEncode(fileName + ext, Encoding.UTF8)}");
+                        HttpContext.Current.Response.ContentType = "application/ms-excel";
+                        HttpContext.Current.Response.ContentEncoding = Encoding.GetEncoding("utf-8");
+                        HttpContext.Current.Response.BinaryWrite(package.GetAsByteArray());
+                        HttpContext.Current.Response.Flush();
+                        if (responseEnd) HttpContext.Current.Response.End();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogHelper.Error(ex, "EPPlus导出Excel(2003/2007)");
+                }
+            }
+        }
+
+        /// <summary>
+        /// EPPlus导出Excel(2003/2007)
+        /// </summary>
         /// <param name="table">源DataTable</param>
         /// <param name="savePath">保存路径</param>
         public static void EPPlusExportExcelToFile(DataTable table, string savePath)
@@ -382,6 +514,61 @@ namespace ZqUtils.Helpers
             else
             {
                 MessageHelper.Alert("暂无数据可导出！", HttpContext.Current.Request.Url.ToString(), 2);
+            }
+        }
+
+        /// <summary>
+        /// EPPlus导出Excel(2003/2007)
+        /// </summary>
+        /// <param name="headerCell">Excel表头</param>
+        /// <param name="table">源DataTable</param>
+        /// <param name="savePath">保存路径</param>
+        /// <param name="action">sheet自定义处理委托</param>
+        public static void EPPlusExportExcelToFile(ExcelHeaderCell headerCell, DataTable table, string savePath, Action<ExcelWorksheet> action = null)
+        {
+            if (table != null && table.Rows.Count > 0)
+            {
+                try
+                {
+                    using (var package = new ExcelPackage(new FileInfo(savePath)))
+                    {
+                        //配置文件属性
+                        package.Workbook.Properties.Category = "类别";
+                        package.Workbook.Properties.Author = "作者";
+                        package.Workbook.Properties.Comments = "备注";
+                        package.Workbook.Properties.Company = "公司名称";
+                        package.Workbook.Properties.Keywords = "关键字";
+                        package.Workbook.Properties.Manager = "张强";
+                        package.Workbook.Properties.Status = "内容状态";
+                        package.Workbook.Properties.Subject = "主题";
+                        package.Workbook.Properties.Title = "标题";
+                        package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
+                        var sheet = package.Workbook.Worksheets.Add(string.IsNullOrEmpty(table.TableName) ? table.GetType().Name : table.TableName);
+                        //设置边框样式
+                        sheet.Cells.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+                        sheet.Cells.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+                        sheet.Cells.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+                        sheet.Cells.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+                        //水平居中
+                        sheet.Cells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
+                        //垂直居中
+                        sheet.Cells.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                        //单元格自动适应大小();
+                        sheet.Cells.AutoFitColumns();
+                        //构建表头
+                        BuildExcelHeader(null, null, headerCell, sheet);
+                        //加载数据
+                        var firstCell = headerCell.ChildHeaderCells.FirstOrDefault();
+                        sheet.Cells[firstCell.ToRow + 1, firstCell.ToCol].LoadFromDataTable(table, false);
+                        //单独设置单元格
+                        action?.Invoke(sheet);
+                        package.Save();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogHelper.Error(ex, "EPPlus导出Excel(2003/2007)");
+                }
             }
         }
 
@@ -483,6 +670,62 @@ namespace ZqUtils.Helpers
             else
             {
                 MessageHelper.Alert("暂无数据可导出！", HttpContext.Current.Request.Url.ToString(), 2);
+            }
+        }
+
+        /// <summary>
+        /// EPPlus导出Excel(2003/2007)
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="headerCell">Excel表头</param>
+        /// <param name="list">源泛型集合</param>        
+        /// <param name="savePath">保存路径</param>
+        /// <param name="action">sheet自定义处理委托</param>
+        public static void EPPlusExportExcelToFile<T>(ExcelHeaderCell headerCell, List<T> list, string savePath, Action<ExcelWorksheet> action = null) where T : class, new()
+        {
+            if (list != null && list.Count > 0)
+            {
+                try
+                {
+                    using (var package = new ExcelPackage(new FileInfo(savePath)))
+                    {
+                        var sheet = package.Workbook.Worksheets.Add(typeof(T).Name);
+                        //配置文件属性
+                        package.Workbook.Properties.Category = "类别";
+                        package.Workbook.Properties.Author = "作者";
+                        package.Workbook.Properties.Comments = "备注";
+                        package.Workbook.Properties.Company = "公司名称";
+                        package.Workbook.Properties.Keywords = "关键字";
+                        package.Workbook.Properties.Manager = "张强";
+                        package.Workbook.Properties.Status = "内容状态";
+                        package.Workbook.Properties.Subject = "主题";
+                        package.Workbook.Properties.Title = "标题";
+                        package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
+                        //设置边框样式
+                        sheet.Cells.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+                        sheet.Cells.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+                        sheet.Cells.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+                        sheet.Cells.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+                        //水平居中
+                        sheet.Cells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
+                        //垂直居中
+                        sheet.Cells.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                        //单元格自动适应大小();
+                        sheet.Cells.AutoFitColumns();
+                        //构建表头
+                        BuildExcelHeader(null, null, headerCell, sheet);
+                        //加载数据
+                        var firstCell = headerCell.ChildHeaderCells.FirstOrDefault();
+                        sheet.Cells[firstCell.ToRow + 1, firstCell.ToCol].LoadFromCollection(list, false);
+                        //单独设置单元格
+                        action?.Invoke(sheet);
+                        package.Save();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogHelper.Error(ex, "EPPlus导出Excel(2003/2007)");
+                }
             }
         }
         #endregion
