@@ -561,12 +561,12 @@ namespace ZqUtils.Helpers
         public Color FontColor { get; set; } = Color.Black;
 
         /// <summary>
-        /// 水平方向布局，默认水平居中
+        /// 水平方向布局
         /// </summary>
         public ExcelHorizontalAlignment? HorizontalAlignment { get; set; }
 
         /// <summary>
-        /// 垂直方向布局，默认垂直居中
+        /// 垂直方向布局
         /// </summary>
         public ExcelVerticalAlignment? VerticalAlignment { get; set; }
 
