@@ -1375,6 +1375,20 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
+        /// 获取有序集合中指定索引范围的元素value，默认情况下从低到高
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="redisKey">redis存储key</param>
+        /// <param name="start">开始索引</param>
+        /// <param name="stop">结束索引</param>
+        /// <param name="order">排序方式</param>        
+        /// <returns>返回指定范围的元素value</returns>
+        public IEnumerable<T> SortedSetRangeByRank<T>(string redisKey, long start = 0, long stop = -1, Order order = Order.Ascending)
+        {
+            return this.SortedSetRangeByRank(redisKey, start, stop, order).Select(o => o.ToObject<T>());
+        }
+
+        /// <summary>
         /// 获取有序集合中指定索引范围的元素value-score，默认情况下从低到高
         /// </summary>
         /// <param name="redisKey">redis存储key</param>
@@ -1387,6 +1401,20 @@ namespace ZqUtils.Helpers
             redisKey = this.AddKeyPrefix(redisKey);
             var result = this.database.SortedSetRangeByRankWithScores(redisKey, start, stop, order);
             return result.Select(x => new { x.Score, Value = x.Element.ToString() }).ToDictionary(x => x.Value, x => x.Score);
+        }
+
+        /// <summary>
+        /// 获取有序集合中指定索引范围的元素value-score，默认情况下从低到高
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="redisKey">redis存储key</param>
+        /// <param name="start">开始索引</param>
+        /// <param name="stop">结束索引</param>
+        /// <param name="order">排序方式</param>        
+        /// <returns>返回指定范围的元素value-score</returns>
+        public Dictionary<T, double> SortedSetRangeByRankWithScores<T>(string redisKey, long start = 0, long stop = -1, Order order = Order.Ascending)
+        {
+            return this.SortedSetRangeByRankWithScores(redisKey, start, stop, order).ToDictionary(o => o.Key.ToObject<T>(), o => o.Value);
         }
 
         /// <summary>
@@ -1403,6 +1431,22 @@ namespace ZqUtils.Helpers
         {
             redisKey = this.AddKeyPrefix(redisKey);
             return this.database.SortedSetRangeByScore(redisKey, start, stop, order: order, skip: skip, take: take).Select(o => o.ToString());
+        }
+
+        /// <summary>
+        /// 获取有序集合中指定score起始范围的元素value，默认情况下从低到高
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="redisKey">redis存储key</param>
+        /// <param name="start">开始score</param>
+        /// <param name="stop">结束score</param>
+        /// <param name="skip">跳过元素数量</param>
+        /// <param name="take">拿取元素数量</param>
+        /// <param name="order">排序方式</param>
+        /// <returns>返回指定范围的元素value</returns>
+        public IEnumerable<T> SortedSetRangeByScore<T>(string redisKey, double start = double.NegativeInfinity, double stop = double.PositiveInfinity, long skip = 0, long take = -1, Order order = Order.Ascending)
+        {
+            return this.SortedSetRangeByScore(redisKey, start, stop, skip, take, order).Select(o => o.ToObject<T>());
         }
 
         /// <summary>
@@ -1423,6 +1467,22 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
+        /// 获取有序集合中指定score起始范围的元素value-score，默认情况下从低到高
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="redisKey">redis存储key</param>
+        /// <param name="start">开始score</param>
+        /// <param name="stop">结束score</param>
+        /// <param name="skip">跳过元素数量</param>
+        /// <param name="take">拿取元素数量</param>
+        /// <param name="order">排序方式</param>
+        /// <returns>返回指定范围的元素value-score</returns>
+        public Dictionary<T, double> SortedSetRangeByScoreWithScores<T>(string redisKey, double start = double.NegativeInfinity, double stop = double.PositiveInfinity, long skip = 0, long take = -1, Order order = Order.Ascending)
+        {
+            return this.SortedSetRangeByScoreWithScores(redisKey, start, stop, skip, take, order).ToDictionary(o => o.Key.ToObject<T>(), o => o.Value);
+        }
+
+        /// <summary>
         /// 获取有序集合中指定value最大最小范围的元素value，当有序集合中的score相同时，按照value从小到大进行排序
         /// </summary>
         /// <param name="redisKey">redis存储key</param>
@@ -1435,6 +1495,21 @@ namespace ZqUtils.Helpers
         {
             redisKey = this.AddKeyPrefix(redisKey);
             return this.database.SortedSetRangeByValue(redisKey, min, max, skip: skip, take: take).Select(o => o.ToString());
+        }
+
+        /// <summary>
+        /// 获取有序集合中指定value最大最小范围的元素value，当有序集合中的score相同时，按照value从小到大进行排序
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="redisKey">redis存储key</param>
+        /// <param name="min">value最小值</param>
+        /// <param name="max">value最大值</param>
+        /// <param name="skip">跳过元素数量</param>
+        /// <param name="take">拿取元素数量</param>        
+        /// <returns>返回指定范围的元素value</returns>
+        public IEnumerable<T> SortedSetRangeByValue<T>(string redisKey, RedisValue min = default(RedisValue), RedisValue max = default(RedisValue), long skip = 0, long take = -1)
+        {
+            return this.SortedSetRangeByValue(redisKey, min, max, skip, take).Select(o => o.ToObject<T>());
         }
         #endregion
         #endregion
@@ -1676,6 +1751,20 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
+        /// 获取有序集合中指定索引范围的元素value，默认情况下从低到高
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="redisKey">redis存储key</param>
+        /// <param name="start">开始索引</param>
+        /// <param name="stop">结束索引</param>
+        /// <param name="order">排序方式</param>
+        /// <returns>返回指定范围的元素value</returns>
+        public async Task<IEnumerable<T>> SortedSetRangeByRankAsync<T>(string redisKey, long start = 0, long stop = -1, Order order = Order.Ascending)
+        {
+            return (await this.SortedSetRangeByRankAsync(redisKey, start, stop, order)).Select(o => o.ToObject<T>());
+        }
+
+        /// <summary>
         /// 获取有序集合中指定索引范围的元素value-score，默认情况下从低到高
         /// </summary>
         /// <param name="redisKey">redis存储key</param>
@@ -1688,6 +1777,20 @@ namespace ZqUtils.Helpers
             redisKey = this.AddKeyPrefix(redisKey);
             var result = await this.database.SortedSetRangeByRankWithScoresAsync(redisKey, start, stop, order);
             return result.Select(x => new { x.Score, Value = x.Element.ToString() }).ToDictionary(x => x.Value, x => x.Score);
+        }
+
+        /// <summary>
+        /// 获取有序集合中指定索引范围的元素value-score，默认情况下从低到高
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="redisKey">redis存储key</param>
+        /// <param name="start">开始索引</param>
+        /// <param name="stop">结束索引</param>
+        /// <param name="order">排序方式</param>        
+        /// <returns>返回指定范围的元素value-score</returns>
+        public async Task<Dictionary<T, double>> SortedSetRangeByRankWithScoresAsync<T>(string redisKey, long start = 0, long stop = -1, Order order = Order.Ascending)
+        {
+            return (await this.SortedSetRangeByRankWithScoresAsync(redisKey, start, stop, order)).ToDictionary(o => o.Key.ToObject<T>(), o => o.Value);
         }
 
         /// <summary>
@@ -1704,6 +1807,22 @@ namespace ZqUtils.Helpers
         {
             redisKey = this.AddKeyPrefix(redisKey);
             return (await this.database.SortedSetRangeByScoreAsync(redisKey, start, stop, order: order, skip: skip, take: take)).Select(o => o.ToString());
+        }
+
+        /// <summary>
+        /// 获取有序集合中指定score起始范围的元素value，默认情况下从低到高
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="redisKey">redis存储key</param>
+        /// <param name="start">开始score</param>
+        /// <param name="stop">结束score</param>
+        /// <param name="skip">跳过元素数量</param>
+        /// <param name="take">拿取元素数量</param>
+        /// <param name="order">排序方式</param>
+        /// <returns>返回指定范围的元素value</returns>
+        public async Task<IEnumerable<T>> SortedSetRangeByScoreAsync<T>(string redisKey, double start = double.NegativeInfinity, double stop = double.PositiveInfinity, long skip = 0, long take = -1, Order order = Order.Ascending)
+        {
+            return (await this.SortedSetRangeByScoreAsync(redisKey, start, stop, skip, take, order)).Select(o => o.ToObject<T>());
         }
 
         /// <summary>
@@ -1724,6 +1843,22 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
+        /// 获取有序集合中指定score起始范围的元素value-score，默认情况下从低到高
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="redisKey">redis存储key</param>
+        /// <param name="start">开始score</param>
+        /// <param name="stop">结束score</param>
+        /// <param name="skip">跳过元素数量</param>
+        /// <param name="take">拿取元素数量</param>
+        /// <param name="order">排序方式</param>
+        /// <returns>返回指定范围的元素value-score</returns>
+        public async Task<Dictionary<T, double>> SortedSetRangeByScoreWithScoresAsync<T>(string redisKey, double start = double.NegativeInfinity, double stop = double.PositiveInfinity, long skip = 0, long take = -1, Order order = Order.Ascending)
+        {
+            return (await this.SortedSetRangeByScoreWithScoresAsync(redisKey, start, stop, skip, take, order)).ToDictionary(o => o.Key.ToObject<T>(), o => o.Value);
+        }
+
+        /// <summary>
         /// 获取有序集合中指定value最大最小范围的元素value，当有序集合中的score相同时，按照value从小到大进行排序
         /// </summary>
         /// <param name="redisKey">redis存储key</param>
@@ -1736,6 +1871,21 @@ namespace ZqUtils.Helpers
         {
             redisKey = this.AddKeyPrefix(redisKey);
             return (await this.database.SortedSetRangeByValueAsync(redisKey, min, max, skip: skip, take: take)).Select(o => o.ToString());
+        }
+
+        /// <summary>
+        /// 获取有序集合中指定value最大最小范围的元素value，当有序集合中的score相同时，按照value从小到大进行排序
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="redisKey">redis存储key</param>
+        /// <param name="min">value最小值</param>
+        /// <param name="max">value最大值</param>
+        /// <param name="skip">跳过元素数量</param>
+        /// <param name="take">拿取元素数量</param>
+        /// <returns>返回指定范围的元素value</returns>
+        public async Task<IEnumerable<T>> SortedSetRangeByValueAsync<T>(string redisKey, RedisValue min = default(RedisValue), RedisValue max = default(RedisValue), long skip = 0, long take = -1)
+        {
+            return (await this.SortedSetRangeByValueAsync(redisKey, min, max, skip, take)).Select(o => o.ToObject<T>());
         }
         #endregion
         #endregion
