@@ -70,7 +70,7 @@ namespace ZqUtils.Extensions
                 if (typeName.Contains("Dictionary`2") || (typeName == "Object" && (firstTypeName == "DapperRow" || firstTypeName == "DynamicRow")))
                 {
                     var dic = first as IDictionary<string, object>;
-                    dt.Columns.AddRange(dic.Select(o => new DataColumn(o.Key, o.Value.GetType().GetCoreType())).ToArray());
+                    dt.Columns.AddRange(dic.Select(o => new DataColumn(o.Key, o.Value?.GetType().GetCoreType() ?? typeof(object))).ToArray());
                     var dics = @this.Select(o => o as IDictionary<string, object>);
                     foreach (var item in dics)
                     {
@@ -82,7 +82,7 @@ namespace ZqUtils.Extensions
                     var props = typeName == "Object" ? first.GetType().GetProperties() : typeof(T).GetProperties(BindingFlags.GetProperty | BindingFlags.Public | BindingFlags.Instance);
                     foreach (var prop in props)
                     {
-                        dt.Columns.Add(prop.Name, prop.PropertyType.GetCoreType());
+                        dt.Columns.Add(prop.Name, prop?.PropertyType.GetCoreType() ?? typeof(object));
                     }
                     foreach (var item in @this)
                     {
