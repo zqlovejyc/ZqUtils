@@ -109,7 +109,7 @@ namespace ZqUtils.Helpers
                             var colEnd = worksheet.Dimension.End.Column;//工作区结束列
                             var rowStart = worksheet.Dimension.Start.Row;//工作区开始行号
                             var rowEnd = worksheet.Dimension.End.Row;//工作区结束行号
-                                                                     //将每列标题添加到字典中                                               
+                            //将每列标题添加到字典中                                               
                             for (int i = colStart; i <= colEnd; i++)
                             {
                                 dictHeader[worksheet.Cells[rowStart, i].Value.ToString()] = i;
@@ -208,16 +208,16 @@ namespace ZqUtils.Helpers
                         using (var sheet = package.Workbook.Worksheets.Add(string.IsNullOrEmpty(table.TableName) ? table.GetType().Name : table.TableName))
                         {
                             sheet.Cells["A1"].LoadFromDataTable(table, true, TableStyles.Light10);
+                            //写到客户端（下载）
+                            HttpContext.Current.Response.Clear();
+                            HttpContext.Current.Response.Charset = "utf-8";
+                            HttpContext.Current.Response.AddHeader("content-disposition", $"attachment;filename={HttpUtility.UrlEncode(fileName + ext, Encoding.UTF8)}");
+                            HttpContext.Current.Response.ContentType = "application/ms-excel";
+                            HttpContext.Current.Response.ContentEncoding = Encoding.GetEncoding("utf-8");
+                            HttpContext.Current.Response.BinaryWrite(package.GetAsByteArray());
+                            HttpContext.Current.Response.Flush();
+                            if (responseEnd) HttpContext.Current.Response.End();
                         }
-                        //写到客户端（下载）
-                        HttpContext.Current.Response.Clear();
-                        HttpContext.Current.Response.Charset = "utf-8";
-                        HttpContext.Current.Response.AddHeader("content-disposition", $"attachment;filename={HttpUtility.UrlEncode(fileName + ext, Encoding.UTF8)}");
-                        HttpContext.Current.Response.ContentType = "application/ms-excel";
-                        HttpContext.Current.Response.ContentEncoding = Encoding.GetEncoding("utf-8");
-                        HttpContext.Current.Response.BinaryWrite(package.GetAsByteArray());
-                        HttpContext.Current.Response.Flush();
-                        if (responseEnd) HttpContext.Current.Response.End();
                     }
                 }
                 catch (Exception ex)
@@ -279,16 +279,16 @@ namespace ZqUtils.Helpers
                             sheet.Cells[firstCell.ToRow + 1, firstCell.ToCol].LoadFromDataTable(table, false);
                             //单独设置单元格
                             action?.Invoke(sheet);
+                            //写到客户端（下载）
+                            HttpContext.Current.Response.Clear();
+                            HttpContext.Current.Response.Charset = "utf-8";
+                            HttpContext.Current.Response.AddHeader("content-disposition", $"attachment;filename={HttpUtility.UrlEncode(fileName + ext, Encoding.UTF8)}");
+                            HttpContext.Current.Response.ContentType = "application/ms-excel";
+                            HttpContext.Current.Response.ContentEncoding = Encoding.GetEncoding("utf-8");
+                            HttpContext.Current.Response.BinaryWrite(package.GetAsByteArray());
+                            HttpContext.Current.Response.Flush();
+                            if (responseEnd) HttpContext.Current.Response.End();
                         }
-                        //写到客户端（下载）
-                        HttpContext.Current.Response.Clear();
-                        HttpContext.Current.Response.Charset = "utf-8";
-                        HttpContext.Current.Response.AddHeader("content-disposition", $"attachment;filename={HttpUtility.UrlEncode(fileName + ext, Encoding.UTF8)}");
-                        HttpContext.Current.Response.ContentType = "application/ms-excel";
-                        HttpContext.Current.Response.ContentEncoding = Encoding.GetEncoding("utf-8");
-                        HttpContext.Current.Response.BinaryWrite(package.GetAsByteArray());
-                        HttpContext.Current.Response.Flush();
-                        if (responseEnd) HttpContext.Current.Response.End();
                     }
                 }
                 catch (Exception ex)
@@ -329,10 +329,8 @@ namespace ZqUtils.Helpers
                             var table = ds.Tables[i];
                             if (table != null && table.Rows.Count > 0)
                             {
-                                using (var sheet = package.Workbook.Worksheets.Add(string.IsNullOrEmpty(table.TableName) ? table.GetType().Name + (i + 1).ToString() : table.TableName))
-                                {
-                                    sheet.Cells["A1"].LoadFromDataTable(table, true, TableStyles.Light10);
-                                }
+                                var sheet = package.Workbook.Worksheets.Add(string.IsNullOrEmpty(table.TableName) ? table.GetType().Name + (i + 1).ToString() : table.TableName);
+                                sheet.Cells["A1"].LoadFromDataTable(table, true, TableStyles.Light10);
                             }
                         }
                         //写到客户端（下载）
@@ -400,16 +398,16 @@ namespace ZqUtils.Helpers
                             {
                                 sheet.Cells["A1"].LoadFromCollection(list, true, TableStyles.Light10);
                             }
+                            //写到客户端（下载）
+                            HttpContext.Current.Response.Clear();
+                            HttpContext.Current.Response.Charset = "utf-8";
+                            HttpContext.Current.Response.AddHeader("content-disposition", $"attachment;filename={HttpUtility.UrlEncode(fileName + ext, Encoding.UTF8)}");
+                            HttpContext.Current.Response.ContentType = "application/ms-excel";
+                            HttpContext.Current.Response.ContentEncoding = Encoding.GetEncoding("utf-8");
+                            HttpContext.Current.Response.BinaryWrite(package.GetAsByteArray());
+                            HttpContext.Current.Response.Flush();
+                            if (responseEnd) HttpContext.Current.Response.End();
                         }
-                        //写到客户端（下载）
-                        HttpContext.Current.Response.Clear();
-                        HttpContext.Current.Response.Charset = "utf-8";
-                        HttpContext.Current.Response.AddHeader("content-disposition", $"attachment;filename={HttpUtility.UrlEncode(fileName + ext, Encoding.UTF8)}");
-                        HttpContext.Current.Response.ContentType = "application/ms-excel";
-                        HttpContext.Current.Response.ContentEncoding = Encoding.GetEncoding("utf-8");
-                        HttpContext.Current.Response.BinaryWrite(package.GetAsByteArray());
-                        HttpContext.Current.Response.Flush();
-                        if (responseEnd) HttpContext.Current.Response.End();
                     }
                 }
                 catch (Exception ex)
@@ -472,16 +470,16 @@ namespace ZqUtils.Helpers
                             sheet.Cells[firstCell.ToRow + 1, firstCell.ToCol].LoadFromCollection(list, false);
                             //单独设置单元格
                             action?.Invoke(sheet);
+                            //写到客户端（下载）
+                            HttpContext.Current.Response.Clear();
+                            HttpContext.Current.Response.Charset = "utf-8";
+                            HttpContext.Current.Response.AddHeader("content-disposition", $"attachment;filename={HttpUtility.UrlEncode(fileName + ext, Encoding.UTF8)}");
+                            HttpContext.Current.Response.ContentType = "application/ms-excel";
+                            HttpContext.Current.Response.ContentEncoding = Encoding.GetEncoding("utf-8");
+                            HttpContext.Current.Response.BinaryWrite(package.GetAsByteArray());
+                            HttpContext.Current.Response.Flush();
+                            if (responseEnd) HttpContext.Current.Response.End();
                         }
-                        //写到客户端（下载）
-                        HttpContext.Current.Response.Clear();
-                        HttpContext.Current.Response.Charset = "utf-8";
-                        HttpContext.Current.Response.AddHeader("content-disposition", $"attachment;filename={HttpUtility.UrlEncode(fileName + ext, Encoding.UTF8)}");
-                        HttpContext.Current.Response.ContentType = "application/ms-excel";
-                        HttpContext.Current.Response.ContentEncoding = Encoding.GetEncoding("utf-8");
-                        HttpContext.Current.Response.BinaryWrite(package.GetAsByteArray());
-                        HttpContext.Current.Response.Flush();
-                        if (responseEnd) HttpContext.Current.Response.End();
                     }
                 }
                 catch (Exception ex)
@@ -518,8 +516,8 @@ namespace ZqUtils.Helpers
                         using (var sheet = package.Workbook.Worksheets.Add(string.IsNullOrEmpty(table.TableName) ? table.GetType().Name : table.TableName))
                         {
                             sheet.Cells["A1"].LoadFromDataTable(table, true, TableStyles.Light10);
+                            package.Save();
                         }
-                        package.Save();
                     }
                 }
                 catch (Exception ex)
@@ -579,8 +577,8 @@ namespace ZqUtils.Helpers
                             sheet.Cells[firstCell.ToRow + 1, firstCell.ToCol].LoadFromDataTable(table, false);
                             //单独设置单元格
                             action?.Invoke(sheet);
+                            package.Save();
                         }
-                        package.Save();
                     }
                 }
                 catch (Exception ex)
@@ -619,10 +617,8 @@ namespace ZqUtils.Helpers
                             var table = ds.Tables[i];
                             if (table != null && table.Rows.Count > 0)
                             {
-                                using (var sheet = package.Workbook.Worksheets.Add(string.IsNullOrEmpty(table.TableName) ? table.GetType().Name + (i + 1).ToString() : table.TableName))
-                                {
-                                    sheet.Cells["A1"].LoadFromDataTable(table, true, TableStyles.Light10);
-                                }
+                                var sheet = package.Workbook.Worksheets.Add(string.IsNullOrEmpty(table.TableName) ? table.GetType().Name + (i + 1).ToString() : table.TableName);
+                                sheet.Cells["A1"].LoadFromDataTable(table, true, TableStyles.Light10);
                             }
                         }
                         package.Save();
@@ -680,8 +676,8 @@ namespace ZqUtils.Helpers
                             {
                                 sheet.Cells["A1"].LoadFromCollection(list, true, TableStyles.Light10);
                             }
+                            package.Save();
                         }
-                        package.Save();
                     }
                 }
                 catch (Exception ex)
@@ -742,8 +738,8 @@ namespace ZqUtils.Helpers
                             sheet.Cells[firstCell.ToRow + 1, firstCell.ToCol].LoadFromCollection(list, false);
                             //单独设置单元格
                             action?.Invoke(sheet);
+                            package.Save();
                         }
-                        package.Save();
                     }
                 }
                 catch (Exception ex)
