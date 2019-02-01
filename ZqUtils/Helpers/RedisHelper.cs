@@ -2174,10 +2174,7 @@ namespace ZqUtils.Helpers
         public void Subscribe(string channelFrom, Action<RedisValue> subscribeFn)
         {
             var sub = GetConnectionRedisMultiplexer().GetSubscriber();
-            sub.Subscribe(channelFrom, (channel, message) =>
-            {
-                subscribeFn?.Invoke(message);
-            });
+            sub.Subscribe(channelFrom, (channel, message) => subscribeFn?.Invoke(message));
         }
         #endregion
         #endregion
