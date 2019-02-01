@@ -127,37 +127,37 @@ namespace ZqUtils.Helpers
                                     switch (p.PropertyType.Name.ToLower())
                                     {
                                         case "string":
-                                            p.SetValue(result, cell.GetValue<String>(), null);
+                                            p.SetValue(result, cell.GetValue<string>(), null);
                                             break;
                                         case "int16":
-                                            p.SetValue(result, cell.GetValue<Int16>(), null);
+                                            p.SetValue(result, cell.GetValue<short>(), null);
                                             break;
                                         case "int32":
-                                            p.SetValue(result, cell.GetValue<Int32>(), null);
+                                            p.SetValue(result, cell.GetValue<int>(), null);
                                             break;
                                         case "int64":
-                                            p.SetValue(result, cell.GetValue<Int32>(), null);
+                                            p.SetValue(result, cell.GetValue<int>(), null);
                                             break;
                                         case "decimal":
-                                            p.SetValue(result, cell.GetValue<Decimal>(), null);
+                                            p.SetValue(result, cell.GetValue<decimal>(), null);
                                             break;
                                         case "double":
-                                            p.SetValue(result, cell.GetValue<Double>(), null);
+                                            p.SetValue(result, cell.GetValue<double>(), null);
                                             break;
                                         case "datetime":
                                             p.SetValue(result, cell.GetValue<DateTime>(), null);
                                             break;
                                         case "boolean":
-                                            p.SetValue(result, cell.GetValue<Boolean>(), null);
+                                            p.SetValue(result, cell.GetValue<bool>(), null);
                                             break;
                                         case "byte":
-                                            p.SetValue(result, cell.GetValue<Byte>(), null);
+                                            p.SetValue(result, cell.GetValue<byte>(), null);
                                             break;
                                         case "char":
-                                            p.SetValue(result, cell.GetValue<Char>(), null);
+                                            p.SetValue(result, cell.GetValue<char>(), null);
                                             break;
                                         case "single":
-                                            p.SetValue(result, cell.GetValue<Single>(), null);
+                                            p.SetValue(result, cell.GetValue<float>(), null);
                                             break;
                                         default:
                                             break;

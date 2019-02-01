@@ -232,7 +232,7 @@ namespace ZqUtils.Extensions
         /// <param name="startIndex">The start index.</param>
         /// <param name="match">Specifies the match.</param>
         /// <returns>The found index.</returns>
-        public static Int32 FindIndex<T>(this T[] array, Int32 startIndex, Predicate<T> match)
+        public static int FindIndex<T>(this T[] array, int startIndex, Predicate<T> match)
         {
             return Array.FindIndex(array, startIndex, match);
         }
@@ -246,7 +246,7 @@ namespace ZqUtils.Extensions
         /// <param name="count">Number of.</param>
         /// <param name="match">Specifies the match.</param>
         /// <returns>The found index.</returns>
-        public static Int32 FindIndex<T>(this T[] array, Int32 startIndex, Int32 count, Predicate<T> match)
+        public static int FindIndex<T>(this T[] array, int startIndex, int count, Predicate<T> match)
         {
             return Array.FindIndex(array, startIndex, count, match);
         }
@@ -287,7 +287,7 @@ namespace ZqUtils.Extensions
         /// <param name="startIndex">The start index.</param>
         /// <param name="match">Specifies the match.</param>
         /// <returns>The found index.</returns>
-        public static Int32 FindLastIndex<T>(this T[] array, Int32 startIndex, Predicate<T> match)
+        public static int FindLastIndex<T>(this T[] array, int startIndex, Predicate<T> match)
         {
             return Array.FindLastIndex(array, startIndex, match);
         }
@@ -301,7 +301,7 @@ namespace ZqUtils.Extensions
         /// <param name="count">Number of.</param>
         /// <param name="match">Specifies the match.</param>
         /// <returns>The found index.</returns>
-        public static Int32 FindLastIndex<T>(this T[] array, Int32 startIndex, Int32 count, Predicate<T> match)
+        public static int FindLastIndex<T>(this T[] array, int startIndex, int count, Predicate<T> match)
         {
             return Array.FindLastIndex(array, startIndex, count, match);
         }
