@@ -69,14 +69,7 @@ namespace ZqUtils.Helpers
         /// </summary>
         public RedisHelper()
         {
-            try
-            {
-                this.database = GetConnectionRedisMultiplexer().GetDatabase();
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            this.database = GetConnectionRedisMultiplexer().GetDatabase();
         }
 
         /// <summary>
@@ -85,14 +78,7 @@ namespace ZqUtils.Helpers
         /// <param name="defaultDatabase">数据库索引</param>
         public RedisHelper(int defaultDatabase)
         {
-            try
-            {
-                this.database = GetConnectionRedisMultiplexer().GetDatabase(defaultDatabase);
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            this.database = GetConnectionRedisMultiplexer().GetDatabase(defaultDatabase);
         }
 
         /// <summary>
@@ -101,14 +87,7 @@ namespace ZqUtils.Helpers
         /// <param name="configurationOptions">连接配置</param>
         public RedisHelper(ConfigurationOptions configurationOptions)
         {
-            try
-            {
-                this.database = GetConnectionRedisMultiplexer(configurationOptions).GetDatabase();
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            this.database = GetConnectionRedisMultiplexer(configurationOptions).GetDatabase();
         }
         #endregion 构造函数
 
