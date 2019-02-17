@@ -1595,10 +1595,10 @@ namespace ZqUtils.Helpers
         /// <param name="member">redis存储value</param>
         /// <param name="value">增量值</param>
         /// <returns>返回新的score</returns>
-        public Task<double> SortedSetIncrementAsync(string redisKey, string member, double value = 1)
+        public async Task<double> SortedSetIncrementAsync(string redisKey, string member, double value = 1)
         {
             redisKey = this.AddKeyPrefix(redisKey);
-            return this.database.SortedSetIncrementAsync(redisKey, member, value);
+            return await this.database.SortedSetIncrementAsync(redisKey, member, value);
         }
 
         /// <summary>
@@ -1609,10 +1609,10 @@ namespace ZqUtils.Helpers
         /// <param name="member">redis存储value</param>
         /// <param name="value">增量值</param>
         /// <returns>返回新的score</returns>
-        public Task<double> SortedSetIncrementAsync<T>(string redisKey, T member, double value = 1)
+        public async Task<double> SortedSetIncrementAsync<T>(string redisKey, T member, double value = 1)
         {
             redisKey = this.AddKeyPrefix(redisKey);
-            return this.database.SortedSetIncrementAsync(redisKey, member.ToJson(), value);
+            return await this.database.SortedSetIncrementAsync(redisKey, member.ToJson(), value);
         }
         #endregion
 
