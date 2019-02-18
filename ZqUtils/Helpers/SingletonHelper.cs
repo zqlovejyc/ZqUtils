@@ -28,14 +28,14 @@ namespace ZqUtils.Helpers
     /// 泛型单例工具类
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class SingletonHelper<T> where T : class, new()
+    public class SingletonHelper<T> where T : class
     {
         #region 私有字段
         /// <summary>
         /// 静态私有对象
         /// </summary>
         private static T _instance;
-        
+
         /// <summary>
         /// 线程对象，线程锁使用
         /// </summary>
@@ -55,7 +55,7 @@ namespace ZqUtils.Helpers
                 {
                     if (_instance == null)
                     {
-                        _instance = new T();
+                        _instance = Activator.CreateInstance<T>();
                     }
                 }
             }
@@ -75,7 +75,7 @@ namespace ZqUtils.Helpers
                 {
                     if (_instance == null)
                     {
-                        _instance = Activator.CreateInstance(typeof(T), args) as T;
+                        _instance = (T)Activator.CreateInstance(typeof(T), args);
                     }
                 }
             }
