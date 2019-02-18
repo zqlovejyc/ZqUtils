@@ -53,17 +53,34 @@ namespace ZqUtils.Helpers
             {
                 lock (locker)
                 {
-                    if (_instance == null) _instance = new T();
+                    if (_instance == null)
+                    {
+                        _instance = new T();
+                    }
                 }
             }
             return _instance;
         }
 
         /// <summary>
-        /// 静态获取lazy实例
+        /// 静态获取实例
         /// </summary>
+        /// <param name="args">构造参数</param>
         /// <returns>T</returns>
-        public static T GetLazyInstance() => new Lazy<T>(() => new T()).Value;
+        public static T GetInstance(params object[] args)
+        {
+            if (_instance == null)
+            {
+                lock (locker)
+                {
+                    if (_instance == null)
+                    {
+                        _instance = Activator.CreateInstance(typeof(T), args) as T;
+                    }
+                }
+            }
+            return _instance;
+        }
         #endregion
     }
 }
