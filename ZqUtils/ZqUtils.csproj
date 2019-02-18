@@ -162,6 +162,7 @@
     <Compile Include="Helpers\ImageHelper.cs" />
     <Compile Include="Helpers\LogHelper.cs" />
     <Compile Include="Helpers\MongodbHelper.cs" />
+    <Compile Include="Helpers\ObjectPoolHelper.cs" />
     <Compile Include="Helpers\PathHelper.cs" />
     <Compile Include="Helpers\PollyHelper.cs" />
     <Compile Include="Helpers\RabbitMqHelper.cs" />
