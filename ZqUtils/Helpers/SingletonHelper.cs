@@ -16,6 +16,7 @@
  */
 #endregion
 
+using System;
 /****************************
 * [Author] 张强
 * [Date] 2015-10-26
@@ -43,7 +44,7 @@ namespace ZqUtils.Helpers
 
         #region 公有方法
         /// <summary>
-        /// 静态获取实例方法
+        /// 静态获取实例
         /// </summary>
         /// <returns>T</returns>
         public static T GetInstance()
@@ -57,6 +58,12 @@ namespace ZqUtils.Helpers
             }
             return _instance;
         }
+
+        /// <summary>
+        /// 静态获取lazy实例
+        /// </summary>
+        /// <returns>T</returns>
+        public static T GetLazyInstance() => new Lazy<T>(() => new T()).Value;
         #endregion
     }
 }
