@@ -15,23 +15,30 @@ namespace ZqUtils.Helpers
     {
         #region 私有字段
         private int isTaked = 0;
-        private readonly Queue<T> queue = new Queue<T>();
-        private readonly Func<T> func = null;
         private int currentResource = 0;
         private int tryNewObject = 0;
+        private readonly Queue<T> queue = new Queue<T>();
+        private readonly Func<T> func = null;
         private readonly int minSize = 1;
         private readonly int maxSize = 50;
         #endregion
 
         #region 私有方法
+        /// <summary>
+        /// Enter
+        /// </summary>
         private void Enter()
         {
-            while (Interlocked.Exchange(ref isTaked, 1) != 0)
-            {
-            }
+            //把1赋值给isTaked
+            while (Interlocked.Exchange(ref isTaked, 1) != 0) { }
         }
+
+        /// <summary>
+        /// Leave
+        /// </summary>
         private void Leave()
         {
+            //把0赋值给isTaked
             Interlocked.Exchange(ref isTaked, 0);
         }
         #endregion
@@ -72,7 +79,6 @@ namespace ZqUtils.Helpers
                 {
                     Interlocked.Increment(ref this.tryNewObject);
                     t = func();
-                    //Interlocked.Increment(ref this.currentResource);
                 }
                 else
                 {
