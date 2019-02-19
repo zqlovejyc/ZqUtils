@@ -382,7 +382,7 @@ namespace ZqUtils.Helpers
                 var key = Convert.FromBase64String(encodingAESKey + "=");
                 var iv = new byte[16];
                 Array.Copy(key, iv, 16);
-                var Randcode = 16.BuildRandCode();
+                var Randcode = 16.BuildRandomString();
                 var bRand = Encoding.UTF8.GetBytes(Randcode);
                 var bAppid = Encoding.UTF8.GetBytes(appid);
                 var btmpMsg = Encoding.UTF8.GetBytes(input);
