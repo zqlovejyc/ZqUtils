@@ -38,7 +38,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 默认的key值（用来当作RedisKey的前缀）
         /// </summary>
-        private static readonly string defaultKey = ConfigHelper.GetAppSettings<string>("Redis.DefaultKey") ?? "Redis.DefaultKey";
+        private static readonly string defaultKey = ConfigHelper.GetAppSettings<string>("Redis.DefaultKey");
 
         /// <summary>
         /// 线程对象，线程锁使用
