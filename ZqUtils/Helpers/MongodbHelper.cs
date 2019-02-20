@@ -23,6 +23,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 /****************************
 * [Author] 张强
@@ -890,7 +892,7 @@ namespace ZqUtils.Helpers
         /// <param name="item">要新增的子项值</param>
         /// <param name="filter">条件</param>
         /// <returns>返回是否新增成功</returns>
-        public bool UpdatePushItem<T>(object item, Expression<Func<T, bool>> filter) where T : class
+        public bool UpdatePushItem<T>(object item, Expression<Func<T, bool>> filter)
         {
             return this.UpdatePushItem(typeof(T).Name, item, filter);
         }
@@ -903,7 +905,7 @@ namespace ZqUtils.Helpers
         /// <param name="item">要新增的子项值</param>
         /// <param name="filter">条件</param>
         /// <returns>返回是否新增成功</returns>
-        public bool UpdatePushItem<T>(string collectionName, object item, Expression<Func<T, bool>> filter) where T : class
+        public bool UpdatePushItem<T>(string collectionName, object item, Expression<Func<T, bool>> filter)
         {
             return this.UpdatePushItem(collectionName, GetFields<T>(item).FirstOrDefault(), item, filter);
         }
@@ -917,7 +919,7 @@ namespace ZqUtils.Helpers
         /// <param name="item">要新增的子项值</param>
         /// <param name="filter">条件</param>
         /// <returns>返回是否新增成功</returns>
-        public bool UpdatePushItem<T>(string collectionName, string field, object item, Expression<Func<T, bool>> filter) where T : class
+        public bool UpdatePushItem<T>(string collectionName, string field, object item, Expression<Func<T, bool>> filter)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             return collection.UpdateOne<T>(filter, Builders<T>.Update.Push(field, item)).ModifiedCount > 0;
@@ -932,7 +934,7 @@ namespace ZqUtils.Helpers
         /// <param name="item">要删除的子项值</param>
         /// <param name="filter">条件</param>
         /// <returns>返回是否删除成功</returns>
-        public bool UpdatePullItem<T>(object item, Expression<Func<T, bool>> filter) where T : class
+        public bool UpdatePullItem<T>(object item, Expression<Func<T, bool>> filter)
         {
             return this.UpdatePullItem(typeof(T).Name, item, filter);
         }
@@ -945,7 +947,7 @@ namespace ZqUtils.Helpers
         /// <param name="item">要删除的子项值</param>
         /// <param name="filter">条件</param>
         /// <returns>返回是否删除成功</returns>
-        public bool UpdatePullItem<T>(string collectionName, object item, Expression<Func<T, bool>> filter) where T : class
+        public bool UpdatePullItem<T>(string collectionName, object item, Expression<Func<T, bool>> filter)
         {
             return this.UpdatePushItem(collectionName, GetFields<T>(item).FirstOrDefault(), item, filter);
         }
@@ -959,7 +961,7 @@ namespace ZqUtils.Helpers
         /// <param name="item">要删除的子项值</param>
         /// <param name="filter">条件</param>
         /// <returns>返回是否删除成功</returns>
-        public bool UpdatePullItem<T>(string collectionName, string field, object item, Expression<Func<T, bool>> filter) where T : class
+        public bool UpdatePullItem<T>(string collectionName, string field, object item, Expression<Func<T, bool>> filter)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             return collection.UpdateOne<T>(filter, Builders<T>.Update.Pull(field, item)).ModifiedCount > 0;
@@ -974,7 +976,7 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="entity">新实体</param>
         /// <returns>返回是否更新成功</returns>
-        public bool UpdateOne<T>(Expression<Func<T, bool>> filter, T entity) where T : class
+        public bool UpdateOne<T>(Expression<Func<T, bool>> filter, T entity)
         {
             return this.UpdateOne(typeof(T).Name, filter, entity);
         }
@@ -987,7 +989,7 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="entity">新实体</param>
         /// <returns>返回是否更新成功</returns>
-        public bool UpdateOne<T>(string collectionName, Expression<Func<T, bool>> filter, T entity) where T : class
+        public bool UpdateOne<T>(string collectionName, Expression<Func<T, bool>> filter, T entity)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             var updateList = BuildUpdateDefinition<T>(entity);
@@ -1100,7 +1102,7 @@ namespace ZqUtils.Helpers
         /// <param name="item">要新增的子项值</param>
         /// <param name="filter">条件</param>
         /// <returns>返回更新结果</returns>
-        public async Task<UpdateResult> UpdatePushItemAsync<T>(object item, Expression<Func<T, bool>> filter) where T : class
+        public async Task<UpdateResult> UpdatePushItemAsync<T>(object item, Expression<Func<T, bool>> filter)
         {
             return await this.UpdatePushItemAsync(typeof(T).Name, item, filter);
         }
@@ -1113,7 +1115,7 @@ namespace ZqUtils.Helpers
         /// <param name="item">要新增的子项值</param>
         /// <param name="filter">条件</param>
         /// <returns>返回更新结果</returns>
-        public async Task<UpdateResult> UpdatePushItemAsync<T>(string collectionName, object item, Expression<Func<T, bool>> filter) where T : class
+        public async Task<UpdateResult> UpdatePushItemAsync<T>(string collectionName, object item, Expression<Func<T, bool>> filter)
         {
             return await this.UpdatePushItemAsync(collectionName, GetFields<T>(item).FirstOrDefault(), item, filter);
         }
@@ -1127,7 +1129,7 @@ namespace ZqUtils.Helpers
         /// <param name="item">要新增的子项值</param>
         /// <param name="filter">条件</param>
         /// <returns>返回更新结果</returns>
-        public async Task<UpdateResult> UpdatePushItemAsync<T>(string collectionName, string field, object item, Expression<Func<T, bool>> filter) where T : class
+        public async Task<UpdateResult> UpdatePushItemAsync<T>(string collectionName, string field, object item, Expression<Func<T, bool>> filter)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             return await collection.UpdateOneAsync<T>(filter, Builders<T>.Update.Push(field, item));
@@ -1142,7 +1144,7 @@ namespace ZqUtils.Helpers
         /// <param name="item">要删除的子项值</param>
         /// <param name="filter">条件</param>
         /// <returns>返回更新结果</returns>
-        public async Task<UpdateResult> UpdatePullItemAsync<T>(object item, Expression<Func<T, bool>> filter) where T : class
+        public async Task<UpdateResult> UpdatePullItemAsync<T>(object item, Expression<Func<T, bool>> filter)
         {
             return await this.UpdatePullItemAsync(typeof(T).Name, item, filter);
         }
@@ -1155,7 +1157,7 @@ namespace ZqUtils.Helpers
         /// <param name="item">要删除的子项值</param>
         /// <param name="filter">条件</param>
         /// <returns>返回更新结果</returns>
-        public async Task<UpdateResult> UpdatePullItemAsync<T>(string collectionName, object item, Expression<Func<T, bool>> filter) where T : class
+        public async Task<UpdateResult> UpdatePullItemAsync<T>(string collectionName, object item, Expression<Func<T, bool>> filter)
         {
             return await this.UpdatePullItemAsync(collectionName, GetFields<T>(item).FirstOrDefault(), item, filter);
         }
@@ -1169,7 +1171,7 @@ namespace ZqUtils.Helpers
         /// <param name="item">要删除的子项值</param>
         /// <param name="filter">条件</param>
         /// <returns>返回更新结果</returns>
-        public async Task<UpdateResult> UpdatePullItemAsync<T>(string collectionName, string field, object item, Expression<Func<T, bool>> filter) where T : class
+        public async Task<UpdateResult> UpdatePullItemAsync<T>(string collectionName, string field, object item, Expression<Func<T, bool>> filter)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             return await collection.UpdateOneAsync<T>(filter, Builders<T>.Update.Pull(field, item));
@@ -1184,7 +1186,7 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="entity">新实体</param>
         /// <returns>返回更新结果</returns>
-        public async Task<UpdateResult> UpdateOneAsync<T>(Expression<Func<T, bool>> filter, T entity) where T : class
+        public async Task<UpdateResult> UpdateOneAsync<T>(Expression<Func<T, bool>> filter, T entity)
         {
             return await this.UpdateOneAsync(typeof(T).Name, filter, entity);
         }
@@ -1197,7 +1199,7 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="entity">新实体</param>
         /// <returns>返回更新结果</returns>
-        public async Task<UpdateResult> UpdateOneAsync<T>(string collectionName, Expression<Func<T, bool>> filter, T entity) where T : class
+        public async Task<UpdateResult> UpdateOneAsync<T>(string collectionName, Expression<Func<T, bool>> filter, T entity)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             var updateList = BuildUpdateDefinition<T>(entity);
@@ -1646,7 +1648,7 @@ namespace ZqUtils.Helpers
         public bool Unique { get; set; }
 
         /// <summary>  
-        /// 是否升序，默认true
+        /// 是否升序，默认true  
         /// </summary>  
         public bool Ascending { get; set; }
 
@@ -1662,5 +1664,19 @@ namespace ZqUtils.Helpers
             this.Unique = unique;
             this.Ascending = ascding;
         }
+    }
+
+    /// <summary>
+    /// MongoDB实体基类
+    /// </summary>
+    [BsonIgnoreExtraElements(Inherited = true)]
+    public abstract class MongodbBaseEntity
+    {
+        /// <summary>
+        /// 主键id
+        /// </summary>
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string Id { get; set; }
     }
 }
