@@ -155,6 +155,7 @@
     <Compile Include="Helpers\CryptHelper.cs" />
     <Compile Include="Helpers\DnsHelper.cs" />
     <Compile Include="Helpers\EncodingHelper.cs" />
+    <Compile Include="Helpers\EnvironmentHelper.cs" />
     <Compile Include="Helpers\ExcelHelper.cs" />
     <Compile Include="Helpers\FileHelper.cs" />
     <Compile Include="Helpers\GpsHelper.cs" />
