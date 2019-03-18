@@ -1065,6 +1065,24 @@ namespace ZqUtils.Extensions
         }
 
         /// <summary>
+        /// 截取指定开始和结束字符串中间字符串
+        /// </summary>
+        /// <param name="this">源字符串</param>
+        /// <param name="begin">开始字符串</param>
+        /// <param name="end">结束字符串</param>
+        /// <returns>string</returns>
+        public static string Substring(this string @this, string begin, string end)
+        {
+            var r = new Regex($"(?<={begin})(.*?)(?={end})", RegexOptions.IgnoreCase);
+            var result = r.Match(@this);
+            if (result.Success && result.Groups.Count > 0)
+            {
+                return result.Groups[0].ToString();
+            }
+            return null;
+        }
+
+        /// <summary>
         /// 从字符串中检索子字符串，在指定头部字符串之后，指定尾部字符串之前
         /// </summary>
         /// <remarks>
