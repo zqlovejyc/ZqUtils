@@ -1065,7 +1065,7 @@ namespace ZqUtils.Extensions
         }
 
         /// <summary>
-        /// 截取指定开始和结束字符串中间字符串
+        /// 根据开始和结束字符串截取字符串
         /// </summary>
         /// <param name="this">源字符串</param>
         /// <param name="begin">开始字符串</param>
