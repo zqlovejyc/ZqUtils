@@ -1070,16 +1070,37 @@ namespace ZqUtils.Extensions
         /// <param name="this">源字符串</param>
         /// <param name="begin">开始字符串</param>
         /// <param name="end">结束字符串</param>
+        /// <param name="beginIsIndexOf">开始字符串是否是IndexOf，默认true，否则LastIndexOf</param>
+        /// <param name="endIsIndexOf">结束字符串是否是IndexOf，默认true，否则LastIndexOf</param>
         /// <returns>string</returns>
-        public static string Substring(this string @this, string begin, string end)
+        public static string Substring(this string @this, string begin, string end, bool beginIsIndexOf = true, bool endIsIndexOf = true)
         {
-            var r = new Regex($"(?<={begin})(.*?)(?={end})", RegexOptions.IgnoreCase);
-            var result = r.Match(@this);
-            if (result.Success && result.Groups.Count > 0)
-            {
-                return result.Groups[0].ToString();
-            }
-            return null;
+            if (string.IsNullOrEmpty(@this))
+                return "";
+            if (string.IsNullOrEmpty(begin))
+                return "";
+            if (string.IsNullOrEmpty(end))
+                return "";
+
+            int li;
+            if (beginIsIndexOf)
+                li = @this.IndexOf(begin);
+            else
+                li = @this.LastIndexOf(begin);
+            if (li == -1)
+                return "";
+
+            li += begin.Length;
+
+            int ri;
+            if (endIsIndexOf)
+                ri = @this.IndexOf(end, li);
+            else
+                ri = @this.LastIndexOf(end);
+            if (ri == -1)
+                return "";
+
+            return @this.Substring(li, ri - li);
         }
 
         /// <summary>
