@@ -1714,5 +1714,95 @@ namespace ZqUtils.Extensions
             return @this.ToString(startIndex, length);
         }
         #endregion
+
+        #region SubStringBuilder
+        /// <summary>
+        /// 根据指定起始索引位置截取StringBuilder
+        /// </summary>
+        /// <param name="this">源StringBuilder</param>
+        /// <param name="startIndex">起始索引位置</param>
+        /// <returns>StringBuilder</returns>
+        public static StringBuilder SubStringBuilder(this StringBuilder @this, int startIndex)
+        {
+            if (startIndex <= -1)
+                return @this;
+            return @this.Remove(0, startIndex - 1);
+        }
+
+        /// <summary>
+        /// 根据起始索引位置和指定长度截取StringBuilder
+        /// </summary>
+        /// <param name="this">源StringBuilder</param>
+        /// <param name="startIndex">起始索引位置</param>
+        /// <param name="length">截取长度</param>
+        /// <returns>StringBuilder</returns>
+        public static StringBuilder SubStringBuilder(this StringBuilder @this, int startIndex, int length)
+        {
+            return @this.SubStringBuilder(startIndex).Remove(length, @this.Length - length);
+        }
+        #endregion
+
+        #region Remove
+        /// <summary>
+        /// 移除起始索引位置开始到尾部的内容
+        /// </summary>
+        /// <param name="this">源StringBuilder</param>
+        /// <param name="startIndex">起始索引</param>
+        /// <returns>StringBuilder</returns>
+        public static StringBuilder Remove(this StringBuilder @this, int startIndex)
+        {
+            return @this.Remove(startIndex, @this.Length - startIndex);
+        }
+        #endregion
+
+        #region IndexOf
+        /// <summary>
+        /// 获取指定字符串首次匹配的索引位置
+        /// </summary>
+        /// <param name="this">源StringBuilder</param>
+        /// <param name="input">要查询的字符串</param>
+        /// <returns>int</returns>
+        public static int IndexOf(this StringBuilder @this, string input)
+        {
+            return @this.ToString().IndexOf(input);
+        }
+
+        /// <summary>
+        /// 获取指定字符串首次匹配的索引位置
+        /// </summary>
+        /// <param name="this">源StringBuilder</param>
+        /// <param name="input">要查询的字符串</param>
+        /// <param name="startIndex">起始索引</param>
+        /// <returns>int</returns>
+        public static int IndexOf(this StringBuilder @this, string input, int startIndex)
+        {
+            return @this.ToString().IndexOf(input, startIndex);
+        }
+        #endregion
+
+        #region LastIndexOf
+        /// <summary>
+        /// 获取指定字符串最后一次匹配的索引位置
+        /// </summary>
+        /// <param name="this">源StringBuilder</param>
+        /// <param name="input">要查询的字符串</param>
+        /// <returns>int</returns>
+        public static int LastIndexOf(this StringBuilder @this, string input)
+        {
+            return @this.ToString().LastIndexOf(input);
+        }
+
+        /// <summary>
+        ///  获取指定字符串最后一次匹配的索引位置
+        /// </summary>
+        /// <param name="this">源StringBuilder</param>
+        /// <param name="input">要查询的字符串</param>
+        /// <param name="startIndex">起始索引</param>
+        /// <returns>int</returns>
+        public static int LastIndexOf(this StringBuilder @this, string input, int startIndex)
+        {
+            return @this.ToString().LastIndexOf(input, startIndex);
+        }
+        #endregion
     }
 }
