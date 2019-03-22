@@ -192,11 +192,19 @@ namespace ZqUtils.Extensions
         /// 判断字符串是否为空
         /// </summary>
         /// <param name="this">源字符串</param>
+        /// <param name="nullStrings">自定义空字符串，中间“|”分隔</param>
         /// <returns>bool</returns>
-        public static bool IsNull(this string @this)
+        public static bool IsNull(this string @this, string nullStrings = "null|{}|[]")
         {
             var result = true;
-            if (@this != null) result = @this.Trim() == "" || @this.Trim().ToLower() == "null" || @this.Trim() == "[]" || @this.Trim() == "{}";
+            if (@this != null)
+            {
+                result = @this.Trim() == "";
+                if (!string.IsNullOrEmpty(nullStrings))
+                {
+                    result = nullStrings.Split('|').Contains(@this.Trim().ToLower());
+                }
+            }
             return result;
         }
         #endregion
@@ -670,6 +678,29 @@ namespace ZqUtils.Extensions
             else
             {
                 return null;
+            }
+        }
+        #endregion
+
+        #region 判断是否是Json字符串
+        /// <summary>
+        /// 验证字符串是否是Json字符串
+        /// </summary>
+        /// <param name="this">json字符串</param>
+        /// <returns>bool</returns>
+        public static bool IsJsonString(this string @this)
+        {
+            try
+            {
+                if (@this.IsJsonObjectString() && @this.ToJObject() != null)
+                    return true;
+                if (@this.IsJsonArrayString() && @this.ToJArray() != null)
+                    return true;
+                return false;
+            }
+            catch
+            {
+                return false;
             }
         }
         #endregion
