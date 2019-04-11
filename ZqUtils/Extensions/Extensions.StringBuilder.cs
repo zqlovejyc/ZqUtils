@@ -37,11 +37,11 @@ namespace ZqUtils.Extensions
         /// </summary>
         /// <param name="this">当前sql拼接对象</param>
         /// <param name="hasWhere">是否有where</param>
-        /// <param name="sqlKeywords">拼接sql关键字，默认and</param>
         /// <param name="appendSql">拼接sql字符串</param>
+        /// <param name="sqlKeywords">拼接sql关键字，默认and</param>
         /// <param name="appendStringBuilder">拼接StringBuilder对象</param>
         /// <returns>bool</returns>
-        public static bool AppendWhereOrAnd(this StringBuilder @this, bool hasWhere, string sqlKeywords = " AND ", string appendSql = null, StringBuilder appendStringBuilder = null)
+        public static bool AppendWhereOrAnd(this StringBuilder @this, bool hasWhere, string appendSql = null, string sqlKeywords = " AND ", StringBuilder appendStringBuilder = null)
         {
             if (hasWhere)
             {
