@@ -67,9 +67,23 @@ namespace ZqUtils.Extensions
         }
         #endregion
 
+        #region ToLongTime
+        /// <summary>
+        /// DateTime类型转换为长整型时间
+        /// </summary>
+        /// <param name="this">默认取DataTime.Now</param>
+        /// <returns>long</returns>
+        public static long ToLongTime(this DateTime @this)
+        {
+            var start = TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1));
+            var timeSpan = @this.Subtract(start).Ticks.ToString();
+            return long.Parse(timeSpan.Substring(0, timeSpan.Length - 4));
+        }
+        #endregion
+
         #region ToJavaLongTime
         /// <summary>
-        /// .net的DateTime类型转换为java的长整型时间
+        /// DateTime类型转换为java的长整型时间
         /// </summary>
         /// <param name="this">time取DateTime.UtcNow，此时则为java的System.currentTimeMillis()</param>
         /// <returns>long</returns>
@@ -77,16 +91,20 @@ namespace ZqUtils.Extensions
         {
             return (long)(@this - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
         }
+        #endregion
 
+        #region ToDateTime
         /// <summary>
-        /// java长整型时间转换为.net的DateTime类型
+        /// 长整型时间转换为DateTime类型
         /// </summary>
-        /// <param name="this"></param>
+        /// <param name="this">长整型时间</param>
         /// <returns></returns>
         public static DateTime ToDateTime(this long @this)
         {
-            var tricks = new DateTime(1970, 1, 1, 0, 0, 0).Ticks + @this * 10000;
-            return new DateTime(tricks).AddHours(8);
+            //var tricks = new DateTime(1970, 1, 1, 0, 0, 0).Ticks + @this * 10000;
+            //return new DateTime(tricks).AddHours(8);
+            var start = TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1));
+            return start.Add(new TimeSpan(long.Parse(@this + "0000")));
         }
         #endregion
 
