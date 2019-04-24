@@ -119,6 +119,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extensions\Extensions.Array.cs" />
+    <Compile Include="Extensions\Extensions.Assembly.cs" />
     <Compile Include="Extensions\Extensions.ConnectionState.cs" />
     <Compile Include="Extensions\Extensions.DataColumnCollection.cs" />
     <Compile Include="Extensions\Extensions.DateTimeOffset.cs" />
