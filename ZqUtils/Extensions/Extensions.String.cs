@@ -1407,7 +1407,7 @@ namespace ZqUtils.Extensions
         }
         #endregion
 
-        #region GetFirstImageUrl
+        #region 获取html内容的第一张图片Url地址
         /// <summary>
         /// 获取html内容的第一张图片Url地址
         /// </summary>
@@ -1429,7 +1429,7 @@ namespace ZqUtils.Extensions
         }
         #endregion
 
-        #region GetAbstract
+        #region 截取内容的部分字符作为摘要，默认提取100个字符
         /// <summary>
         /// 截取内容的部分字符作为摘要，默认提取100个字符
         /// </summary>
@@ -1572,7 +1572,7 @@ namespace ZqUtils.Extensions
         }
         #endregion
 
-        #region GetFirstLetterForEachChineseCharacter
+        #region 获取每个汉字的首字母(大写)
         /// <summary>
         /// 获取每个汉字的首字母(大写)
         /// </summary>
@@ -1584,7 +1584,7 @@ namespace ZqUtils.Extensions
         }
         #endregion
 
-        #region GetFirstLetterForEachChineseCharacterMultipal
+        #region 获取每个汉字的首字母(大写)，如果是多音字，则以半角逗号分隔每个拼音组合。
         /// <summary>
         /// 获取每个汉字的首字母(大写)，如果是多音字，则以半角逗号分隔每个拼音组合。
         /// </summary>
