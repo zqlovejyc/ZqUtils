@@ -92,12 +92,28 @@ namespace ZqUtils.Helpers
         /// 构造函数
         /// </summary>
         /// <param name="databaseName">数据库</param>
+        /// <param name="settings">MongoClientSettings配置</param>
+        public MongodbHelper(string databaseName, MongoClientSettings settings)
+        {
+            this.databaseName = databaseName;
+            this.client = new MongoClient(settings);
+            this.database = this.client.GetDatabase(this.databaseName);
+        }
+
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="databaseName">数据库</param>
         /// <param name="connectionString">链接字符串</param>
-        public MongodbHelper(string databaseName, string connectionString)
+        /// <param name="isMongoClientSettings">是否为MongoClientSettings连接字符串，默认：false</param>
+        public MongodbHelper(string databaseName, string connectionString, bool isMongoClientSettings = false)
         {
             this.databaseName = databaseName;
             this.connectionString = connectionString;
-            this.client = new MongoClient(this.connectionString);
+            if (isMongoClientSettings)
+                this.client = new MongoClient(MongoClientSettings.FromConnectionString(connectionString));
+            else
+                this.client = new MongoClient(this.connectionString);
             this.database = this.client.GetDatabase(this.databaseName);
         }
         #endregion
