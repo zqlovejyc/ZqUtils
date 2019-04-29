@@ -214,7 +214,7 @@ namespace ZqUtils.Helpers
         /// </summary>
         /// <param name="encryptString">待加密的字符串</param>
         /// <param name="encryptKey">加密密钥，要求为8位</param>
-        /// <param name="iv">用于对称算法的初始化向量，长度不低于8位</param>
+        /// <param name="iv">用于对称算法的初始化向量，要求为8位</param>
         /// <returns>加密成功返回加密后的字符串，失败返回源串</returns>
         /// <remarks>引用地址：https://www.jianshu.com/p/2129dbfd8c57 </remarks>
         public static string EncryptByDes(string encryptString, string encryptKey, string iv)
@@ -248,7 +248,7 @@ namespace ZqUtils.Helpers
         /// </summary>
         /// <param name="decryptString">待解密的字符串</param>
         /// <param name="decryptKey">解密密钥，要求为8位，和加密密钥相同</param>
-        /// <param name="iv">用于对称算法的初始化向量，长度不低于8位</param>
+        /// <param name="iv">用于对称算法的初始化向量，要求为8位，和加密初始化向量相同</param>
         /// <returns>解密成功返回解密后的字符串，失败返源串</returns>
         /// <remarks>引用地址：：https://www.jianshu.com/p/2129dbfd8c57 </remarks>
         public static string DecryptByDes(string decryptString, string decryptKey, string iv)
