@@ -41,6 +41,25 @@ namespace ZqUtils.Extensions
     /// </summary>
     public static partial class Extensions
     {
+        #region OrdinalComparer
+        /// <summary>
+        /// ASCII值排序
+        /// </summary>
+        public class OrdinalComparer : IComparer<object>
+        {
+            /// <summary>
+            /// ASCII比较方法
+            /// </summary>
+            /// <param name="x"></param>
+            /// <param name="y"></param>
+            /// <returns></returns>
+            public int Compare(object x, object y)
+            {
+                return string.CompareOrdinal(x.ToString(), y.ToString());
+            }
+        }
+        #endregion
+
         #region ToUrl
         /// <summary>
         /// 字典型数据转换为URL参数字符串
@@ -73,7 +92,8 @@ namespace ZqUtils.Extensions
                 //对参数键值对进行ASCII升序排序
                 if (isSort)
                 {
-                    @this = @this.OrderBy(o => o.Key).ToDictionary(o => o.Key, p => p.Value);
+                    //C#默认的不是ASCII排序，正确的ASCII排序规则：数字、大写字母、小写字母的顺序
+                    @this = @this.OrderBy(o => o.Key,new OrdinalComparer()).ToDictionary(o => o.Key, p => p.Value);
                 }
                 //拼接url
                 var keyString = @this.Aggregate(seed, (current, item) => current + item.Key + "=" + item.Value.ToString() + "&");
