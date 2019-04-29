@@ -165,7 +165,7 @@ namespace ZqUtils.WeChat.Helpers
             var cpid = "";
             try
             {
-                sMsg = CryptHelper.AES_Decrypt(sEncryptMsg, m_sEncodingAESKey, ref cpid);
+                sMsg = CryptHelper.DecryptByAesOfWechat(sEncryptMsg, m_sEncodingAESKey, ref cpid);
             }
             catch (FormatException ex)
             {
@@ -197,7 +197,7 @@ namespace ZqUtils.WeChat.Helpers
             var raw = "";
             try
             {
-                raw = CryptHelper.AES_Encrypt(sReplyMsg, m_sEncodingAESKey, m_sAppID);
+                raw = CryptHelper.EncryptByAesOfWechat(sReplyMsg, m_sEncodingAESKey, m_sAppID);
             }
             catch (Exception ex)
             {

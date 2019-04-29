@@ -208,15 +208,85 @@ namespace ZqUtils.Helpers
         }
         #endregion
 
-        #region 微信小程序AES-128-CBC加密/解密
+        #region DES-CBC-PKCS7加密/解密
         /// <summary>
-        /// 微信小程序AES-128-CBC加密
+        /// DES-CBC-PKCS7加密字符串
+        /// </summary>
+        /// <param name="encryptString">待加密的字符串</param>
+        /// <param name="encryptKey">加密密钥,要求为8位</param>
+        /// <param name="iv">用于对称算法的初始化向量，长度不低于8位</param>
+        /// <returns>加密成功返回加密后的字符串，失败返回源串</returns>
+        /// <remarks>引用地址：https://www.jianshu.com/p/2129dbfd8c57 </remarks>
+        public static string EncryptByDes(string encryptString, string encryptKey, string iv)
+        {
+            try
+            {
+                //将字符转换为UTF-8编码的字节序列
+                var rgbKey = Encoding.UTF8.GetBytes(encryptKey.Substring(0, 8));
+                var rgbIV = Encoding.UTF8.GetBytes(iv);
+                var inputByteArray = Encoding.UTF8.GetBytes(encryptString);
+                //用指定的密钥和初始化向量创建CBC模式的DES加密标准
+                var dCSP = new DESCryptoServiceProvider
+                {
+                    Mode = CipherMode.CBC,
+                    Padding = PaddingMode.PKCS7
+                };
+                var mStream = new MemoryStream();
+                var cStream = new CryptoStream(mStream, dCSP.CreateEncryptor(rgbKey, rgbIV), CryptoStreamMode.Write);
+                cStream.Write(inputByteArray, 0, inputByteArray.Length);//写入内存流
+                cStream.FlushFinalBlock();//将缓冲区中的数据写入内存流，并清除缓冲区                
+                return Convert.ToBase64String(mStream.ToArray());
+            }
+            catch
+            {
+                return encryptString;
+            }
+        }
+
+        /// <summary>
+        /// DES-CBC-PKCS7解密字符串
+        /// </summary>
+        /// <param name="decryptString">待解密的字符串</param>
+        /// <param name="decryptKey">解密密钥,要求为8位,和加密密钥相同</param>
+        /// <param name="iv">用于对称算法的初始化向量，长度不低于8位</param>
+        /// <returns>解密成功返回解密后的字符串，失败返源串</returns>
+        /// <remarks>引用地址：：https://www.jianshu.com/p/2129dbfd8c57 </remarks>
+        public static string DecryptByDes(string decryptString, string decryptKey, string iv)
+        {
+            try
+            {
+                //将字符转换为UTF-8编码的字节序列
+                var rgbKey = Encoding.UTF8.GetBytes(decryptKey.Substring(0, 8));
+                var rgbIV = Encoding.UTF8.GetBytes(iv);
+                var inputByteArray = Convert.FromBase64String(decryptString);
+                //用指定的密钥和初始化向量使用CBC模式的DES解密标准解密
+                var dCSP = new DESCryptoServiceProvider
+                {
+                    Mode = CipherMode.CBC,
+                    Padding = PaddingMode.PKCS7
+                };
+                var mStream = new MemoryStream();
+                var cStream = new CryptoStream(mStream, dCSP.CreateDecryptor(rgbKey, rgbIV), CryptoStreamMode.Write);
+                cStream.Write(inputByteArray, 0, inputByteArray.Length);
+                cStream.FlushFinalBlock();
+                return Encoding.UTF8.GetString(mStream.ToArray());
+            }
+            catch
+            {
+                return decryptString;
+            }
+        }
+        #endregion
+
+        #region AES-128-CBC-PKCS7加密/解密
+        /// <summary>
+        /// 微信小程序AES-128-CBC-PKCS7加密
         /// </summary>
         /// <param name="text">加密字符</param>
         /// <param name="key">密钥</param>
         /// <param name="iv">初始化向量</param>
         /// <returns>string</returns>
-        public static string AES_128_CBC_Encrypt(string text, string key, string iv)
+        public static string EncryptByAes(string text, string key, string iv)
         {
             var res = string.Empty;
             try
@@ -243,13 +313,13 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
-        /// 微信小程序AES-128-CBC解密
+        /// 微信小程序AES-128-CBC-PKCS7解密
         /// </summary>
         /// <param name="text">解密字符串</param>
         /// <param name="key">密钥</param>
         /// <param name="iv">初始化向量</param>
         /// <returns>string</returns>
-        public static string AES_128_CBC_Decrypt(string text, string key, string iv)
+        public static string DecryptByAes(string text, string key, string iv)
         {
             var res = string.Empty;
             try
@@ -309,10 +379,10 @@ namespace ZqUtils.Helpers
         /// 将短值由主机字节顺序转换为网络字节顺序
         /// </summary>
         /// <param name="inval">32位无符号整数</param>
-        /// <returns>UInt32</returns>
-        public static UInt32 HostToNetworkOrder(UInt32 inval)
+        /// <returns>uint</returns>
+        public static uint HostToNetworkOrder(uint inval)
         {
-            UInt32 outval = 0;
+            uint outval = 0;
             for (int i = 0; i < 4; i++)
             {
                 outval = (outval << 8) + ((inval >> (i * 8)) & 255);
@@ -336,45 +406,13 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
-        /// 微信消息解密方法
-        /// </summary>
-        /// <param name="input">解密字符串</param>
-        /// <param name="encodingAESKey">aes密钥</param>
-        /// <param name="appid">微信appid</param>
-        /// <returns>string</returns>
-        public static string AES_Decrypt(string input, string encodingAESKey, ref string appid)
-        {
-            var oriMsg = string.Empty;
-            try
-            {
-                var key = Convert.FromBase64String(encodingAESKey + "=");
-                var iv = new byte[16];
-                Array.Copy(key, iv, 16);
-                var btmpMsg = AES_Decrypt(input, iv, key);
-                var len = BitConverter.ToInt32(btmpMsg, 16);
-                len = IPAddress.NetworkToHostOrder(len);
-                var bMsg = new byte[len];
-                var bAppid = new byte[btmpMsg.Length - 20 - len];
-                Array.Copy(btmpMsg, 20, bMsg, 0, len);
-                Array.Copy(btmpMsg, 20 + len, bAppid, 0, btmpMsg.Length - 20 - len);
-                oriMsg = Encoding.UTF8.GetString(bMsg);
-                appid = Encoding.UTF8.GetString(bAppid);
-            }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "微信消息解密方法");
-            }
-            return oriMsg;
-        }
-
-        /// <summary>
         /// 微信消息加密方法
         /// </summary>
         /// <param name="input">加密字符串</param>
         /// <param name="encodingAESKey">aes密钥</param>
         /// <param name="appid">微信appid</param>
         /// <returns>string</returns>
-        public static string AES_Encrypt(string input, string encodingAESKey, string appid)
+        public static string EncryptByAesOfWechat(string input, string encodingAESKey, string appid)
         {
             var result = string.Empty;
             try
@@ -392,7 +430,7 @@ namespace ZqUtils.Helpers
                 Array.Copy(bMsgLen, 0, bMsg, bRand.Length, bMsgLen.Length);
                 Array.Copy(btmpMsg, 0, bMsg, bRand.Length + bMsgLen.Length, btmpMsg.Length);
                 Array.Copy(bAppid, 0, bMsg, bRand.Length + bMsgLen.Length + btmpMsg.Length, bAppid.Length);
-                result = AES_Encrypt(bMsg, iv, key);
+                result = Encrypt(bMsg, iv, key);
             }
             catch (Exception ex)
             {
@@ -400,9 +438,41 @@ namespace ZqUtils.Helpers
             }
             return result;
         }
+
+        /// <summary>
+        /// 微信消息解密方法
+        /// </summary>
+        /// <param name="input">解密字符串</param>
+        /// <param name="encodingAESKey">aes密钥</param>
+        /// <param name="appid">微信appid</param>
+        /// <returns>string</returns>
+        public static string DecryptByAesOfWechat(string input, string encodingAESKey, ref string appid)
+        {
+            var oriMsg = string.Empty;
+            try
+            {
+                var key = Convert.FromBase64String(encodingAESKey + "=");
+                var iv = new byte[16];
+                Array.Copy(key, iv, 16);
+                var btmpMsg = Decrypt(input, iv, key);
+                var len = BitConverter.ToInt32(btmpMsg, 16);
+                len = IPAddress.NetworkToHostOrder(len);
+                var bMsg = new byte[len];
+                var bAppid = new byte[btmpMsg.Length - 20 - len];
+                Array.Copy(btmpMsg, 20, bMsg, 0, len);
+                Array.Copy(btmpMsg, 20 + len, bAppid, 0, btmpMsg.Length - 20 - len);
+                oriMsg = Encoding.UTF8.GetString(bMsg);
+                appid = Encoding.UTF8.GetString(bAppid);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Error(ex, "微信消息解密方法");
+            }
+            return oriMsg;
+        }
         #endregion
 
-        #region 私有方法        
+        #region 私有方法
         /// <summary>
         /// 私有加密方法
         /// </summary>
@@ -410,42 +480,7 @@ namespace ZqUtils.Helpers
         /// <param name="iv">对称算法的初始化向量</param>
         /// <param name="key">对称算法的密钥</param>
         /// <returns>加密后的字符串</returns>
-        private static string AES_Encrypt(string input, byte[] iv, byte[] key)
-        {
-            var aes = new RijndaelManaged
-            {
-                //秘钥的大小，以位为单位
-                KeySize = 256,
-                //支持的块大小
-                BlockSize = 128,
-                //填充模式
-                Padding = PaddingMode.PKCS7,
-                Mode = CipherMode.CBC,
-                Key = key,
-                IV = iv
-            };
-            var encrypt = aes.CreateEncryptor(aes.Key, aes.IV);
-            byte[] xBuff = null;
-            using (var ms = new MemoryStream())
-            {
-                using (var cs = new CryptoStream(ms, encrypt, CryptoStreamMode.Write))
-                {
-                    var xXml = Encoding.UTF8.GetBytes(input);
-                    cs.Write(xXml, 0, xXml.Length);
-                }
-                xBuff = ms.ToArray();
-            }
-            return Convert.ToBase64String(xBuff); ;
-        }
-
-        /// <summary>
-        /// 私有加密方法
-        /// </summary>
-        /// <param name="input">加密字符串</param>
-        /// <param name="iv">对称算法的初始化向量</param>
-        /// <param name="key">对称算法的密钥</param>
-        /// <returns>加密后的字符串</returns>
-        private static string AES_Encrypt(byte[] input, byte[] iv, byte[] key)
+        private static string Encrypt(byte[] input, byte[] iv, byte[] key)
         {
             var aes = new RijndaelManaged
             {
@@ -487,6 +522,40 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
+        /// 私有解密方法
+        /// </summary>
+        /// <param name="input">解密字符串</param>
+        /// <param name="iv">对称算法的初始化向量</param>
+        /// <param name="key">对称算法的密钥</param>
+        /// <returns>解密后的字节数组</returns>
+        private static byte[] Decrypt(string input, byte[] iv, byte[] key)
+        {
+            var aes = new RijndaelManaged
+            {
+                KeySize = 256,
+                BlockSize = 128,
+                Mode = CipherMode.CBC,
+                Padding = PaddingMode.None,
+                Key = key,
+                IV = iv
+            };
+            var decrypt = aes.CreateDecryptor(aes.Key, aes.IV);
+            byte[] xBuff = null;
+            using (var ms = new MemoryStream())
+            {
+                using (var cs = new CryptoStream(ms, decrypt, CryptoStreamMode.Write))
+                {
+                    var xXml = Convert.FromBase64String(input);
+                    var msg = new byte[xXml.Length + 32 - xXml.Length % 32];
+                    Array.Copy(xXml, msg, xXml.Length);
+                    cs.Write(xXml, 0, xXml.Length);
+                }
+                xBuff = Decode(ms.ToArray());
+            }
+            return xBuff;
+        }
+
+        /// <summary>
         /// KCS7加密
         /// </summary>
         /// <param name="text_length">字符串长度</param>
@@ -519,40 +588,6 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
-        /// 私有解密方法
-        /// </summary>
-        /// <param name="input">解密字符串</param>
-        /// <param name="iv">对称算法的初始化向量</param>
-        /// <param name="key">对称算法的密钥</param>
-        /// <returns>解密后的字节数组</returns>
-        private static byte[] AES_Decrypt(string input, byte[] iv, byte[] key)
-        {
-            var aes = new RijndaelManaged
-            {
-                KeySize = 256,
-                BlockSize = 128,
-                Mode = CipherMode.CBC,
-                Padding = PaddingMode.None,
-                Key = key,
-                IV = iv
-            };
-            var decrypt = aes.CreateDecryptor(aes.Key, aes.IV);
-            byte[] xBuff = null;
-            using (var ms = new MemoryStream())
-            {
-                using (var cs = new CryptoStream(ms, decrypt, CryptoStreamMode.Write))
-                {
-                    var xXml = Convert.FromBase64String(input);
-                    var msg = new byte[xXml.Length + 32 - xXml.Length % 32];
-                    Array.Copy(xXml, msg, xXml.Length);
-                    cs.Write(xXml, 0, xXml.Length);
-                }
-                xBuff = Decode(ms.ToArray());
-            }
-            return xBuff;
-        }
-
-        /// <summary>
         /// 对字节数组进行解码
         /// </summary>
         /// <param name="decrypted">解密字节数组</param>
@@ -566,6 +601,6 @@ namespace ZqUtils.Helpers
             return res;
         }
         #endregion
-        #endregion
+        #endregion        
     }
 }

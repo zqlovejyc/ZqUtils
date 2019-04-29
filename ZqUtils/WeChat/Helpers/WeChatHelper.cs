@@ -2337,9 +2337,9 @@ namespace ZqUtils.WeChat.Helpers
         }
         #endregion
 
-        #region AES-128-CBC解密
+        #region AES-128-CBC-PKCS7解密
         /// <summary>
-        /// 微信小程序AES-128-CBC解密
+        /// 微信小程序AES-128-CBC-PKCS7解密
         /// </summary>
         /// <param name="text">解密字符串</param>
         /// <param name="key">密钥</param>
@@ -2347,7 +2347,7 @@ namespace ZqUtils.WeChat.Helpers
         /// <returns>string</returns>
         public string AESDecrypt(string text, string key, string iv)
         {
-            return CryptHelper.AES_128_CBC_Decrypt(text, key, iv);
+            return CryptHelper.DecryptByAes(text, key, iv);
         }
         #endregion
 
