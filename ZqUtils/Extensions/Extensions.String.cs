@@ -193,20 +193,42 @@ namespace ZqUtils.Extensions
         /// </summary>
         /// <param name="this">源字符串</param>
         /// <param name="nullStrings">自定义空字符串，中间“|”分隔</param>
+        /// <param name="isTrim">是否移除收尾空白字符串，默认：false</param>
         /// <returns>bool</returns>
-        public static bool IsNull(this string @this, string nullStrings = "null|{}|[]")
+        public static bool IsNull(this string @this, string nullStrings = "null|{}|[]", bool isTrim = false)
         {
             var result = true;
             if (@this != null)
             {
-                result = @this.Trim() == "";
-                if (!string.IsNullOrEmpty(nullStrings))
+                if (isTrim)
+                    result = @this.Trim() == "";
+                else
+                    result = @this == "";
+                //是否为自定义空字符串
+                if (!result && !string.IsNullOrEmpty(nullStrings))
                 {
-                    result = nullStrings.Split('|').Contains(@this.Trim().ToLower());
+                    if (isTrim)
+                        result = nullStrings.Split('|').Contains(@this.Trim().ToLower());
+                    else
+                        result = nullStrings.Split('|').Contains(@this.ToLower());
                 }
             }
             return result;
         }
+
+        /// <summary>
+        /// 指示指定的字符串是 null 还是 string.Empty 字符串
+        /// </summary>
+        /// <param name="this">当前字符串</param>
+        /// <returns>bool</returns>
+        public static bool IsNullOrEmpty(this string @this) => string.IsNullOrEmpty(@this);
+
+        /// <summary>
+        /// 是否空或者空白字符串
+        /// </summary>
+        /// <param name="this">当前字符串</param>
+        /// <returns>bool</returns>
+        public static bool IsNullOrWhiteSpace(this string @this) => string.IsNullOrWhiteSpace(@this);
         #endregion
 
         #region 验证字符是否是字母类型
@@ -898,32 +920,6 @@ namespace ZqUtils.Extensions
         }
         #endregion
 
-        #region 字符串判断是否为空
-        /// <summary>
-        /// 指示指定的字符串是 null 还是 string.Empty 字符串
-        /// </summary>
-        /// <param name="this">当前字符串</param>
-        /// <returns>bool</returns>
-        public static bool IsNullOrEmpty(this string @this) => @this == null || @this.Length <= 0;
-
-        /// <summary>
-        /// 是否空或者空白字符串
-        /// </summary>
-        /// <param name="this">当前字符串</param>
-        /// <returns>bool</returns>
-        public static bool IsNullOrWhiteSpace(this string @this)
-        {
-            if (@this != null)
-            {
-                for (var i = 0; i < @this.Length; i++)
-                {
-                    if (!char.IsWhiteSpace(@this[i])) return false;
-                }
-            }
-            return true;
-        }
-        #endregion
-
         #region 拆分字符串
         /// <summary>
         /// 拆分字符串，过滤空格，无效时返回空数组
@@ -1306,13 +1302,13 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static string Aggregate(this string @this, char separator, string seed, Func<string, string> current, string remove, bool isEnableNullValue = false, bool distinct = true)
         {
-            if (!string.IsNullOrEmpty(@this))
+            if (!@this.IsNullOrEmpty())
             {
                 var sb = new StringBuilder(seed);
                 IEnumerable<string> array = @this.TrimEnd(separator).Split(separator);
                 if (!isEnableNullValue)
                 {
-                    array = array.Where(o => !string.IsNullOrEmpty(o));
+                    array = array.Where(o => !o.IsNullOrEmpty());
                 }
                 if (distinct)
                 {
@@ -1322,7 +1318,7 @@ namespace ZqUtils.Extensions
                 {
                     sb.Append(current(item));
                 }
-                if (array.Count() > 0 && !string.IsNullOrEmpty(remove))
+                if (array.Count() > 0 && !remove.IsNullOrEmpty())
                 {
                     sb = sb.Remove(sb.ToString().LastIndexOf(remove), remove.Length);
                 }
@@ -1348,7 +1344,7 @@ namespace ZqUtils.Extensions
                 var sb = new StringBuilder(seed);
                 if (!isEnableNullValue)
                 {
-                    @this = @this.Where(o => o != null && !string.IsNullOrEmpty(o.ToString()));
+                    @this = @this.Where(o => o?.ToString().IsNullOrEmpty() == false);
                 }
                 if (distinct)
                 {
@@ -1358,7 +1354,7 @@ namespace ZqUtils.Extensions
                 {
                     sb.Append(current(item));
                 }
-                if (@this.Count() > 0 && !string.IsNullOrEmpty(remove))
+                if (@this.Count() > 0 && !remove.IsNullOrEmpty())
                 {
                     sb = sb.Remove(sb.ToString().LastIndexOf(remove), remove.Length);
                 }

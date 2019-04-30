@@ -55,7 +55,7 @@ namespace ZqUtils.Extensions
             /// <returns></returns>
             public int Compare(object x, object y)
             {
-                return string.CompareOrdinal(x.ToString(), y.ToString());
+                return string.CompareOrdinal(x?.ToString(), y?.ToString());
             }
         }
         #endregion
@@ -66,10 +66,10 @@ namespace ZqUtils.Extensions
         /// </summary>
         /// <param name="this">字典数据源</param>
         /// <param name="seed">起点初始字符串，默认为空字符串</param>
-        /// <param name="isSort">是否排序，默认排序</param>
+        /// <param name="isAsciiSort">是否ASCII排序，默认升序排序</param>
         /// <param name="isRemoveNull">是否移除空值，默认移除</param>
         /// <returns>string</returns>
-        public static string ToUrl<T, S>(this IDictionary<T, S> @this, string seed = "", bool isSort = true, bool isRemoveNull = true)
+        public static string ToUrl<T, S>(this IDictionary<T, S> @this, string seed = "", bool isAsciiSort = true, bool isRemoveNull = true)
         {
             var result = string.Empty;
             try
@@ -77,27 +77,16 @@ namespace ZqUtils.Extensions
                 //移除所有空值参数
                 if (isRemoveNull)
                 {
-                    @this = @this.Where(o =>
-                    {
-                        if (o.Value.GetType() == typeof(string))
-                        {
-                            return (o.Value as string)?.IsNull() == false;
-                        }
-                        else
-                        {
-                            return o.Value != null;
-                        }
-                    }).ToDictionary(o => o.Key, p => p.Value);
+                    @this = @this.Where(o => o.Value?.ToString().IsNullOrEmpty() == false).ToDictionary(o => o.Key, o => o.Value);
                 }
                 //对参数键值对进行ASCII升序排序
-                if (isSort)
+                if (isAsciiSort)
                 {
                     //C#默认的不是ASCII排序，正确的ASCII排序规则：数字、大写字母、小写字母的顺序
-                    @this = @this.OrderBy(o => o.Key,new OrdinalComparer()).ToDictionary(o => o.Key, p => p.Value);
+                    @this = @this.OrderBy(o => o.Key, new OrdinalComparer()).ToDictionary(o => o.Key, o => o.Value);
                 }
                 //拼接url
-                var keyString = @this.Aggregate(seed, (current, item) => current + item.Key + "=" + item.Value.ToString() + "&");
-                result = keyString.Substring(0, keyString.Length - 1);
+                result = @this.Aggregate(seed, _ => $"{_.Key}={_.Value?.ToString()}&", "&");
             }
             catch (Exception ex)
             {

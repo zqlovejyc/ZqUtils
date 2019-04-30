@@ -129,18 +129,6 @@ namespace ZqUtils.Extensions
         }
         #endregion
 
-        #region IsNull
-        /// <summary>
-        /// 是否为空
-        /// </summary>
-        /// <param name="this">object对象</param>
-        /// <returns>bool</returns>
-        public static bool IsNull(this object @this)
-        {
-            return @this == null || @this == DBNull.Value;
-        }
-        #endregion
-
         #region As
         /// <summary>
         /// Used to simplify and beautify casting an object to a type. 
@@ -6956,12 +6944,22 @@ namespace ZqUtils.Extensions
 
         #region IsNull
         /// <summary>
+        /// 是否为空
+        /// </summary>
+        /// <param name="this">object对象</param>
+        /// <returns>bool</returns>
+        public static bool IsNull(this object @this)
+        {
+            return @this == null || @this == DBNull.Value;
+        }
+
+        /// <summary>
         /// A T extension method that query if '@this' is null.
         /// </summary>
         /// <typeparam name="T">Generic type parameter.</typeparam>
         /// <param name="this">The @this to act on.</param>
         /// <returns>true if null, false if not.</returns>
-        public static bool IsNull<T>(this T @this) where T : class
+        public static bool IsNull<T>(this T @this) where T : class, new()
         {
             return @this == null;
         }
