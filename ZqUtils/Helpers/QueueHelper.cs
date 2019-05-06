@@ -71,6 +71,18 @@ namespace ZqUtils.Helpers
             this.dealThread = new Thread(this.DealQueue);
             this.dealThread.Start();
         }
+
+        /// <summary>
+        /// Initializes a new instance of the QueueHelper`1 class.
+        /// </summary>
+        /// <param name="DealAction">The deal action.</param>
+        public QueueHelper(Action<T> DealAction)
+        {
+            this.DealAction = DealAction;
+            this._innerQueue = new ConcurrentQueue<T>();
+            this.dealThread = new Thread(this.DealQueue);
+            this.dealThread.Start();
+        }
         #endregion
 
         #region Public Method
