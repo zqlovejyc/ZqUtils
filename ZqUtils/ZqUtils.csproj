@@ -169,6 +169,7 @@
     <Compile Include="Helpers\PathHelper.cs" />
     <Compile Include="Helpers\PollyHelper.cs" />
     <Compile Include="Helpers\PreconditionsHelper.cs" />
+    <Compile Include="Helpers\QueueHelper.cs" />
     <Compile Include="Helpers\RabbitMqHelper.cs" />
     <Compile Include="Helpers\RedisHelper.cs" />
     <Compile Include="Helpers\SqlHelper.cs" />
