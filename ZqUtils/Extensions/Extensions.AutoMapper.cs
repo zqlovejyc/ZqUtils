@@ -81,7 +81,7 @@ namespace ZqUtils.Extensions
                 if (config == null) config = new MapperConfiguration(cfg => cfg.CreateMap(item.GetType(), typeof(T)));
                 break;
             }
-            return config.CreateMapper().Map<List<T>>(@this);
+            return config?.CreateMapper().Map<List<T>>(@this);
         }
 
         /// <summary>
