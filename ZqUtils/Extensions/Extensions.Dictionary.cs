@@ -153,16 +153,17 @@ namespace ZqUtils.Extensions
                 var fields = new List<string>();
                 for (int i = 0; i < @this.Keys.Count; i++)
                 {
-                    fields.Add(@this.Keys.ElementAt(i).ToLower());
+                    fields.Add(@this.Keys.ElementAt(i));
                 }
                 var instance = Activator.CreateInstance<T>();
                 var props = instance.GetType().GetProperties(BindingFlags.GetProperty | BindingFlags.Public | BindingFlags.Instance);
                 foreach (var p in props)
                 {
                     if (!p.CanWrite) continue;
-                    if (fields.Contains(p.Name.ToLower()) && !@this[p.Name].IsNull())
+                    var field = fields.Where(o => o.ToLower() == p.Name.ToLower()).FirstOrDefault();
+                    if (!field.IsNullOrEmpty() && !@this[field].IsNull())
                     {
-                        p.SetValue(instance, @this[p.Name].ToSafeValue(p.PropertyType), null);
+                        p.SetValue(instance, @this[field].ToSafeValue(p.PropertyType), null);
                     }
                 }
                 return instance;
