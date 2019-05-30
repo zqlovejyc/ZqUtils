@@ -237,7 +237,7 @@ namespace ZqUtils.Extensions
         }
 
         /// <summary>
-        /// 根据属性和方法构建IOrderQueryable
+        /// 根据属性和排序方法构建IOrderedQueryable
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="source"></param>
