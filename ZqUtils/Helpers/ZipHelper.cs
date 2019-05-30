@@ -284,19 +284,12 @@ namespace ZqUtils.Helpers
                             }
                             using (var fs = File.Create(fileName))
                             {
-                                var size = 2048;
-                                var data = new byte[size];
-                                while (true)
+                                var buffer = new byte[2048];
+                                var bytesRead = 0;
+                                //每次读取2kb数据，然后写入文件
+                                while ((bytesRead = zipStream.Read(buffer, 0, buffer.Length)) != 0)
                                 {
-                                    size = zipStream.Read(data, 0, data.Length);
-                                    if (size > 0)
-                                    {
-                                        fs.Write(data, 0, size);
-                                    }
-                                    else
-                                    {
-                                        break;
-                                    }
+                                    fs.Write(buffer, 0, bytesRead);
                                 }
                             }
                         }
