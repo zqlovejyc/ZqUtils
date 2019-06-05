@@ -64,8 +64,8 @@ namespace ZqUtils.Helpers
         /// 根据Key修改Value
         /// </summary>
         /// <param name="key">要修改的Key</param>
-        /// <param name="value">要修改为的值</param>
-        /// <param name="path">要修改为的值</param>
+        /// <param name="value">要修改的值</param>
+        /// <param name="path">配置文件路径</param>
         public static void SetAppSettings(string key, string value, string path = "~/XmlConfig/system.config")
         {
             var xDoc = new XmlDocument();
