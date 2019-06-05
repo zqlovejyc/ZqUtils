@@ -17,7 +17,6 @@
 #endregion
 
 using System;
-using System.Web;
 using System.Xml;
 using System.Configuration;
 using System.Collections.Specialized;
@@ -68,8 +67,9 @@ namespace ZqUtils.Helpers
         /// <param name="path">配置文件路径</param>
         public static void SetAppSettings(string key, string value, string path = "~/XmlConfig/system.config")
         {
+            path = path.GetFullPath();
             var xDoc = new XmlDocument();
-            xDoc.Load(HttpContext.Current.Server.MapPath(path));
+            xDoc.Load(path);
             XmlNode xNode;
             XmlElement xElem1;
             XmlElement xElem2;
@@ -86,7 +86,7 @@ namespace ZqUtils.Helpers
                 xElem2.SetAttribute("value", value);
                 xNode.AppendChild(xElem2);
             }
-            xDoc.Save(HttpContext.Current.Server.MapPath(path));
+            xDoc.Save(path);
         }
         #endregion
 

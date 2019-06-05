@@ -144,7 +144,7 @@ namespace ZqUtils.Helpers
         /// <returns>物理绝对路径</returns>
         public static string GetPhysicalPath(this string path)
         {
-            var physicalPath = AppDomain.CurrentDomain.BaseDirectory;
+            var physicalPath = BaseDirectory;
             if (!string.IsNullOrEmpty(path))
             {
                 path = path.Replace("~", "").Replace("/", @"\").TrimStart('\\').TrimEnd('\\');
