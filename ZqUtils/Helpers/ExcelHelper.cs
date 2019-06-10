@@ -186,7 +186,8 @@ namespace ZqUtils.Helpers
         /// <param name="fileName">文件名</param>
         /// <param name="ext">扩展名(.xls|.xlsx)可选参数</param>
         /// <param name="responseEnd">是否输出结束，默认：是</param>
-        public static void EPPlusExportExcel(DataTable table, string fileName, string ext = ".xlsx", bool responseEnd = true)
+        /// <param name="action">sheet自定义处理委托</param>
+        public static void EPPlusExportExcel(DataTable table, string fileName, string ext = ".xlsx", bool responseEnd = true, Action<ExcelWorksheet> action = null)
         {
             if (table?.Rows.Count > 0)
             {
@@ -208,6 +209,10 @@ namespace ZqUtils.Helpers
                         using (var sheet = package.Workbook.Worksheets.Add(string.IsNullOrEmpty(table.TableName) ? table.GetType().Name : table.TableName))
                         {
                             sheet.Cells["A1"].LoadFromDataTable(table, true, TableStyles.Light10);
+                            //单元格自动适应大小();
+                            sheet.Cells.AutoFitColumns();
+                            //单独设置单元格
+                            action?.Invoke(sheet);
                             //写到客户端（下载）
                             HttpContext.Current.Response.Clear();
                             HttpContext.Current.Response.Charset = "utf-8";
@@ -305,7 +310,8 @@ namespace ZqUtils.Helpers
         /// <param name="fileName">文件名</param>
         /// <param name="ext">扩展名(.xls|.xlsx)可选参数</param>
         /// <param name="responseEnd">是否输出结束，默认：是</param>
-        public static void EPPlusExportExcel(DataSet ds, string fileName, string ext = ".xlsx", bool responseEnd = true)
+        /// <param name="action">sheet自定义处理委托</param>
+        public static void EPPlusExportExcel(DataSet ds, string fileName, string ext = ".xlsx", bool responseEnd = true, Action<ExcelWorksheet> action = null)
         {
             if (ds?.Tables.Count > 0)
             {
@@ -331,6 +337,10 @@ namespace ZqUtils.Helpers
                             {
                                 var sheet = package.Workbook.Worksheets.Add(string.IsNullOrEmpty(table.TableName) ? table.GetType().Name + (i + 1).ToString() : table.TableName);
                                 sheet.Cells["A1"].LoadFromDataTable(table, true, TableStyles.Light10);
+                                //单元格自动适应大小();
+                                sheet.Cells.AutoFitColumns();
+                                //单独设置单元格
+                                action?.Invoke(sheet);
                             }
                         }
                         //写到客户端（下载）
@@ -364,7 +374,8 @@ namespace ZqUtils.Helpers
         /// <param name="columnName">表头数组</param>
         /// <param name="ext">扩展名(.xls|.xlsx)可选参数</param>
         /// <param name="responseEnd">是否输出结束，默认：是</param>
-        public static void EPPlusExportExcel<T>(List<T> list, string fileName, string[] columnName = null, string ext = ".xlsx", bool responseEnd = true) where T : class, new()
+        /// <param name="action">sheet自定义处理委托</param>
+        public static void EPPlusExportExcel<T>(List<T> list, string fileName, string[] columnName = null, string ext = ".xlsx", bool responseEnd = true, Action<ExcelWorksheet> action = null) where T : class, new()
         {
             if (list?.Count > 0)
             {
@@ -398,6 +409,10 @@ namespace ZqUtils.Helpers
                             {
                                 sheet.Cells["A1"].LoadFromCollection(list, true, TableStyles.Light10);
                             }
+                            //单元格自动适应大小();
+                            sheet.Cells.AutoFitColumns();
+                            //单独设置单元格
+                            action?.Invoke(sheet);
                             //写到客户端（下载）
                             HttpContext.Current.Response.Clear();
                             HttpContext.Current.Response.Charset = "utf-8";
@@ -494,7 +509,8 @@ namespace ZqUtils.Helpers
         /// </summary>
         /// <param name="table">源DataTable</param>
         /// <param name="savePath">保存路径</param>
-        public static void EPPlusExportExcelToFile(DataTable table, string savePath)
+        /// <param name="action">sheet自定义处理委托</param>
+        public static void EPPlusExportExcelToFile(DataTable table, string savePath, Action<ExcelWorksheet> action = null)
         {
             if (table?.Rows.Count > 0)
             {
@@ -516,6 +532,10 @@ namespace ZqUtils.Helpers
                         using (var sheet = package.Workbook.Worksheets.Add(string.IsNullOrEmpty(table.TableName) ? table.GetType().Name : table.TableName))
                         {
                             sheet.Cells["A1"].LoadFromDataTable(table, true, TableStyles.Light10);
+                            //单元格自动适应大小();
+                            sheet.Cells.AutoFitColumns();
+                            //单独设置单元格
+                            action?.Invoke(sheet);
                             package.Save();
                         }
                     }
@@ -593,7 +613,8 @@ namespace ZqUtils.Helpers
         /// </summary>
         /// <param name="ds">源DataSet</param>
         /// <param name="savePath">保存路径</param>
-        public static void EPPlusExportExcelToFile(DataSet ds, string savePath)
+        /// <param name="action">sheet自定义处理委托</param>
+        public static void EPPlusExportExcelToFile(DataSet ds, string savePath, Action<ExcelWorksheet> action = null)
         {
             if (ds?.Tables.Count > 0)
             {
@@ -619,6 +640,10 @@ namespace ZqUtils.Helpers
                             {
                                 var sheet = package.Workbook.Worksheets.Add(string.IsNullOrEmpty(table.TableName) ? table.GetType().Name + (i + 1).ToString() : table.TableName);
                                 sheet.Cells["A1"].LoadFromDataTable(table, true, TableStyles.Light10);
+                                //单元格自动适应大小();
+                                sheet.Cells.AutoFitColumns();
+                                //单独设置单元格
+                                action?.Invoke(sheet);
                             }
                         }
                         package.Save();
@@ -642,7 +667,8 @@ namespace ZqUtils.Helpers
         /// <param name="list">源泛型集合</param>        
         /// <param name="savePath">保存路径</param>
         /// <param name="columnName">表头数组</param>
-        public static void EPPlusExportExcelToFile<T>(List<T> list, string savePath, string[] columnName = null) where T : class, new()
+        /// <param name="action">sheet自定义处理委托</param>
+        public static void EPPlusExportExcelToFile<T>(List<T> list, string savePath, string[] columnName = null, Action<ExcelWorksheet> action = null) where T : class, new()
         {
             if (list?.Count > 0)
             {
@@ -676,6 +702,10 @@ namespace ZqUtils.Helpers
                             {
                                 sheet.Cells["A1"].LoadFromCollection(list, true, TableStyles.Light10);
                             }
+                            //单元格自动适应大小();
+                            sheet.Cells.AutoFitColumns();
+                            //单独设置单元格
+                            action?.Invoke(sheet);
                             package.Save();
                         }
                     }
