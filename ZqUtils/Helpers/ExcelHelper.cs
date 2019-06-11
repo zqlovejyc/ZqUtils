@@ -210,7 +210,7 @@ namespace ZqUtils.Helpers
                         using (var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? "Sheet1" : table.TableName))
                         {
                             sheet.Cells["A1"].LoadFromDataTable(table, true, TableStyles.Light10);
-                            //单元格自动适应大小();
+                            //单元格自动适应大小
                             sheet.Cells.AutoFitColumns();
                             //单独设置单元格
                             action?.Invoke(sheet);
@@ -276,7 +276,7 @@ namespace ZqUtils.Helpers
                             sheet.Cells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
                             //垂直居中
                             sheet.Cells.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-                            //单元格自动适应大小();
+                            //单元格自动适应大小
                             sheet.Cells.AutoFitColumns();
                             //构建表头
                             BuildExcelHeader(null, null, headerCell, sheet);
@@ -338,7 +338,7 @@ namespace ZqUtils.Helpers
                             {
                                 var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? $"Sheet{i + 1}" : table.TableName);
                                 sheet.Cells["A1"].LoadFromDataTable(table, true, TableStyles.Light10);
-                                //单元格自动适应大小();
+                                //单元格自动适应大小
                                 sheet.Cells.AutoFitColumns();
                                 //单独设置单元格
                                 action?.Invoke(sheet);
@@ -410,7 +410,7 @@ namespace ZqUtils.Helpers
                             {
                                 sheet.Cells["A1"].LoadFromCollection(list, true, TableStyles.Light10);
                             }
-                            //单元格自动适应大小();
+                            //单元格自动适应大小
                             sheet.Cells.AutoFitColumns();
                             //单独设置单元格
                             action?.Invoke(sheet);
@@ -477,7 +477,7 @@ namespace ZqUtils.Helpers
                             sheet.Cells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
                             //垂直居中
                             sheet.Cells.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-                            //单元格自动适应大小();
+                            //单元格自动适应大小
                             sheet.Cells.AutoFitColumns();
                             //构建表头
                             BuildExcelHeader(null, null, headerCell, sheet);
@@ -533,7 +533,7 @@ namespace ZqUtils.Helpers
                         using (var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? "Sheet1" : table.TableName))
                         {
                             sheet.Cells["A1"].LoadFromDataTable(table, true, TableStyles.Light10);
-                            //单元格自动适应大小();
+                            //单元格自动适应大小
                             sheet.Cells.AutoFitColumns();
                             //单独设置单元格
                             action?.Invoke(sheet);
@@ -589,7 +589,7 @@ namespace ZqUtils.Helpers
                             sheet.Cells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
                             //垂直居中
                             sheet.Cells.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-                            //单元格自动适应大小();
+                            //单元格自动适应大小
                             sheet.Cells.AutoFitColumns();
                             //构建表头
                             BuildExcelHeader(null, null, headerCell, sheet);
@@ -641,7 +641,7 @@ namespace ZqUtils.Helpers
                             {
                                 var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? $"Sheet{i + 1}" : table.TableName);
                                 sheet.Cells["A1"].LoadFromDataTable(table, true, TableStyles.Light10);
-                                //单元格自动适应大小();
+                                //单元格自动适应大小
                                 sheet.Cells.AutoFitColumns();
                                 //单独设置单元格
                                 action?.Invoke(sheet);
@@ -703,7 +703,7 @@ namespace ZqUtils.Helpers
                             {
                                 sheet.Cells["A1"].LoadFromCollection(list, true, TableStyles.Light10);
                             }
-                            //单元格自动适应大小();
+                            //单元格自动适应大小
                             sheet.Cells.AutoFitColumns();
                             //单独设置单元格
                             action?.Invoke(sheet);
@@ -760,7 +760,7 @@ namespace ZqUtils.Helpers
                             sheet.Cells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
                             //垂直居中
                             sheet.Cells.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-                            //单元格自动适应大小();
+                            //单元格自动适应大小
                             sheet.Cells.AutoFitColumns();
                             //构建表头
                             BuildExcelHeader(null, null, headerCell, sheet);
