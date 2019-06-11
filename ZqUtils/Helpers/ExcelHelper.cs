@@ -28,6 +28,7 @@ using System.Reflection;
 using System.Drawing;
 using OfficeOpenXml.Style;
 using System.Linq;
+using ZqUtils.Extensions;
 /****************************
 * [Author] 张强
 * [Date] 2015-10-26
@@ -206,7 +207,7 @@ namespace ZqUtils.Helpers
                         package.Workbook.Properties.Subject = "主题";
                         package.Workbook.Properties.Title = "标题";
                         package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
-                        using (var sheet = package.Workbook.Worksheets.Add(string.IsNullOrEmpty(table.TableName) ? table.GetType().Name : table.TableName))
+                        using (var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? "Sheet1" : table.TableName))
                         {
                             sheet.Cells["A1"].LoadFromDataTable(table, true, TableStyles.Light10);
                             //单元格自动适应大小();
@@ -264,7 +265,7 @@ namespace ZqUtils.Helpers
                         package.Workbook.Properties.Subject = "主题";
                         package.Workbook.Properties.Title = "标题";
                         package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
-                        using (var sheet = package.Workbook.Worksheets.Add(string.IsNullOrEmpty(table.TableName) ? table.GetType().Name : table.TableName))
+                        using (var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? "Sheet1" : table.TableName))
                         {
                             //设置边框样式
                             sheet.Cells.Style.Border.Top.Style = ExcelBorderStyle.Thin;
@@ -306,14 +307,14 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// EPPlus导出Excel(2003/2007)
         /// </summary>
-        /// <param name="ds">源DataSet</param>
+        /// <param name="dataSet">源DataSet</param>
         /// <param name="fileName">文件名</param>
         /// <param name="ext">扩展名(.xls|.xlsx)可选参数</param>
         /// <param name="responseEnd">是否输出结束，默认：是</param>
         /// <param name="action">sheet自定义处理委托</param>
-        public static void EPPlusExportExcel(DataSet ds, string fileName, string ext = ".xlsx", bool responseEnd = true, Action<ExcelWorksheet> action = null)
+        public static void EPPlusExportExcel(DataSet dataSet, string fileName, string ext = ".xlsx", bool responseEnd = true, Action<ExcelWorksheet> action = null)
         {
-            if (ds?.Tables.Count > 0)
+            if (dataSet?.Tables.Count > 0)
             {
                 try
                 {
@@ -330,12 +331,12 @@ namespace ZqUtils.Helpers
                         package.Workbook.Properties.Subject = "主题";
                         package.Workbook.Properties.Title = "标题";
                         package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
-                        for (var i = 0; i < ds.Tables.Count; i++)
+                        for (var i = 0; i < dataSet.Tables.Count; i++)
                         {
-                            var table = ds.Tables[i];
+                            var table = dataSet.Tables[i];
                             if (table != null && table.Rows.Count > 0)
                             {
-                                var sheet = package.Workbook.Worksheets.Add(string.IsNullOrEmpty(table.TableName) ? table.GetType().Name + (i + 1).ToString() : table.TableName);
+                                var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? $"Sheet{i + 1}" : table.TableName);
                                 sheet.Cells["A1"].LoadFromDataTable(table, true, TableStyles.Light10);
                                 //单元格自动适应大小();
                                 sheet.Cells.AutoFitColumns();
@@ -394,7 +395,7 @@ namespace ZqUtils.Helpers
                         package.Workbook.Properties.Subject = "主题";
                         package.Workbook.Properties.Title = "标题";
                         package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
-                        using (var sheet = package.Workbook.Worksheets.Add(typeof(T).Name))
+                        using (var sheet = package.Workbook.Worksheets.Add("Sheet1"))
                         {
                             //设置Excel头部标题
                             if (columnName != null)
@@ -465,7 +466,7 @@ namespace ZqUtils.Helpers
                         package.Workbook.Properties.Subject = "主题";
                         package.Workbook.Properties.Title = "标题";
                         package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
-                        using (var sheet = package.Workbook.Worksheets.Add(typeof(T).Name))
+                        using (var sheet = package.Workbook.Worksheets.Add("Sheet1"))
                         {
                             //设置边框样式
                             sheet.Cells.Style.Border.Top.Style = ExcelBorderStyle.Thin;
@@ -529,7 +530,7 @@ namespace ZqUtils.Helpers
                         package.Workbook.Properties.Subject = "主题";
                         package.Workbook.Properties.Title = "标题";
                         package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
-                        using (var sheet = package.Workbook.Worksheets.Add(string.IsNullOrEmpty(table.TableName) ? table.GetType().Name : table.TableName))
+                        using (var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? "Sheet1" : table.TableName))
                         {
                             sheet.Cells["A1"].LoadFromDataTable(table, true, TableStyles.Light10);
                             //单元格自动适应大小();
@@ -577,7 +578,7 @@ namespace ZqUtils.Helpers
                         package.Workbook.Properties.Subject = "主题";
                         package.Workbook.Properties.Title = "标题";
                         package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
-                        using (var sheet = package.Workbook.Worksheets.Add(string.IsNullOrEmpty(table.TableName) ? table.GetType().Name : table.TableName))
+                        using (var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? "Sheet1" : table.TableName))
                         {
                             //设置边框样式
                             sheet.Cells.Style.Border.Top.Style = ExcelBorderStyle.Thin;
@@ -611,12 +612,12 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// EPPlus导出Excel(2003/2007)
         /// </summary>
-        /// <param name="ds">源DataSet</param>
+        /// <param name="dataSet">源DataSet</param>
         /// <param name="savePath">保存路径</param>
         /// <param name="action">sheet自定义处理委托</param>
-        public static void EPPlusExportExcelToFile(DataSet ds, string savePath, Action<ExcelWorksheet> action = null)
+        public static void EPPlusExportExcelToFile(DataSet dataSet, string savePath, Action<ExcelWorksheet> action = null)
         {
-            if (ds?.Tables.Count > 0)
+            if (dataSet?.Tables.Count > 0)
             {
                 try
                 {
@@ -633,12 +634,12 @@ namespace ZqUtils.Helpers
                         package.Workbook.Properties.Subject = "主题";
                         package.Workbook.Properties.Title = "标题";
                         package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
-                        for (var i = 0; i < ds.Tables.Count; i++)
+                        for (var i = 0; i < dataSet.Tables.Count; i++)
                         {
-                            var table = ds.Tables[i];
+                            var table = dataSet.Tables[i];
                             if (table != null && table.Rows.Count > 0)
                             {
-                                var sheet = package.Workbook.Worksheets.Add(string.IsNullOrEmpty(table.TableName) ? table.GetType().Name + (i + 1).ToString() : table.TableName);
+                                var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? $"Sheet{i + 1}" : table.TableName);
                                 sheet.Cells["A1"].LoadFromDataTable(table, true, TableStyles.Light10);
                                 //单元格自动适应大小();
                                 sheet.Cells.AutoFitColumns();
@@ -687,7 +688,7 @@ namespace ZqUtils.Helpers
                         package.Workbook.Properties.Subject = "主题";
                         package.Workbook.Properties.Title = "标题";
                         package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
-                        using (var sheet = package.Workbook.Worksheets.Add(typeof(T).Name))
+                        using (var sheet = package.Workbook.Worksheets.Add("Sheet1"))
                         {
                             //设置Excel头部标题
                             if (columnName != null)
@@ -748,7 +749,7 @@ namespace ZqUtils.Helpers
                         package.Workbook.Properties.Subject = "主题";
                         package.Workbook.Properties.Title = "标题";
                         package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
-                        using (var sheet = package.Workbook.Worksheets.Add(typeof(T).Name))
+                        using (var sheet = package.Workbook.Worksheets.Add("Sheet1"))
                         {
                             //设置边框样式
                             sheet.Cells.Style.Border.Top.Style = ExcelBorderStyle.Thin;
