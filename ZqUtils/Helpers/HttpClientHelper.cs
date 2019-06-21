@@ -46,25 +46,6 @@ namespace ZqUtils.Helpers
 
         #region Extension Method
         /// <summary>
-        /// 处理参数
-        /// </summary>
-        /// <param name="dic"></param>
-        /// <returns></returns>
-        public static string ToUrlParameters(this Dictionary<string, string> dic)
-        {
-            if (dic?.Count > 0)
-            {
-                string result = "?";
-                foreach (var item in dic)
-                {
-                    result += item.Key + "=" + item.Value + "&";
-                }
-                return result.Remove(result.Length - 1);
-            }
-            return string.Empty;
-        }
-
-        /// <summary>
         /// 将Http状态码翻译为对应的中文
         /// </summary>
         /// <param name="code">Http状态码</param>
@@ -195,7 +176,7 @@ namespace ZqUtils.Helpers
                         httpClient.DefaultRequestHeaders.Add(item.Key, item.Value);
                     }
                 }
-                using (var response = await httpClient.GetAsync(url + parameters.ToUrlParameters()))
+                using (var response = await httpClient.GetAsync(url + parameters.ToUrl("?", false, false)))
                 {
                     var httpStatusCode = response.StatusCode;
                     if (response.IsSuccessStatusCode)
@@ -241,7 +222,7 @@ namespace ZqUtils.Helpers
                         httpClient.DefaultRequestHeaders.Add(item.Key, item.Value);
                     }
                 }
-                using (var response = await httpClient.GetAsync(url + parameters.ToUrlParameters()))
+                using (var response = await httpClient.GetAsync(url + parameters.ToUrl("?", false, false)))
                 {
                     var httpStatusCode = response.StatusCode;
                     if (response.IsSuccessStatusCode)
