@@ -16,7 +16,9 @@
  */
 #endregion
 
+using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using AutoMapper;
 /****************************
@@ -31,6 +33,26 @@ namespace ZqUtils.Extensions
     /// </summary>
     public static partial class Extensions
     {
+        #region 映射配置缓存
+        /// <summary>
+        /// 映射配置缓存
+        /// </summary>
+        private static readonly ConcurrentDictionary<string, MapperConfiguration> autoMapperCache = new ConcurrentDictionary<string, MapperConfiguration>();
+        #endregion
+
+        #region 获取缓存key
+        /// <summary>
+        /// 获取缓存key
+        /// </summary>
+        /// <param name="sourceType">源类型</param>
+        /// <param name="destType">目标类型</param>
+        /// <returns></returns>
+        private static string GetKey(Type sourceType, Type destType)
+        {
+            return $"{sourceType.FullName}_{destType.FullName}";
+        }
+        #endregion
+
         #region 类型映射
         /// <summary>
         /// 类型映射
@@ -42,7 +64,11 @@ namespace ZqUtils.Extensions
         public static T MapTo<T>(this object @this, MapperConfiguration config = null)
         {
             if (@this == null) return default(T);
-            if (config == null) config = new MapperConfiguration(cfg => cfg.CreateMap(@this.GetType(), typeof(T)));
+            if (config == null)
+            {
+                config = autoMapperCache.GetOrAdd(GetKey(@this.GetType(), typeof(T)),
+                    x => new MapperConfiguration(cfg => cfg.CreateMap(@this.GetType(), typeof(T))));
+            }
             return config.CreateMapper().Map<T>(@this);
         }
 
@@ -60,7 +86,11 @@ namespace ZqUtils.Extensions
             where S : class
         {
             if (@this == null) return default(T);
-            if (config == null) config = new MapperConfiguration(cfg => cfg.CreateMap<S, T>());
+            if (config == null)
+            {
+                config = autoMapperCache.GetOrAdd(GetKey(typeof(S), typeof(T)),
+                   x => new MapperConfiguration(cfg => cfg.CreateMap<S, T>()));
+            }
             return config.CreateMapper().Map(@this, destination);
         }
         #endregion
@@ -78,7 +108,11 @@ namespace ZqUtils.Extensions
             if (@this == null) return null;
             foreach (var item in @this)
             {
-                if (config == null) config = new MapperConfiguration(cfg => cfg.CreateMap(item.GetType(), typeof(T)));
+                if (config == null)
+                {
+                    config = autoMapperCache.GetOrAdd(GetKey(item.GetType(), typeof(T)),
+                        x => new MapperConfiguration(cfg => cfg.CreateMap(item.GetType(), typeof(T))));
+                }
                 break;
             }
             return config?.CreateMapper().Map<List<T>>(@this);
@@ -95,7 +129,11 @@ namespace ZqUtils.Extensions
         public static List<T> MapTo<S, T>(this IEnumerable<S> @this, MapperConfiguration config = null)
         {
             if (@this == null) return null;
-            if (config == null) config = new MapperConfiguration(cfg => cfg.CreateMap<S, T>());
+            if (config == null)
+            {
+                config = autoMapperCache.GetOrAdd(GetKey(typeof(S), typeof(T)),
+                       x => new MapperConfiguration(cfg => cfg.CreateMap<S, T>()));
+            }
             return config.CreateMapper().Map<List<T>>(@this);
         }
         #endregion
