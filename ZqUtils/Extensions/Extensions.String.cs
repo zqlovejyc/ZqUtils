@@ -1364,24 +1364,27 @@ namespace ZqUtils.Extensions
         }
         #endregion
 
-        #region 转换为安全的sql
+        #region sql注入
         /// <summary>
-        /// 转换为安全的sql
+        /// 判断是否sql注入
         /// </summary>
-        /// <param name="this">源字符串</param>
+        /// <param name="this">sql字符串</param>
+        /// <param name="pattern">正则表达式</param>
         /// <returns></returns>
-        public static string ToSafeSql(this string @this)
+        public static bool IsSqlInject(this string @this, string pattern = @"(?:')|(?:--)|(/\*(?:.|[\n\r])*?\*/)|(\b(select|update|union|and|or|delete|insert|trancate|char|into|substr|ascii|declare|exec|count|master|into|drop|execute)\b)")
         {
-            if (!string.IsNullOrEmpty(@this))
-            {
-                var sql = "or|exec|execute|insert|select|delete|update|alter|create|drop|count|and|where|in|like|chr|char|asc|mid|substring|master|truncate|declare|xp_cmdshell|restore|backup|net +user|'|>|<|=|,";
-                var array = sql.Split('|');
-                foreach (var item in array)
-                {
-                    @this = @this.Replace(item, "").Replace(item.ToUpper(), "");
-                }
-            }
-            return @this;
+            return Regex.IsMatch(@this, pattern, RegexOptions.IgnoreCase);
+        }
+
+        /// <summary>
+        /// 正则表达式替换sql
+        /// </summary>
+        /// <param name="this">sql字符串</param>
+        /// <param name="pattern">正则表达式</param>
+        /// <returns></returns>
+        public static string ReplaceSqlWithRegex(this string @this, string pattern = @"(?:')|(?:--)|(/\*(?:.|[\n\r])*?\*/)|(\b(select|update|union|and|or|delete|insert|trancate|char|into|substr|ascii|declare|exec|count|master|into|drop|execute)\b)")
+        {
+            return @this.ReplaceOfRegex(pattern);
         }
         #endregion
 
