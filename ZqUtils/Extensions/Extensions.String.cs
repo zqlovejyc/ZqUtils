@@ -1384,7 +1384,7 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static string ReplaceSqlWithRegex(this string @this, string pattern = @"(?:')|(?:--)|(/\*(?:.|[\n\r])*?\*/)|(\b(select|update|union|and|or|delete|insert|trancate|char|into|substr|ascii|declare|exec|count|master|into|drop|execute)\b)")
         {
-            return @this.ReplaceOfRegex(pattern);
+            return @this.ReplaceOfRegex("", pattern);
         }
         #endregion
 
