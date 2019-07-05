@@ -1373,6 +1373,8 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static bool IsSqlInject(this string @this, string pattern = @"(?:')|(?:--)|(/\*(?:.|[\n\r])*?\*/)|(\b(select|update|union|and|or|delete|insert|trancate|char|into|substr|ascii|declare|exec|count|master|into|drop|execute)\b)")
         {
+            if (@this.IsNullOrEmpty())
+                return false;
             return Regex.IsMatch(@this, pattern, RegexOptions.IgnoreCase);
         }
 
@@ -1398,10 +1400,8 @@ namespace ZqUtils.Extensions
         /// <returns>替换后的字符串</returns>
         public static string ReplaceOfRegex(this string @this, string replacement = "", string pattern = @"\s")
         {
-            if (!string.IsNullOrEmpty(@this))
-            {
+            if (!@this.IsNullOrEmpty())
                 @this = Regex.Replace(@this, pattern, replacement);
-            }
             return @this;
         }
         #endregion
