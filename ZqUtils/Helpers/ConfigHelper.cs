@@ -46,15 +46,16 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 根据Key取Value值
         /// </summary>
-        /// <param name="key"></param>
-        public static T GetAppSettings<T>(string key)
+        /// <param name="key">key</param>
+        /// <param name="defaultValue">默认值</param>
+        public static T GetAppSettings<T>(string key, T defaultValue = default(T))
         {
             var value = AppSettings[key]?.ToString().Trim();
             if (!string.IsNullOrEmpty(value))
             {
                 return value.ToObject<T>();
             }
-            return default(T);
+            return defaultValue;
         }
         #endregion
 
@@ -94,9 +95,10 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 根据Key获取ConnectionString值
         /// </summary>
-        /// <param name="key"></param>
+        /// <param name="key">key</param>
+        /// <param name="defaultValue">默认值</param>
         /// <returns></returns>
-        public static string GetConnectionString(string key) => ConfigurationManager.ConnectionStrings[key]?.ConnectionString?.Trim();
+        public static string GetConnectionString(string key, string defaultValue = null) => ConfigurationManager.ConnectionStrings[key]?.ConnectionString?.Trim() ?? defaultValue;
         #endregion
 
         #region Contain
