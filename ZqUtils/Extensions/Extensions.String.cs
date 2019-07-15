@@ -1406,6 +1406,20 @@ namespace ZqUtils.Extensions
         }
         #endregion
 
+        #region 正则判断是否包含目标字符串
+        /// <summary>
+        /// 正则判断是否包含目标字符串
+        /// </summary>
+        /// <param name="this">源字符串</param>
+        /// <param name="value">目标字符串，例如：判断是否包含ASC或DESC为@"(/\*(?:|)*?\*/)|(\b(ASC|DESC)\b)"</param>
+        /// <param name="options">匹配模式</param>
+        /// <returns></returns>
+        public static bool Contains(this string @this, string value, RegexOptions options)
+        {
+            return Regex.IsMatch(@this, value, options);
+        }
+        #endregion
+
         #region 获取html内容的第一张图片Url地址
         /// <summary>
         /// 获取html内容的第一张图片Url地址
