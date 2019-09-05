@@ -171,8 +171,6 @@ namespace ZqUtils.Helpers
                 {
                     foreach (var item in headers)
                     {
-                        if (httpClient.DefaultRequestHeaders.Contains(item.Key))
-                            httpClient.DefaultRequestHeaders.Remove(item.Key);
                         httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
@@ -217,8 +215,6 @@ namespace ZqUtils.Helpers
                 {
                     foreach (var item in headers)
                     {
-                        if (httpClient.DefaultRequestHeaders.Contains(item.Key))
-                            httpClient.DefaultRequestHeaders.Remove(item.Key);
                         httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
@@ -264,8 +260,6 @@ namespace ZqUtils.Helpers
                 {
                     foreach (var item in headers)
                     {
-                        if (httpClient.DefaultRequestHeaders.Contains(item.Key))
-                            httpClient.DefaultRequestHeaders.Remove(item.Key);
                         httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
@@ -310,8 +304,6 @@ namespace ZqUtils.Helpers
                 {
                     foreach (var item in headers)
                     {
-                        if (httpClient.DefaultRequestHeaders.Contains(item.Key))
-                            httpClient.DefaultRequestHeaders.Remove(item.Key);
                         httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
@@ -361,8 +353,6 @@ namespace ZqUtils.Helpers
                 {
                     foreach (var item in headers)
                     {
-                        if (httpClient.DefaultRequestHeaders.Contains(item.Key))
-                            httpClient.DefaultRequestHeaders.Remove(item.Key);
                         httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
@@ -408,8 +398,6 @@ namespace ZqUtils.Helpers
                 {
                     foreach (var item in headers)
                     {
-                        if (httpClient.DefaultRequestHeaders.Contains(item.Key))
-                            httpClient.DefaultRequestHeaders.Remove(item.Key);
                         httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
@@ -461,8 +449,6 @@ namespace ZqUtils.Helpers
                 {
                     foreach (var item in headers)
                     {
-                        if (httpClient.DefaultRequestHeaders.Contains(item.Key))
-                            httpClient.DefaultRequestHeaders.Remove(item.Key);
                         httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
@@ -513,8 +499,6 @@ namespace ZqUtils.Helpers
                 {
                     foreach (var item in headers)
                     {
-                        if (httpClient.DefaultRequestHeaders.Contains(item.Key))
-                            httpClient.DefaultRequestHeaders.Remove(item.Key);
                         httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
@@ -569,8 +553,6 @@ namespace ZqUtils.Helpers
                 {
                     foreach (var item in headers)
                     {
-                        if (httpClient.DefaultRequestHeaders.Contains(item.Key))
-                            httpClient.DefaultRequestHeaders.Remove(item.Key);
                         httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
@@ -622,8 +604,6 @@ namespace ZqUtils.Helpers
                 {
                     foreach (var item in headers)
                     {
-                        if (httpClient.DefaultRequestHeaders.Contains(item.Key))
-                            httpClient.DefaultRequestHeaders.Remove(item.Key);
                         httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
