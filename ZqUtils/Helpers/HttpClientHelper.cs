@@ -173,7 +173,7 @@ namespace ZqUtils.Helpers
                     {
                         if (httpClient.DefaultRequestHeaders.Contains(item.Key))
                             httpClient.DefaultRequestHeaders.Remove(item.Key);
-                        httpClient.DefaultRequestHeaders.Add(item.Key, item.Value);
+                        httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
                 using (var response = await httpClient.GetAsync(url + parameters.ToUrl("?", false, false)))
@@ -219,7 +219,7 @@ namespace ZqUtils.Helpers
                     {
                         if (httpClient.DefaultRequestHeaders.Contains(item.Key))
                             httpClient.DefaultRequestHeaders.Remove(item.Key);
-                        httpClient.DefaultRequestHeaders.Add(item.Key, item.Value);
+                        httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
                 using (var response = await httpClient.GetAsync(url + parameters.ToUrl("?", false, false)))
@@ -266,7 +266,7 @@ namespace ZqUtils.Helpers
                     {
                         if (httpClient.DefaultRequestHeaders.Contains(item.Key))
                             httpClient.DefaultRequestHeaders.Remove(item.Key);
-                        httpClient.DefaultRequestHeaders.Add(item.Key, item.Value);
+                        httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
                 using (var response = await httpClient.PostAsync(url, content))
@@ -312,7 +312,7 @@ namespace ZqUtils.Helpers
                     {
                         if (httpClient.DefaultRequestHeaders.Contains(item.Key))
                             httpClient.DefaultRequestHeaders.Remove(item.Key);
-                        httpClient.DefaultRequestHeaders.Add(item.Key, item.Value);
+                        httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
                 var content = new StringContent((data?.GetType() == typeof(string) ? data?.ToString() : data?.ToJson()) ?? "");
@@ -363,7 +363,7 @@ namespace ZqUtils.Helpers
                     {
                         if (httpClient.DefaultRequestHeaders.Contains(item.Key))
                             httpClient.DefaultRequestHeaders.Remove(item.Key);
-                        httpClient.DefaultRequestHeaders.Add(item.Key, item.Value);
+                        httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
                 using (var response = await httpClient.PostAsync(url, content))
@@ -410,7 +410,7 @@ namespace ZqUtils.Helpers
                     {
                         if (httpClient.DefaultRequestHeaders.Contains(item.Key))
                             httpClient.DefaultRequestHeaders.Remove(item.Key);
-                        httpClient.DefaultRequestHeaders.Add(item.Key, item.Value);
+                        httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
                 var content = new StringContent((data?.GetType() == typeof(string) ? data?.ToString() : data?.ToJson()) ?? "");
@@ -463,7 +463,7 @@ namespace ZqUtils.Helpers
                     {
                         if (httpClient.DefaultRequestHeaders.Contains(item.Key))
                             httpClient.DefaultRequestHeaders.Remove(item.Key);
-                        httpClient.DefaultRequestHeaders.Add(item.Key, item.Value);
+                        httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
                 var req = new HttpRequestMessage(method, url);
@@ -515,7 +515,7 @@ namespace ZqUtils.Helpers
                     {
                         if (httpClient.DefaultRequestHeaders.Contains(item.Key))
                             httpClient.DefaultRequestHeaders.Remove(item.Key);
-                        httpClient.DefaultRequestHeaders.Add(item.Key, item.Value);
+                        httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
                 var req = new HttpRequestMessage(method, url);
@@ -571,7 +571,7 @@ namespace ZqUtils.Helpers
                     {
                         if (httpClient.DefaultRequestHeaders.Contains(item.Key))
                             httpClient.DefaultRequestHeaders.Remove(item.Key);
-                        httpClient.DefaultRequestHeaders.Add(item.Key, item.Value);
+                        httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
                 var req = new HttpRequestMessage(method, url);
@@ -624,7 +624,7 @@ namespace ZqUtils.Helpers
                     {
                         if (httpClient.DefaultRequestHeaders.Contains(item.Key))
                             httpClient.DefaultRequestHeaders.Remove(item.Key);
-                        httpClient.DefaultRequestHeaders.Add(item.Key, item.Value);
+                        httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
                 var req = new HttpRequestMessage(method, url);
