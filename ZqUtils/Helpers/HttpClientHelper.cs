@@ -149,10 +149,10 @@ namespace ZqUtils.Helpers
         /// <param name="url">请求地址</param>
         /// <param name="parameters">请求参数</param>
         /// <param name="decompressionMethods">解压缩方式，默认：GZip</param>
-        /// <param name="mediaType">互联网媒体类型</param>
+        /// <param name="accept">客户端希望接收的数据类型</param>
         /// <param name="headers">头部信息</param>
         /// <returns>返回请求结果和状态结果</returns>
-        public static async Task<(string result, HttpStatusCode code)> GetAsync(string url, Dictionary<string, string> parameters, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string mediaType = "application/json", Dictionary<string, string> headers = null)
+        public static async Task<(string result, HttpStatusCode code)> GetAsync(string url, Dictionary<string, string> parameters, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", Dictionary<string, string> headers = null)
         {
             if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
             {
@@ -163,9 +163,9 @@ namespace ZqUtils.Helpers
                 httpClient.CancelPendingRequests();
                 httpClient.DefaultRequestHeaders.Clear();
                 httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
-                if (!string.IsNullOrEmpty(mediaType))
+                if (!accept.IsNullOrEmpty())
                 {
-                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(mediaType));
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
                 }
                 if (headers?.Count > 0)
                 {
@@ -195,10 +195,10 @@ namespace ZqUtils.Helpers
         /// <param name="url">请求地址</param>
         /// <param name="parameters">请求参数</param>
         /// <param name="decompressionMethods">解压缩方式，默认：GZip</param>
-        /// <param name="mediaType">互联网媒体类型</param>
+        /// <param name="accept">客户端希望接收的数据类型</param>
         /// <param name="headers">头部信息</param>
         /// <returns>返回请求结果和状态结果</returns>
-        public static async Task<(T result, HttpStatusCode code)> GetAsync<T>(string url, Dictionary<string, string> parameters, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string mediaType = "application/json", Dictionary<string, string> headers = null)
+        public static async Task<(T result, HttpStatusCode code)> GetAsync<T>(string url, Dictionary<string, string> parameters, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", Dictionary<string, string> headers = null)
         {
             if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
             {
@@ -209,9 +209,9 @@ namespace ZqUtils.Helpers
                 httpClient.CancelPendingRequests();
                 httpClient.DefaultRequestHeaders.Clear();
                 httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
-                if (!string.IsNullOrEmpty(mediaType))
+                if (!accept.IsNullOrEmpty())
                 {
-                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(mediaType));
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
                 }
                 if (headers?.Count > 0)
                 {
@@ -240,12 +240,12 @@ namespace ZqUtils.Helpers
         /// Post请求返回字符
         /// </summary>
         /// <param name="url">请求地址</param>
-        /// <param name="data">请求数据</param>
+        /// <param name="content">请求内容</param>
         /// <param name="decompressionMethods">解压缩方式，默认：GZip</param>
-        /// <param name="mediaType">互联网媒体类型</param>
+        /// <param name="accept">客户端希望接收的数据类型</param>
         /// <param name="headers">头部信息</param>
         /// <returns>返回请求结果和状态结果</returns>
-        public static async Task<(string result, HttpStatusCode code)> PostAsync(string url, object data, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string mediaType = "application/json", Dictionary<string, string> headers = null)
+        public static async Task<(string result, HttpStatusCode code)> PostAsync(string url, HttpContent content, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", Dictionary<string, string> headers = null)
         {
             if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
             {
@@ -256,9 +256,55 @@ namespace ZqUtils.Helpers
                 httpClient.CancelPendingRequests();
                 httpClient.DefaultRequestHeaders.Clear();
                 httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
-                if (!string.IsNullOrEmpty(mediaType))
+                if (!accept.IsNullOrEmpty())
                 {
-                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(mediaType));
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
+                }
+                if (headers?.Count > 0)
+                {
+                    foreach (var item in headers)
+                    {
+                        if (httpClient.DefaultRequestHeaders.Contains(item.Key))
+                            httpClient.DefaultRequestHeaders.Remove(item.Key);
+                        httpClient.DefaultRequestHeaders.Add(item.Key, item.Value);
+                    }
+                }
+                using (var response = await httpClient.PostAsync(url, content))
+                {
+                    var httpStatusCode = response.StatusCode;
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return (await response.Content.ReadAsStringAsync(), httpStatusCode);
+                    }
+                    return (null, httpStatusCode);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Post请求返回字符
+        /// </summary>
+        /// <param name="url">请求地址</param>
+        /// <param name="data">请求数据</param>
+        /// <param name="decompressionMethods">解压缩方式，默认：GZip</param>
+        /// <param name="accept">客户端希望接收的数据类型</param>
+        /// <param name="contentType">客户端发送的数据类型</param>
+        /// <param name="headers">头部信息</param>
+        /// <returns>返回请求结果和状态结果</returns>
+        public static async Task<(string result, HttpStatusCode code)> PostAsync(string url, object data, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", string contentType = "application/json", Dictionary<string, string> headers = null)
+        {
+            if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                ServicePointManager.ServerCertificateValidationCallback = (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) => true;
+            }
+            using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
+            {
+                httpClient.CancelPendingRequests();
+                httpClient.DefaultRequestHeaders.Clear();
+                httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
+                if (!accept.IsNullOrEmpty())
+                {
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
                 }
                 if (headers?.Count > 0)
                 {
@@ -270,6 +316,10 @@ namespace ZqUtils.Helpers
                     }
                 }
                 var content = new StringContent((data?.GetType() == typeof(string) ? data?.ToString() : data?.ToJson()) ?? "");
+                if (!contentType.IsNullOrEmpty())
+                {
+                    content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+                }
                 using (var response = await httpClient.PostAsync(url, content))
                 {
                     var httpStatusCode = response.StatusCode;
@@ -287,12 +337,12 @@ namespace ZqUtils.Helpers
         /// </summary>
         /// <typeparam name="T">泛型类型</typeparam>
         /// <param name="url">请求地址</param>
-        /// <param name="data">请求数据</param>
+        /// <param name="content">请求内容</param>
         /// <param name="decompressionMethods">解压缩方式，默认：GZip</param>
-        /// <param name="mediaType">互联网媒体类型</param>
+        /// <param name="accept">客户端希望接收的数据类型</param>
         /// <param name="headers">头部信息</param>
         /// <returns>返回请求结果和状态结果</returns>
-        public static async Task<(T result, HttpStatusCode code)> PostAsync<T>(string url, object data, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string mediaType = "application/json", Dictionary<string, string> headers = null)
+        public static async Task<(T result, HttpStatusCode code)> PostAsync<T>(string url, HttpContent content, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", Dictionary<string, string> headers = null)
         {
             if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
             {
@@ -303,9 +353,56 @@ namespace ZqUtils.Helpers
                 httpClient.CancelPendingRequests();
                 httpClient.DefaultRequestHeaders.Clear();
                 httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
-                if (!string.IsNullOrEmpty(mediaType))
+                if (!accept.IsNullOrEmpty())
                 {
-                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(mediaType));
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
+                }
+                if (headers?.Count > 0)
+                {
+                    foreach (var item in headers)
+                    {
+                        if (httpClient.DefaultRequestHeaders.Contains(item.Key))
+                            httpClient.DefaultRequestHeaders.Remove(item.Key);
+                        httpClient.DefaultRequestHeaders.Add(item.Key, item.Value);
+                    }
+                }
+                using (var response = await httpClient.PostAsync(url, content))
+                {
+                    var httpStatusCode = response.StatusCode;
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return ((await response.Content.ReadAsStringAsync()).ToObject<T>(), httpStatusCode);
+                    }
+                    return (default(T), httpStatusCode);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Post请求返回实体
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="url">请求地址</param>
+        /// <param name="data">请求数据</param>
+        /// <param name="decompressionMethods">解压缩方式，默认：GZip</param>
+        /// <param name="accept">客户端希望接收的数据类型</param>
+        /// <param name="contentType">客户端发送的数据类型</param>
+        /// <param name="headers">头部信息</param>
+        /// <returns>返回请求结果和状态结果</returns>
+        public static async Task<(T result, HttpStatusCode code)> PostAsync<T>(string url, object data, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", string contentType = "application/json", Dictionary<string, string> headers = null)
+        {
+            if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                ServicePointManager.ServerCertificateValidationCallback = (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) => true;
+            }
+            using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
+            {
+                httpClient.CancelPendingRequests();
+                httpClient.DefaultRequestHeaders.Clear();
+                httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
+                if (!accept.IsNullOrEmpty())
+                {
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
                 }
                 if (headers?.Count > 0)
                 {
@@ -317,6 +414,10 @@ namespace ZqUtils.Helpers
                     }
                 }
                 var content = new StringContent((data?.GetType() == typeof(string) ? data?.ToString() : data?.ToJson()) ?? "");
+                if (!contentType.IsNullOrEmpty())
+                {
+                    content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+                }
                 using (var response = await httpClient.PostAsync(url, content))
                 {
                     var httpStatusCode = response.StatusCode;
@@ -335,13 +436,13 @@ namespace ZqUtils.Helpers
         /// HttpClient SendAsync方式请求
         /// </summary>
         /// <param name="url">请求地址</param>
-        /// <param name="data">请求参数</param>
+        /// <param name="content">请求内容</param>
         /// <param name="method">请求方式</param>
         /// <param name="decompressionMethods">解压缩方式，默认：GZip</param>
-        /// <param name="mediaType">互联网媒体类型</param>
+        /// <param name="accept">客户端希望接收的数据类型</param>
         /// <param name="headers">头部信息</param>
         /// <returns>返回请求结果和状态结果</returns>
-        public static async Task<(string result, HttpStatusCode code)> SendAsync(string url, object data, HttpMethod method, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string mediaType = "application/json", Dictionary<string, string> headers = null)
+        public static async Task<(string result, HttpStatusCode code)> SendAsync(string url, HttpContent content, HttpMethod method, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", Dictionary<string, string> headers = null)
         {
             if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
             {
@@ -352,13 +453,9 @@ namespace ZqUtils.Helpers
                 httpClient.CancelPendingRequests();
                 httpClient.DefaultRequestHeaders.Clear();
                 httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
-                var req = new HttpRequestMessage(method, url)
+                if (!accept.IsNullOrEmpty())
                 {
-                    Content = new StringContent((data?.GetType() == typeof(string) ? data?.ToString() : data?.ToJson()) ?? "")
-                };
-                if (!string.IsNullOrEmpty(mediaType))
-                {
-                    req.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(mediaType);
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
                 }
                 if (headers?.Count > 0)
                 {
@@ -368,6 +465,67 @@ namespace ZqUtils.Helpers
                             httpClient.DefaultRequestHeaders.Remove(item.Key);
                         httpClient.DefaultRequestHeaders.Add(item.Key, item.Value);
                     }
+                }
+                var req = new HttpRequestMessage(method, url);
+                if (content != null)
+                {
+                    req.Content = content;
+                }
+                using (var response = await httpClient.SendAsync(req))
+                {
+                    var httpStatusCode = response.StatusCode;
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return (await response.Content.ReadAsStringAsync(), httpStatusCode);
+                    }
+                    return (null, httpStatusCode);
+                }
+            }
+        }
+
+        /// <summary>
+        /// HttpClient SendAsync方式请求
+        /// </summary>
+        /// <param name="url">请求地址</param>
+        /// <param name="data">请求参数</param>
+        /// <param name="method">请求方式</param>
+        /// <param name="decompressionMethods">解压缩方式，默认：GZip</param>
+        /// <param name="accept">客户端希望接收的数据类型</param>
+        /// <param name="contentType">客户端发送的数据类型</param>
+        /// <param name="headers">头部信息</param>
+        /// <returns>返回请求结果和状态结果</returns>
+        public static async Task<(string result, HttpStatusCode code)> SendAsync(string url, object data, HttpMethod method, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", string contentType = "application/json", Dictionary<string, string> headers = null)
+        {
+            if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                ServicePointManager.ServerCertificateValidationCallback = (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) => true;
+            }
+            using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
+            {
+                httpClient.CancelPendingRequests();
+                httpClient.DefaultRequestHeaders.Clear();
+                httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
+                if (!accept.IsNullOrEmpty())
+                {
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
+                }
+                if (headers?.Count > 0)
+                {
+                    foreach (var item in headers)
+                    {
+                        if (httpClient.DefaultRequestHeaders.Contains(item.Key))
+                            httpClient.DefaultRequestHeaders.Remove(item.Key);
+                        httpClient.DefaultRequestHeaders.Add(item.Key, item.Value);
+                    }
+                }
+                var req = new HttpRequestMessage(method, url);
+                if (data != null)
+                {
+                    req.Content = new StringContent((data?.GetType() == typeof(string) ? data?.ToString() : data?.ToJson()) ?? "");
+                }
+                if (!contentType.IsNullOrEmpty() && req.Content != null)
+                {
+                    req.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
                 }
                 using (var response = await httpClient.SendAsync(req))
                 {
@@ -386,13 +544,13 @@ namespace ZqUtils.Helpers
         /// </summary>
         /// <typeparam name="T">泛型类型</typeparam>
         /// <param name="url">请求地址</param>
-        /// <param name="data">请求参数</param>
+        /// <param name="content">请求内容</param>
         /// <param name="method">请求方式</param>
         /// <param name="decompressionMethods">解压缩方式，默认：GZip</param>
-        /// <param name="mediaType">互联网媒体类型</param>
+        /// <param name="accept">客户端希望接收的数据类型</param>
         /// <param name="headers">头部信息</param>
         /// <returns>返回请求结果和状态结果</returns>
-        public static async Task<(T result, HttpStatusCode code)> SendAsync<T>(string url, object data, HttpMethod method, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string mediaType = "application/json", Dictionary<string, string> headers = null)
+        public static async Task<(T result, HttpStatusCode code)> SendAsync<T>(string url, HttpContent content, HttpMethod method, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", Dictionary<string, string> headers = null)
         {
             if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
             {
@@ -403,13 +561,9 @@ namespace ZqUtils.Helpers
                 httpClient.CancelPendingRequests();
                 httpClient.DefaultRequestHeaders.Clear();
                 httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
-                var req = new HttpRequestMessage(method, url)
+                if (!accept.IsNullOrEmpty())
                 {
-                    Content = new StringContent((data?.GetType() == typeof(string) ? data?.ToString() : data?.ToJson()) ?? "")
-                };
-                if (!string.IsNullOrEmpty(mediaType))
-                {
-                    req.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(mediaType);
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
                 }
                 if (headers?.Count > 0)
                 {
@@ -419,6 +573,68 @@ namespace ZqUtils.Helpers
                             httpClient.DefaultRequestHeaders.Remove(item.Key);
                         httpClient.DefaultRequestHeaders.Add(item.Key, item.Value);
                     }
+                }
+                var req = new HttpRequestMessage(method, url);
+                if (content != null)
+                {
+                    req.Content = content;
+                }
+                using (var response = await httpClient.SendAsync(req))
+                {
+                    var httpStatusCode = response.StatusCode;
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return ((await response.Content.ReadAsStringAsync()).ToObject<T>(), httpStatusCode);
+                    }
+                    return (default(T), httpStatusCode);
+                }
+            }
+        }
+
+        /// <summary>
+        ///  HttpClient SendAsync方式请求
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="url">请求地址</param>
+        /// <param name="data">请求参数</param>
+        /// <param name="method">请求方式</param>
+        /// <param name="decompressionMethods">解压缩方式，默认：GZip</param>
+        /// <param name="accept">客户端希望接收的数据类型</param>
+        /// <param name="contentType">客户端发送的数据类型</param>
+        /// <param name="headers">头部信息</param>
+        /// <returns>返回请求结果和状态结果</returns>
+        public static async Task<(T result, HttpStatusCode code)> SendAsync<T>(string url, object data, HttpMethod method, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", string contentType = "application/json", Dictionary<string, string> headers = null)
+        {
+            if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                ServicePointManager.ServerCertificateValidationCallback = (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) => true;
+            }
+            using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
+            {
+                httpClient.CancelPendingRequests();
+                httpClient.DefaultRequestHeaders.Clear();
+                httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
+                if (!accept.IsNullOrEmpty())
+                {
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
+                }
+                if (headers?.Count > 0)
+                {
+                    foreach (var item in headers)
+                    {
+                        if (httpClient.DefaultRequestHeaders.Contains(item.Key))
+                            httpClient.DefaultRequestHeaders.Remove(item.Key);
+                        httpClient.DefaultRequestHeaders.Add(item.Key, item.Value);
+                    }
+                }
+                var req = new HttpRequestMessage(method, url);
+                if (data != null)
+                {
+                    req.Content = new StringContent((data?.GetType() == typeof(string) ? data?.ToString() : data?.ToJson()) ?? "");
+                }
+                if (!contentType.IsNullOrEmpty() && req.Content != null)
+                {
+                    req.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
                 }
                 using (var response = await httpClient.SendAsync(req))
                 {
