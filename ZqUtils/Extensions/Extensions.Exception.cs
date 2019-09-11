@@ -52,6 +52,23 @@ namespace ZqUtils.Extensions
 
             return @this.GetBaseException() ?? @this;
         }
+
+        /// <summary>
+        /// 获取内部异常
+        /// </summary>
+        /// <param name="ex"></param>
+        /// <returns></returns>
+        public static Exception GetInnerException(this Exception ex)
+        {
+            Exception innerException = ex.InnerException;
+            Exception result = ex;
+            while (innerException != null)
+            {
+                result = innerException;
+                innerException = innerException.InnerException;
+            }
+            return result;
+        }
         #endregion
 
         #region 获取异常消息

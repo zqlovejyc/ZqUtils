@@ -1673,5 +1673,27 @@ namespace ZqUtils.Extensions
 
         }
         #endregion
+
+        #region 字符串Utf8序列化/反序列化
+        /// <summary>
+        /// 字符串序列号为字节数组
+        /// </summary>
+        /// <param name="this"></param>
+        /// <returns></returns>
+        public static byte[] SerializeUtf8(this string @this)
+        {
+            return (@this == null) ? null : Encoding.UTF8.GetBytes(@this);
+        }
+
+        /// <summary>
+        /// 字节数组反序列化为字符串
+        /// </summary>
+        /// <param name="this"></param>
+        /// <returns></returns>
+        public static string DeserializeUtf8(this byte[] @this)
+        {
+            return (@this == null) ? null : Encoding.UTF8.GetString(@this);
+        }
+        #endregion
     }
 }

@@ -257,6 +257,36 @@ namespace ZqUtils.Extensions
         }
         #endregion        
 
+        #region GetAttribute
+        /// <summary>
+        /// GetAttribute
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public static T GetAttribute<T>(this object obj) where T : class
+        {
+            Type type = obj.GetType();
+            return type.GetAttribute<T>();
+        }
+
+        /// <summary>
+        /// GetAttribute
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static T GetAttribute<T>(this Type type) where T : class
+        {
+            Attribute customAttribute = type.GetCustomAttribute(typeof(T));
+            if (customAttribute.IsNotNull())
+            {
+                return customAttribute as T;
+            }
+            return null;
+        }
+        #endregion
+
         #region GetConstructors
         /// <summary>
         /// GetConstructors

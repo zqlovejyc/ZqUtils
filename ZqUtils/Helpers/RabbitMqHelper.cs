@@ -17,12 +17,12 @@
 #endregion
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Threading.Tasks;
-using EasyNetQ;
-using EasyNetQ.AutoSubscribe;
-using EasyNetQIServiceProvider = EasyNetQ.IServiceProvider;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
+using ZqUtils.Extensions;
+using ExchangeType = RabbitMQ.Client.ExchangeType;
 /****************************
 * [Author] 张强
 * [Date] 2018-06-01
@@ -31,439 +31,832 @@ using EasyNetQIServiceProvider = EasyNetQ.IServiceProvider;
 namespace ZqUtils.Helpers
 {
     /// <summary>
-    /// RabbitMQ工具类，基于EasyNetQ，使用时需要从nuget安装EasyNetQ。
-    /// <para>
-    /// <example>
-    /// 使用方法：
-    /// <code>
-    /// using(var mq = new RabbitMqHelper('rabbitmq连接字符串'))
-    /// { ...
-    /// }
-    /// </code>
-    /// </example>
-    /// </para>
+    /// RabbitMq工具类
     /// </summary>
     public class RabbitMqHelper : IDisposable
     {
-        #region 私有字段
+        #region 私有静态字段
         /// <summary>
-        /// bus
+        /// RabbitMQ建议客户端线程之间不要共用Model，至少要保证共用Model的线程发送消息必须是串行的，但是建议尽量共用Connection。
         /// </summary>
-        private readonly IBus bus;
-        #endregion
+        private static readonly ConcurrentDictionary<string, IModel> ChannelDic = new ConcurrentDictionary<string, IModel>();
 
-        #region 公有属性
         /// <summary>
-        /// 静态单例
+        /// RabbitMq连接
         /// </summary>
-        public static RabbitMqHelper Instance => SingletonHelper<RabbitMqHelper>.GetInstance();
+        private static IConnection _conn;
+
+        /// <summary>
+        /// 线程对象，线程锁使用
+        /// </summary>
+        private static readonly object locker = new object();
         #endregion
 
         #region 构造函数
         /// <summary>
         /// 构造函数
         /// </summary>
-        public RabbitMqHelper()
+        /// <param name="config">RabbitMq配置</param>
+        public RabbitMqHelper(MqConfig config)
         {
-            var connectionString = ConfigHelper.GetAppSettings<string>("RabbitMqConnectionString");
-            if (string.IsNullOrEmpty(connectionString))
-                throw new ArgumentNullException("RabbitMqConnectionString连接字符串未进行配置！");
-            bus = RabbitHutch.CreateBus(connectionString);
+            if (_conn != null) return;
+            lock (locker)
+            {
+                var factory = new ConnectionFactory
+                {
+                    //设置主机名
+                    HostName = config.HostName,
+
+                    //虚拟主机
+                    VirtualHost = config.VirtualHost,
+
+                    //设置心跳时间
+                    RequestedHeartbeat = config.RequestedHeartbeat,
+
+                    //设置自动重连
+                    AutomaticRecoveryEnabled = config.AutomaticRecoveryEnabled,
+
+                    //重连时间
+                    NetworkRecoveryInterval = config.NetworkRecoveryInterval,
+
+                    //用户名
+                    UserName = config.UserName,
+
+                    //密码
+                    Password = config.Password
+                };
+                _conn = _conn ?? factory.CreateConnection();
+            }
         }
 
         /// <summary>
         /// 构造函数
         /// </summary>
-        /// <param name="connectionString">rabbitmq连接字符串</param>
-        /// <param name="loggerFunc">日志委托，默认为null</param>
-        public RabbitMqHelper(string connectionString, Func<EasyNetQIServiceProvider, IEasyNetQLogger> loggerFunc = null)
+        /// <param name="factory">RabbitMq连接工厂</param>
+        public RabbitMqHelper(ConnectionFactory factory)
         {
-            if (string.IsNullOrEmpty(connectionString))
-                throw new ArgumentNullException(nameof(connectionString));
-            if (loggerFunc == null)
+            if (_conn != null || factory == null)
+                return;
+            lock (locker)
             {
-                bus = RabbitHutch.CreateBus(connectionString);
-            }
-            else
-            {
-                bus = RabbitHutch.CreateBus(connectionString, x => x.Register(loggerFunc));
+                _conn = _conn ?? factory.CreateConnection();
             }
         }
         #endregion
 
-        #region 同步方法
-        #region 发布/订阅
+        #region 通道
         /// <summary>
-        /// 发布一条消息(广播)
+        /// 获取Channel
         /// </summary>
-        /// <typeparam name="TMessage">消息泛型类型</typeparam>
-        /// <param name="message"></param>
-        public void Publish<TMessage>(TMessage message) where TMessage : class
+        /// <param name="exchange">交换机名称</param>
+        /// <param name="queue">队列名称</param>
+        /// <param name="routingKey">路由key</param>
+        /// <param name="exchangeType">交换机类型</param>
+        /// <param name="durable">持久化</param>
+        /// <param name="queueArguments">队列参数</param>
+        /// <param name="exchangeArguments">交换机参数</param>
+        /// <returns></returns>
+        public static IModel GetChannel(
+            string exchange,
+            string queue,
+            string routingKey,
+            string exchangeType = ExchangeType.Direct,
+            bool durable = true,
+            IDictionary<string, object> queueArguments = null,
+            IDictionary<string, object> exchangeArguments = null)
         {
-            bus.Publish(message);
-        }
-
-        /// <summary>
-        /// 指定Topic，发布一条消息
-        /// </summary>
-        /// <typeparam name="TMessage">消息泛型类型</typeparam>
-        /// <param name="message"></param>
-        /// <param name="topic"></param>
-        public void PublishWithTopic<TMessage>(TMessage message, string topic) where TMessage : class
-        {
-            if (string.IsNullOrEmpty(topic))
-                Publish(message);
-            else
-                bus.Publish(message, x => x.WithTopic(topic));
-        }
-
-        /// <summary>
-        /// 发布消息。一次性发布多条
-        /// </summary>
-        /// <typeparam name="TMessage">消息泛型类型</typeparam>
-        /// <param name="messages"></param>
-        public void PublishMany<TMessage>(List<TMessage> messages) where TMessage : class
-        {
-            foreach (var message in messages)
+            return ChannelDic.GetOrAdd(queue, key =>
             {
-                Publish(message);
-            }
+                var channel = _conn.CreateModel();
+                ExchangeDeclare(channel, exchange, exchangeType, durable, arguments: exchangeArguments);
+                QueueDeclare(channel, queue, durable, arguments: queueArguments);
+                channel.QueueBind(queue, exchange, routingKey);
+                ChannelDic[queue] = channel;
+                return channel;
+            });
         }
 
         /// <summary>
-        /// 发布消息。一次性发布多条
+        /// 获取Model
         /// </summary>
-        /// <typeparam name="TMessage">消息泛型类型</typeparam>
-        /// <param name="messages"></param>
-        /// <param name="topic"></param>
-        public void PublishManyWithTopic<TMessage>(List<TMessage> messages, string topic) where TMessage : class
+        /// <param name="queue">队列名称</param>
+        /// <param name="durable">持久化</param>
+        /// <param name="prefetchCount">预取数量</param>
+        /// <returns></returns>
+        public static IModel GetChannel(
+            string queue,
+            bool durable = true,
+            ushort prefetchCount = 1)
         {
-            foreach (var message in messages)
+            return ChannelDic.GetOrAdd(queue, key =>
             {
-                PublishWithTopic(message, topic);
-            }
-        }
-
-        /// <summary>
-        /// 消息订阅
-        /// </summary>
-        /// <typeparam name="TMessage">消息泛型类型</typeparam>
-        /// <param name="subscriptionId">消息订阅标识</param>
-        /// <param name="process">
-        /// 消息处理委托方法
-        /// <para>
-        /// <example>
-        /// 例如：
-        /// <code>
-        /// message=>Task.Factory.StartNew(()=>{
-        ///     Console.WriteLine(message);
-        /// })
-        /// </code>
-        /// </example>
-        /// </para>
-        /// </param>
-        public ISubscriptionResult Subscribe<TMessage>(string subscriptionId, Func<TMessage, Task> process) where TMessage : class
-        {
-            return bus.Subscribe<TMessage>(subscriptionId, message => process(message));
-        }
-
-        /// <summary>
-        /// 消息订阅
-        /// </summary>
-        /// <typeparam name="TMessage">消息泛型类型</typeparam>
-        /// <param name="subscriptionId">消息订阅标识</param>
-        /// <param name="process">
-        /// 消息处理委托方法
-        /// <para>
-        /// <example>
-        /// 例如：
-        /// <code>
-        /// message=>Task.Factory.StartNew(()=>{
-        ///     Console.WriteLine(message);
-        /// })
-        /// </code>
-        /// </example>
-        /// </para>
-        /// </param>
-        /// <param name="topic">topic</param>
-        public ISubscriptionResult SubscribeWithTopic<TMessage>(string subscriptionId, Func<TMessage, Task> process, string topic) where TMessage : class
-        {
-            return bus.Subscribe<TMessage>(subscriptionId, message => process(message), x => x.WithTopic(topic));
-        }
-
-        /// <summary>
-        /// 自动订阅
-        /// </summary>
-        /// <param name="assemblyName"></param>
-        /// <param name="subscriptionIdPrefix"></param>
-        /// <param name="topic"></param>
-        public void AutoSubscribe(string assemblyName, string subscriptionIdPrefix, string topic)
-        {
-            var subscriber = new AutoSubscriber(bus, subscriptionIdPrefix);
-            if (!string.IsNullOrEmpty(topic))
-                subscriber.ConfigureSubscriptionConfiguration = x => x.WithTopic(topic);
-            subscriber.Subscribe(Assembly.Load(assemblyName));
+                var channel = _conn.CreateModel();
+                QueueDeclare(channel, queue, durable);
+                //设置每次预取数量
+                channel.BasicQos(0, prefetchCount, false);
+                ChannelDic[queue] = channel;
+                return channel;
+            });
         }
         #endregion
 
-        #region 发送/接收
+        #region 交换机
         /// <summary>
-        /// 给指定队列发送一条信息
+        /// 声明交换机
         /// </summary>
-        /// <typeparam name="TMessage">消息泛型类型</typeparam>
-        /// <param name="queue">队列名称</param>
-        /// <param name="message">消息</param>
-        public void Send<TMessage>(string queue, TMessage message) where TMessage : class
+        /// <param name="channel">通道</param>
+        /// <param name="exchange">交换机名称</param>
+        /// <param name="exchangeType">交换机类型：
+        /// 1、Direct Exchange – 处理路由键。需要将一个队列绑定到交换机上，要求该消息与一个特定的路由键完全
+        /// 匹配。这是一个完整的匹配。如果一个队列绑定到该交换机上要求路由键 “dog”，则只有被标记为“dog”的
+        /// 消息才被转发，不会转发dog.puppy，也不会转发dog.guard，只会转发dog
+        /// 2、Fanout Exchange – 不处理路由键。你只需要简单的将队列绑定到交换机上。一个发送到交换机的消息都
+        /// 会被转发到与该交换机绑定的所有队列上。很像子网广播，每台子网内的主机都获得了一份复制的消息。Fanout
+        /// 交换机转发消息是最快的。
+        /// 3、Topic Exchange – 将路由键和某模式进行匹配。此时队列需要绑定要一个模式上。符号“#”匹配一个或多
+        /// 个词，符号“*”匹配不多不少一个词。因此“audit.#”能够匹配到“audit.irs.corporate”，但是“audit.*”
+        /// 只会匹配到“audit.irs”。</param>
+        /// <param name="durable">持久化</param>
+        /// <param name="autoDelete">自动删除</param>
+        /// <param name="arguments">参数</param>
+        public static void ExchangeDeclare(
+            IModel channel,
+            string exchange,
+            string exchangeType = ExchangeType.Direct,
+            bool durable = true,
+            bool autoDelete = false,
+            IDictionary<string, object> arguments = null)
         {
-            bus.Send(queue, message);
+            channel.ExchangeDeclare(exchange, exchangeType, durable, autoDelete, arguments);
         }
 
         /// <summary>
-        /// 给指定队列批量发送信息
+        /// 声明交换机
         /// </summary>
-        /// <typeparam name="TMessage">消息泛型类型</typeparam>
-        /// <param name="queue">队列名称</param>
-        /// <param name="messages">消息</param>
-        public void SendMany<TMessage>(string queue, IList<TMessage> messages) where TMessage : class
+        /// <param name="channel">通道</param>
+        /// <param name="exchange">交换机名称</param>
+        /// <param name="exchangeType">交换机类型：
+        /// 1、Direct Exchange – 处理路由键。需要将一个队列绑定到交换机上，要求该消息与一个特定的路由键完全
+        /// 匹配。这是一个完整的匹配。如果一个队列绑定到该交换机上要求路由键 “dog”，则只有被标记为“dog”的
+        /// 消息才被转发，不会转发dog.puppy，也不会转发dog.guard，只会转发dog
+        /// 2、Fanout Exchange – 不处理路由键。你只需要简单的将队列绑定到交换机上。一个发送到交换机的消息都
+        /// 会被转发到与该交换机绑定的所有队列上。很像子网广播，每台子网内的主机都获得了一份复制的消息。Fanout
+        /// 交换机转发消息是最快的。
+        /// 3、Topic Exchange – 将路由键和某模式进行匹配。此时队列需要绑定要一个模式上。符号“#”匹配一个或多
+        /// 个词，符号“*”匹配不多不少一个词。因此“audit.#”能够匹配到“audit.irs.corporate”，但是“audit.*”
+        /// 只会匹配到“audit.irs”。</param>
+        /// <param name="durable">持久化</param>
+        /// <param name="autoDelete">自动删除</param>
+        /// <param name="arguments">参数</param>
+        public static void ExchangeDeclareNoWait(
+            IModel channel,
+            string exchange,
+            string exchangeType = ExchangeType.Direct,
+            bool durable = true,
+            bool autoDelete = false,
+            IDictionary<string, object> arguments = null)
         {
-            foreach (var message in messages)
-            {
-                Send(queue, message);
-            }
+            channel.ExchangeDeclareNoWait(exchange, exchangeType, durable, autoDelete, arguments);
         }
 
         /// <summary>
-        /// 从指定队列接收一条信息，并做相关处理。
+        /// 删除交换机
         /// </summary>
-        /// <typeparam name="TMessage">消息泛型类型</typeparam>
-        /// <param name="queue">队列名称</param>
-        /// <param name="process">
-        /// 消息处理委托方法
-        /// <para>
-        /// <example>
-        /// 例如：
-        /// <code>
-        /// message=>Task.Factory.StartNew(()=>{
-        ///     Console.WriteLine(message);
-        /// })
-        /// </code>
-        /// </example>
-        /// </para>
-        /// </param>
-        public void Receive<TMessage>(string queue, Func<TMessage, Task> process) where TMessage : class
+        /// <param name="channel">通道</param>
+        /// <param name="exchange">交换机名称</param>
+        /// <param name="ifUnused">是否没有被使用</param>
+        public static void ExchangeDelete(
+            IModel channel,
+            string exchange,
+            bool ifUnused = false)
         {
-            bus.Receive(queue, process);
+            channel.ExchangeDelete(exchange, ifUnused);
         }
 
         /// <summary>
-        /// 从指定队列接收一条信息，并做相关处理。
+        /// 删除交换机
         /// </summary>
-        /// <typeparam name="TMessage">消息泛型类型</typeparam>
-        /// <param name="queue">队列名称</param>
-        /// <param name="process">消息处理委托方法</param>
-        public void Receive<TMessage>(string queue, Action<TMessage> process) where TMessage : class
+        /// <param name="channel">通道</param>
+        /// <param name="exchange">交换机名称</param>
+        /// <param name="ifUnused">是否没有被使用</param>
+        public static void ExchangeDeleteNoWait(
+            IModel channel,
+            string exchange,
+            bool ifUnused = false)
         {
-            bus.Receive(queue, process);
-        }
-        #endregion
-        #endregion
-
-        #region 异步方法
-        #region 发布/订阅
-        /// <summary>
-        /// 发布一条消息(广播)
-        /// </summary>
-        /// <typeparam name="TMessage">消息泛型类型</typeparam>
-        /// <param name="message"></param>
-        /// <returns>Task</returns>
-        public async Task PublishAsync<TMessage>(TMessage message) where TMessage : class
-        {
-            await bus.PublishAsync(message);
+            channel.ExchangeDeleteNoWait(exchange, ifUnused);
         }
 
         /// <summary>
-        /// 指定Topic，发布一条消息
+        /// 绑定交换机
         /// </summary>
-        /// <typeparam name="TMessage">消息泛型类型</typeparam>
-        /// <param name="message"></param>
-        /// <param name="topic"></param>
-        /// <returns>Task</returns>
-        public async Task PublishWithTopicAsync<TMessage>(TMessage message, string topic) where TMessage : class
+        /// <param name="channel">通道</param>
+        /// <param name="destinationExchange">目标交换机</param>
+        /// <param name="sourceExchange">源交换机</param>
+        /// <param name="routingKey">路由键</param>
+        /// <param name="arguments">参数</param>
+        public static void ExchangeBind(
+            IModel channel,
+            string destinationExchange,
+            string sourceExchange,
+            string routingKey,
+            IDictionary<string, object> arguments = null)
         {
-            if (string.IsNullOrEmpty(topic))
-                await PublishAsync(message);
-            else
-                await bus.PublishAsync(message, x => x.WithTopic(topic));
+            channel.ExchangeBind(destinationExchange, sourceExchange, routingKey, arguments);
         }
 
         /// <summary>
-        /// 发布消息。一次性发布多条
+        /// 绑定交换机
         /// </summary>
-        /// <typeparam name="TMessage">消息泛型类型</typeparam>
-        /// <param name="messages"></param>
-        /// <returns>Task</returns>
-        public async Task PublishManyAsync<TMessage>(List<TMessage> messages) where TMessage : class
+        /// <param name="channel">通道</param>
+        /// <param name="destinationExchange">目标交换机</param>
+        /// <param name="sourceExchange">源交换机</param>
+        /// <param name="routingKey">路由键</param>
+        /// <param name="arguments">参数</param>
+        public static void ExchangeBindNoWait(
+            IModel channel,
+            string destinationExchange,
+            string sourceExchange,
+            string routingKey,
+            IDictionary<string, object> arguments = null)
         {
-            foreach (var message in messages)
-            {
-                await PublishAsync(message);
-            }
+            channel.ExchangeBindNoWait(destinationExchange, sourceExchange, routingKey, arguments);
         }
 
         /// <summary>
-        /// 发布消息。一次性发布多条
+        /// 解绑交换机
         /// </summary>
-        /// <typeparam name="TMessage">消息泛型类型</typeparam>
-        /// <param name="messages"></param>
-        /// <param name="topic"></param>
-        /// <returns>Task</returns>
-        public async Task PublishManyWithTopicAsync<TMessage>(List<TMessage> messages, string topic) where TMessage : class
+        /// <param name="channel">通道</param>
+        /// <param name="destinationExchange">目标交换机</param>
+        /// <param name="sourceExchange">源交换机</param>
+        /// <param name="routingKey">路由键</param>
+        /// <param name="arguments">参数</param>
+        public static void ExchangeUnbind(
+            IModel channel,
+            string destinationExchange,
+            string sourceExchange,
+            string routingKey,
+            IDictionary<string, object> arguments = null)
         {
-            foreach (var message in messages)
-            {
-                await PublishWithTopicAsync(message, topic);
-            }
+            channel.ExchangeUnbind(destinationExchange, sourceExchange, routingKey, arguments);
         }
 
         /// <summary>
-        /// 消息订阅
+        /// 解绑交换机
         /// </summary>
-        /// <typeparam name="TMessage">消息泛型类型</typeparam>
-        /// <param name="subscriptionId">消息订阅标识</param>
-        /// <param name="process">
-        /// 消息处理委托方法
-        /// <para>
-        /// <example>
-        /// 例如：
-        /// <code>
-        /// message=>Task.Factory.StartNew(()=>{
-        ///     Console.WriteLine(message);
-        /// })
-        /// </code>
-        /// </example>
-        /// </para>
-        /// </param>
-        /// <returns>Task</returns>
-        public async Task<ISubscriptionResult> SubscribeAsync<TMessage>(string subscriptionId, Func<TMessage, Task> process) where TMessage : class
+        /// <param name="channel">通道</param>
+        /// <param name="destinationExchange">目标交换机</param>
+        /// <param name="sourceExchange">源交换机</param>
+        /// <param name="routingKey">路由键</param>
+        /// <param name="arguments">参数</param>
+        public static void ExchangeUnbindNoWait(
+            IModel channel,
+            string destinationExchange,
+            string sourceExchange,
+            string routingKey,
+            IDictionary<string, object> arguments = null)
         {
-            return await Task.Run(() => bus.SubscribeAsync(subscriptionId, process));
-        }
-
-        /// <summary>
-        /// 消息订阅
-        /// </summary>
-        /// <typeparam name="TMessage">消息泛型类型</typeparam>
-        /// <param name="subscriptionId">消息订阅标识</param>
-        /// <param name="process">
-        /// 消息处理委托方法
-        /// <para>
-        /// <example>
-        /// 例如：
-        /// <code>
-        /// message=>Task.Factory.StartNew(()=>{
-        ///     Console.WriteLine(message);
-        /// })
-        /// </code>
-        /// </example>
-        /// </para>
-        /// </param>
-        /// <param name="topic">topic</param>
-        /// <returns>Task</returns>
-        public async Task<ISubscriptionResult> SubscribeWithTopicAsync<TMessage>(string subscriptionId, Func<TMessage, Task> process, string topic) where TMessage : class
-        {
-            return await Task.Run(() => bus.SubscribeAsync<TMessage>(subscriptionId, message => process(message), x => x.WithTopic(topic)));
-        }
-
-        /// <summary>
-        /// 自动订阅
-        /// </summary>
-        /// <param name="assemblyName"></param>
-        /// <param name="subscriptionIdPrefix"></param>
-        /// <param name="topic"></param>
-        /// <returns>Task</returns>
-        public async Task AutoSubscribeAsync(string assemblyName, string subscriptionIdPrefix, string topic)
-        {
-            var subscriber = new AutoSubscriber(bus, subscriptionIdPrefix);
-            if (!string.IsNullOrEmpty(topic))
-                subscriber.ConfigureSubscriptionConfiguration = x => x.WithTopic(topic);
-            await Task.Run(() => subscriber.SubscribeAsync(Assembly.Load(assemblyName)));
+            channel.ExchangeUnbindNoWait(destinationExchange, sourceExchange, routingKey, arguments);
         }
         #endregion
 
-        #region 发送/接收
+        #region 队列
         /// <summary>
-        /// 给指定队列发送一条信息
+        /// 声明队列
         /// </summary>
-        /// <typeparam name="TMessage">消息泛型类型</typeparam>
+        /// <param name="channel">通道</param>
         /// <param name="queue">队列名称</param>
-        /// <param name="message">消息</param>
-        /// <returns>Task</returns>
-        public async Task SendAsync<TMessage>(string queue, TMessage message) where TMessage : class
+        /// <param name="durable">持久化</param>
+        /// <param name="exclusive">排他队列，如果一个队列被声明为排他队列，该队列仅对首次声明它的连接可见，
+        /// 并在连接断开时自动删除。这里需要注意三点：其一，排他队列是基于连接可见的，同一连接的不同信道是可
+        /// 以同时访问同一个连接创建的排他队列的。其二，“首次”，如果一个连接已经声明了一个排他队列，其他连
+        /// 接是不允许建立同名的排他队列的，这个与普通队列不同。其三，即使该队列是持久化的，一旦连接关闭或者
+        /// 客户端退出，该排他队列都会被自动删除的。这种队列适用于只限于一个客户端发送读取消息的应用场景。</param>
+        /// <param name="autoDelete">自动删除</param>
+        /// <param name="arguments">参数</param>
+        public static void QueueDeclare(
+            IModel channel,
+            string queue,
+            bool durable = true,
+            bool exclusive = false,
+            bool autoDelete = false,
+            IDictionary<string, object> arguments = null)
         {
-            await bus.SendAsync(queue, message);
+            channel.QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
         }
 
         /// <summary>
-        /// 给指定队列批量发送信息
+        /// 声明队列
         /// </summary>
-        /// <typeparam name="TMessage">消息泛型类型</typeparam>
+        /// <param name="channel">通道</param>
         /// <param name="queue">队列名称</param>
-        /// <param name="messages">消息</param>
-        /// <returns>Task</returns>
-        public async Task SendManyAsync<TMessage>(string queue, IList<TMessage> messages) where TMessage : class
+        /// <param name="durable">持久化</param>
+        /// <param name="exclusive">排他队列，如果一个队列被声明为排他队列，该队列仅对首次声明它的连接可见，
+        /// 并在连接断开时自动删除。这里需要注意三点：其一，排他队列是基于连接可见的，同一连接的不同信道是可
+        /// 以同时访问同一个连接创建的排他队列的。其二，“首次”，如果一个连接已经声明了一个排他队列，其他连
+        /// 接是不允许建立同名的排他队列的，这个与普通队列不同。其三，即使该队列是持久化的，一旦连接关闭或者
+        /// 客户端退出，该排他队列都会被自动删除的。这种队列适用于只限于一个客户端发送读取消息的应用场景。</param>
+        /// <param name="autoDelete">自动删除</param>
+        /// <param name="arguments">参数</param>
+        public static void QueueDeclareNoWait(
+            IModel channel,
+            string queue,
+            bool durable = true,
+            bool exclusive = false,
+            bool autoDelete = false,
+            IDictionary<string, object> arguments = null)
         {
-            foreach (var message in messages)
-            {
-                await SendAsync(queue, message);
-            }
+            channel.QueueDeclareNoWait(queue, durable, exclusive, autoDelete, arguments);
         }
 
         /// <summary>
-        /// 从指定队列接收一条信息，并做相关处理。
+        /// 删除队列
         /// </summary>
-        /// <typeparam name="TMessage">消息泛型类型</typeparam>
+        /// <param name="channel">通道</param>
         /// <param name="queue">队列名称</param>
-        /// <param name="process">
-        /// 消息处理委托方法
-        /// <para>
-        /// <example>
-        /// 例如：
-        /// <code>
-        /// message=>Task.Factory.StartNew(()=>{
-        ///     Console.WriteLine(message);
-        /// })
-        /// </code>
-        /// </example>
-        /// </para>
-        /// </param>
-        /// <returns>Task</returns>
-        public async Task ReceiveAsync<TMessage>(string queue, Func<TMessage, Task> process) where TMessage : class
+        /// <param name="ifUnused">是否没有被使用</param>
+        /// <param name="ifEmpty">是否为空</param>
+        public static void QueueDelete(
+            IModel channel,
+            string queue,
+            bool ifUnused = false,
+            bool ifEmpty = false)
         {
-            await Task.Run(() => bus.Receive(queue, process));
+            channel.QueueDelete(queue, ifUnused, ifEmpty);
         }
 
         /// <summary>
-        /// 从指定队列接收一条信息，并做相关处理。
+        /// 删除队列
         /// </summary>
-        /// <typeparam name="TMessage">消息泛型类型</typeparam>
+        /// <param name="channel">通道</param>
         /// <param name="queue">队列名称</param>
-        /// <param name="process">消息处理委托方法</param>
-        /// <returns>Task</returns>
-        public async Task ReceiveAsync<TMessage>(string queue, Action<TMessage> process) where TMessage : class
+        /// <param name="ifUnused">是否没有被使用</param>
+        /// <param name="ifEmpty">是否为空</param>
+        public static void QueueDeleteNoWait(
+            IModel channel,
+            string queue,
+            bool ifUnused = false,
+            bool ifEmpty = false)
         {
-            await Task.Run(() => bus.Receive(queue, process));
+            channel.QueueDeleteNoWait(queue, ifUnused, ifEmpty);
+        }
+
+        /// <summary>
+        /// 绑定队列
+        /// </summary>
+        /// <param name="channel">通道</param>
+        /// <param name="exchange">交换机名称</param>
+        /// <param name="queue">队列名称</param>
+        /// <param name="routingKey">路由键</param>
+        /// <param name="arguments">参数</param>
+        public static void QueueBind(
+            IModel channel,
+            string exchange,
+            string queue,
+            string routingKey,
+            IDictionary<string, object> arguments = null)
+        {
+            channel.QueueBind(queue, exchange, routingKey, arguments);
+        }
+
+        /// <summary>
+        /// 绑定队列
+        /// </summary>
+        /// <param name="channel">通道</param>
+        /// <param name="exchange">交换机名称</param>
+        /// <param name="queue">队列名称</param>
+        /// <param name="routingKey">路由键</param>
+        /// <param name="arguments">参数</param>
+        public static void QueueBindNoWait(
+            IModel channel,
+            string exchange,
+            string queue,
+            string routingKey,
+            IDictionary<string, object> arguments = null)
+        {
+            channel.QueueBindNoWait(queue, exchange, routingKey, arguments);
+        }
+
+        /// <summary>
+        /// 解绑队列
+        /// </summary>
+        /// <param name="channel">通道</param>
+        /// <param name="exchange">交换机名称</param>
+        /// <param name="queue">队列名称</param>
+        /// <param name="routingKey">路由键</param>
+        /// <param name="arguments">参数</param>
+        public static void QueueUnbind(
+            IModel channel,
+            string exchange,
+            string queue,
+            string routingKey,
+            IDictionary<string, object> arguments = null)
+        {
+            channel.QueueUnbind(queue, exchange, routingKey, arguments);
+        }
+
+        /// <summary>
+        /// 清除队列
+        /// </summary>
+        /// <param name="channel">通道</param>
+        /// <param name="queue">队列名称</param>
+        public static void QueuePurge(IModel channel, string queue)
+        {
+            channel.QueuePurge(queue);
         }
         #endregion
+
+        #region 发布消息
+        /// <summary>
+        /// 发布消息
+        /// </summary>
+        /// <param name="command">消息指令</param>
+        /// <returns></returns>
+        public void Publish<T>(T command) where T : class
+        {
+            var attribute = typeof(T).GetAttribute<RabbitMqAttribute>();
+
+            if (attribute == null)
+                throw new ArgumentException("RabbitMqAttribute Is Null!");
+
+            var body = command.ToJson();
+            var exchange = attribute.ExchangeName;
+            var exchangeType = attribute.ExchangeType;
+            var queue = attribute.QueueName;
+            var routingKey = attribute.RoutingKey;
+            var durable = attribute.Durable;
+            var isDeadLetter = attribute.IsDeadLetter;
+            //是否设置死信队列
+            Dictionary<string, object> arguments = null;
+            if (isDeadLetter)
+            {
+                arguments = new Dictionary<string, object>
+                {
+                    ["x-dead-letter-exchange"] = $"DeadLetterExchange",
+                    ["x-message-ttl"] = attribute.MessageTTL,
+                    ["x-dead-letter-routing-key"] = $"{routingKey}@DeadLetter"
+                };
+            }
+            Publish(exchange, queue, routingKey, body, exchangeType, durable, arguments);
+        }
+
+        /// <summary>
+        /// 发布消息
+        /// </summary>
+        /// <param name="exchange">交换机名称</param>
+        /// <param name="queue">队列名称</param>
+        /// <param name="routingKey">路由键</param>
+        /// <param name="body">消息内容</param>
+        /// <param name="exchangeType">交换机类型</param>
+        /// <param name="durable">持久化</param>
+        /// <param name="queueArguments">队列参数</param>
+        /// <param name="exchangeArguments">交换机参数</param>
+        public void Publish(
+            string exchange,
+            string queue,
+            string routingKey,
+            string body,
+            string exchangeType = ExchangeType.Direct,
+            bool durable = true,
+            IDictionary<string, object> queueArguments = null,
+            IDictionary<string, object> exchangeArguments = null)
+        {
+            var channel = GetChannel(exchange, queue, routingKey, exchangeType, durable, queueArguments, exchangeArguments);
+            var props = channel.CreateBasicProperties();
+            props.Persistent = durable;//持久化
+            channel.BasicPublish(exchange, routingKey, props, body.SerializeUtf8());
+        }
+
+        /// <summary>
+        /// 发布消息到死信队列
+        /// </summary>
+        /// <param name="queue">死信队列名称</param>
+        /// <param name="body">消息内容</param>
+        /// <param name="ex">异常</param>
+        /// <param name="retryCount">重试次数</param>
+        private void PublishToDead<T>(
+            string queue,
+            string body,
+            Exception ex,
+            int retryCount) where T : class
+        {
+            var attribute = typeof(T).GetAttribute<RabbitMqAttribute>();
+            if (attribute == null)
+                throw new ArgumentException("RabbitMqAttribute Is Null!");
+
+            //死信交换机写死：DeadLetterExchange
+            var deadLetterExchange = attribute.ExchangeName;
+            var deadLetterQueue = attribute.QueueName.Replace("{queue}", queue);
+            var deadLetterRoutingKey = attribute.RoutingKey.Replace("{routingkey}", queue);
+
+            //死信队列内容
+            var deadLetterBody = new DeadLetterQueue
+            {
+                Body = body,
+                CreateDateTime = DateTime.Now,
+                ExceptionMsg = ex.Message,
+                Queue = queue,
+                RoutingKey = deadLetterRoutingKey,
+                Exchange = deadLetterExchange,
+                RetryCount = retryCount
+            };
+            Publish(deadLetterExchange, deadLetterQueue, deadLetterRoutingKey, deadLetterBody.ToJson());
+        }
+        #endregion
+
+        #region 订阅消息
+        /// <summary>
+        /// 订阅消息
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="subscriber">消费处理委托</param>
+        /// <param name="handler">异常处理委托</param>
+        public void Subscribe<T>(
+            Func<T, bool> subscriber,
+            Action<string, int,
+            Exception> handler) where T : class
+        {
+            var attribute = typeof(T).GetAttribute<RabbitMqAttribute>();
+            if (attribute == null)
+                throw new ArgumentException("RabbitMqAttribute Is Null!");
+
+            Subscribe(attribute.QueueName, subscriber, handler, attribute.RetryCount, attribute.Durable, attribute.PrefetchCount, attribute.IsDeadLetter);
+        }
+
+        /// <summary>
+        /// 订阅消息
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="queue">队列名称</param>
+        /// <param name="subscriber">消费处理委托</param>
+        /// <param name="handler">异常处理委托</param>
+        /// <param name="retryCount">重试次数</param>
+        /// <param name="durable">持久化</param>
+        /// <param name="prefetchCount">预取数量</param>
+        /// <param name="isDeadLetter">异常是否进入死信队列</param>
+        public void Subscribe<T>(
+            string queue,
+            Func<T, bool> subscriber,
+            Action<string, int, Exception> handler,
+            int retryCount = 5,
+            bool durable = true,
+            ushort prefetchCount = 1,
+            bool isDeadLetter = false) where T : class
+        {
+            //队列声明
+            var channel = GetChannel(queue, durable, prefetchCount);
+            var consumer = new EventingBasicConsumer(channel);
+            consumer.Received += (model, ea) =>
+            {
+                var body = ea.Body.DeserializeUtf8();
+                var numberOfRetries = 0;
+                Exception exception = null;
+                while (numberOfRetries <= retryCount)
+                {
+                    try
+                    {
+                        var msg = body.ToObject<T>();
+                        var result = subscriber?.Invoke(msg);
+                        if (result == true)
+                            channel.BasicAck(ea.DeliveryTag, false);
+                        else
+                            channel.BasicNack(ea.DeliveryTag, false, false);
+                        //异常置空
+                        exception = null;
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        exception = ex;
+                        handler?.Invoke(body, numberOfRetries, ex);
+                        numberOfRetries++;
+                    }
+                }
+                //重试后异常仍未解决
+                if (exception != null)
+                {
+                    channel.BasicNack(ea.DeliveryTag, false, false);
+                    //是否进入死信队列
+                    if (isDeadLetter)
+                        PublishToDead<DeadLetterQueue>(queue, body, exception, numberOfRetries);
+                }
+            };
+            //手动确认
+            channel.BasicConsume(queue, false, consumer);
+        }
+        #endregion
+
+        #region 获取消息
+        /// <summary>
+        /// 获取消息
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="handler">消费处理委托</param>
+        public void Pull<T>(Action<T> handler) where T : class
+        {
+            var attribute = typeof(T).GetAttribute<RabbitMqAttribute>();
+            if (attribute == null)
+                throw new ArgumentException("RabbitMqAttribute Is Null!");
+
+            Pull(attribute.ExchangeName, attribute.QueueName, attribute.RoutingKey, handler);
+        }
+
+        /// <summary>
+        /// 获取消息
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="exchange">交换机名称</param>
+        /// <param name="queue">队列名称</param>
+        /// <param name="routingKey">路由键</param>
+        /// <param name="handler">消费处理委托</param>
+        public void Pull<T>(
+            string exchange,
+            string queue,
+            string routingKey,
+            Action<T> handler) where T : class
+        {
+            var channel = GetChannel(exchange, queue, routingKey);
+
+            var result = channel.BasicGet(queue, false);
+            if (result == null)
+                return;
+
+            var msg = result.Body.DeserializeUtf8().ToObject<T>();
+            try
+            {
+                handler(msg);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                channel.BasicAck(result.DeliveryTag, false);
+            }
+        }
         #endregion
 
         #region 释放资源
         /// <summary>
-        /// 资源释放
+        /// 执行与释放或重置非托管资源关联的应用程序定义的任务。
         /// </summary>
         public void Dispose()
         {
-            bus?.Dispose();
+            foreach (var item in ChannelDic)
+            {
+                item.Value?.Dispose();
+            }
+            _conn?.Dispose();
         }
         #endregion
+    }
+
+    /// <summary>
+    /// RabbitMq连接配置
+    /// </summary>
+    public class MqConfig
+    {
+        /// <summary>
+        /// 主机名
+        /// </summary>
+        public string HostName { get; set; } = "127.0.0.1";
+
+        /// <summary>
+        /// 心跳时间
+        /// </summary>
+        public ushort RequestedHeartbeat { get; set; } = 10;
+
+        /// <summary>
+        /// 自动重连
+        /// </summary>
+        public bool AutomaticRecoveryEnabled { get; set; } = true;
+
+        /// <summary>
+        /// 重连时间
+        /// </summary>
+        public TimeSpan NetworkRecoveryInterval { get; set; } = TimeSpan.FromSeconds(10);
+
+        /// <summary>
+        /// 用户名
+        /// </summary>
+        public string UserName { get; set; } = "guest";
+
+        /// <summary>
+        /// 密码
+        /// </summary>
+        public string Password { get; set; } = "guest";
+
+        /// <summary>
+        /// 端口号
+        /// </summary>
+        public int Port { get; set; } = 5672;
+
+        /// <summary>
+        /// 虚拟主机
+        /// </summary>
+        public string VirtualHost { get; set; } = "/";
+    }
+
+    /// <summary>
+    /// 自定义的RabbitMq队列信息实体特性
+    /// </summary>
+    public class RabbitMqAttribute : Attribute
+    {
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="queueName"></param>
+        public RabbitMqAttribute(string queueName)
+        {
+            QueueName = queueName ?? string.Empty;
+        }
+
+        /// <summary>
+        /// 交换机名称
+        /// </summary>
+        public string ExchangeName { get; set; }
+
+        /// <summary>
+        /// 交换机类型
+        /// </summary>
+        public string ExchangeType { get; set; }
+
+        /// <summary>
+        /// 队列名称
+        /// </summary>
+        public string QueueName { get; set; }
+
+        /// <summary>
+        /// 路由键
+        /// </summary>
+        public string RoutingKey { get; set; }
+
+        /// <summary>
+        /// 是否持久化
+        /// </summary>
+        public bool Durable { get; set; }
+
+        /// <summary>
+        /// 预取数量
+        /// </summary>
+        public ushort PrefetchCount { get; set; }
+
+        /// <summary>
+        /// 异常重试次数
+        /// </summary>
+        public int RetryCount { get; set; } = 5;
+
+        /// <summary>
+        /// 是否进入死信队列
+        /// </summary>
+        public bool IsDeadLetter { get; set; }
+
+        /// <summary>
+        /// 死信交换机生存时间
+        /// </summary>
+        public int MessageTTL { get; set; } = 30 * 1000;
+    }
+
+    /// <summary>
+    /// 死信队列实体
+    /// </summary>
+    [RabbitMq("{queue}@DeadLetter", ExchangeName = "DeadLetterExchange", RoutingKey = "{routingkey}@DeadLetter")]
+    public class DeadLetterQueue
+    {
+        /// <summary>
+        /// 消息内容
+        /// </summary>
+        public string Body { get; set; }
+
+        /// <summary>
+        /// 交换机
+        /// </summary>
+        public string Exchange { get; set; }
+
+        /// <summary>
+        /// 队列
+        /// </summary>
+        public string Queue { get; set; }
+
+        /// <summary>
+        /// 路由键
+        /// </summary>
+        public string RoutingKey { get; set; }
+
+        /// <summary>
+        /// 重试次数
+        /// </summary>
+        public int RetryCount { get; set; }
+
+        /// <summary>
+        /// 异常消息
+        /// </summary>
+        public string ExceptionMsg { get; set; }
+
+        /// <summary>
+        /// 创建时间
+        /// </summary>
+        public DateTime CreateDateTime { get; set; } = DateTime.Now;
     }
 }
