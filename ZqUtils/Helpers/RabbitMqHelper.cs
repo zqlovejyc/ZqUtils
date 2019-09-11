@@ -108,6 +108,12 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 获取Channel
         /// </summary>
+        /// <returns></returns>
+        public IModel GetChannel() => _conn.CreateModel();
+
+        /// <summary>
+        /// 获取Channel
+        /// </summary>
         /// <param name="exchange">交换机名称</param>
         /// <param name="queue">队列名称</param>
         /// <param name="routingKey">路由key</param>
@@ -116,7 +122,7 @@ namespace ZqUtils.Helpers
         /// <param name="queueArguments">队列参数</param>
         /// <param name="exchangeArguments">交换机参数</param>
         /// <returns></returns>
-        public static IModel GetChannel(
+        public IModel GetChannel(
             string exchange,
             string queue,
             string routingKey,
@@ -143,7 +149,7 @@ namespace ZqUtils.Helpers
         /// <param name="durable">持久化</param>
         /// <param name="prefetchCount">预取数量</param>
         /// <returns></returns>
-        public static IModel GetChannel(
+        public IModel GetChannel(
             string queue,
             bool durable = true,
             ushort prefetchCount = 1)
@@ -179,7 +185,7 @@ namespace ZqUtils.Helpers
         /// <param name="durable">持久化</param>
         /// <param name="autoDelete">自动删除</param>
         /// <param name="arguments">参数</param>
-        public static void ExchangeDeclare(
+        public void ExchangeDeclare(
             IModel channel,
             string exchange,
             string exchangeType = ExchangeType.Direct,
@@ -187,7 +193,7 @@ namespace ZqUtils.Helpers
             bool autoDelete = false,
             IDictionary<string, object> arguments = null)
         {
-            channel.ExchangeDeclare(exchange, exchangeType, durable, autoDelete, arguments);
+            (channel ?? _conn.CreateModel()).ExchangeDeclare(exchange, exchangeType, durable, autoDelete, arguments);
         }
 
         /// <summary>
@@ -208,7 +214,7 @@ namespace ZqUtils.Helpers
         /// <param name="durable">持久化</param>
         /// <param name="autoDelete">自动删除</param>
         /// <param name="arguments">参数</param>
-        public static void ExchangeDeclareNoWait(
+        public void ExchangeDeclareNoWait(
             IModel channel,
             string exchange,
             string exchangeType = ExchangeType.Direct,
@@ -216,7 +222,7 @@ namespace ZqUtils.Helpers
             bool autoDelete = false,
             IDictionary<string, object> arguments = null)
         {
-            channel.ExchangeDeclareNoWait(exchange, exchangeType, durable, autoDelete, arguments);
+            (channel ?? _conn.CreateModel()).ExchangeDeclareNoWait(exchange, exchangeType, durable, autoDelete, arguments);
         }
 
         /// <summary>
@@ -225,12 +231,12 @@ namespace ZqUtils.Helpers
         /// <param name="channel">通道</param>
         /// <param name="exchange">交换机名称</param>
         /// <param name="ifUnused">是否没有被使用</param>
-        public static void ExchangeDelete(
+        public void ExchangeDelete(
             IModel channel,
             string exchange,
             bool ifUnused = false)
         {
-            channel.ExchangeDelete(exchange, ifUnused);
+            (channel ?? _conn.CreateModel()).ExchangeDelete(exchange, ifUnused);
         }
 
         /// <summary>
@@ -239,12 +245,12 @@ namespace ZqUtils.Helpers
         /// <param name="channel">通道</param>
         /// <param name="exchange">交换机名称</param>
         /// <param name="ifUnused">是否没有被使用</param>
-        public static void ExchangeDeleteNoWait(
+        public void ExchangeDeleteNoWait(
             IModel channel,
             string exchange,
             bool ifUnused = false)
         {
-            channel.ExchangeDeleteNoWait(exchange, ifUnused);
+            (channel ?? _conn.CreateModel()).ExchangeDeleteNoWait(exchange, ifUnused);
         }
 
         /// <summary>
@@ -255,14 +261,14 @@ namespace ZqUtils.Helpers
         /// <param name="sourceExchange">源交换机</param>
         /// <param name="routingKey">路由键</param>
         /// <param name="arguments">参数</param>
-        public static void ExchangeBind(
+        public void ExchangeBind(
             IModel channel,
             string destinationExchange,
             string sourceExchange,
             string routingKey,
             IDictionary<string, object> arguments = null)
         {
-            channel.ExchangeBind(destinationExchange, sourceExchange, routingKey, arguments);
+            (channel ?? _conn.CreateModel()).ExchangeBind(destinationExchange, sourceExchange, routingKey, arguments);
         }
 
         /// <summary>
@@ -273,14 +279,14 @@ namespace ZqUtils.Helpers
         /// <param name="sourceExchange">源交换机</param>
         /// <param name="routingKey">路由键</param>
         /// <param name="arguments">参数</param>
-        public static void ExchangeBindNoWait(
+        public void ExchangeBindNoWait(
             IModel channel,
             string destinationExchange,
             string sourceExchange,
             string routingKey,
             IDictionary<string, object> arguments = null)
         {
-            channel.ExchangeBindNoWait(destinationExchange, sourceExchange, routingKey, arguments);
+            (channel ?? _conn.CreateModel()).ExchangeBindNoWait(destinationExchange, sourceExchange, routingKey, arguments);
         }
 
         /// <summary>
@@ -291,14 +297,14 @@ namespace ZqUtils.Helpers
         /// <param name="sourceExchange">源交换机</param>
         /// <param name="routingKey">路由键</param>
         /// <param name="arguments">参数</param>
-        public static void ExchangeUnbind(
+        public void ExchangeUnbind(
             IModel channel,
             string destinationExchange,
             string sourceExchange,
             string routingKey,
             IDictionary<string, object> arguments = null)
         {
-            channel.ExchangeUnbind(destinationExchange, sourceExchange, routingKey, arguments);
+            (channel ?? _conn.CreateModel()).ExchangeUnbind(destinationExchange, sourceExchange, routingKey, arguments);
         }
 
         /// <summary>
@@ -309,14 +315,14 @@ namespace ZqUtils.Helpers
         /// <param name="sourceExchange">源交换机</param>
         /// <param name="routingKey">路由键</param>
         /// <param name="arguments">参数</param>
-        public static void ExchangeUnbindNoWait(
+        public void ExchangeUnbindNoWait(
             IModel channel,
             string destinationExchange,
             string sourceExchange,
             string routingKey,
             IDictionary<string, object> arguments = null)
         {
-            channel.ExchangeUnbindNoWait(destinationExchange, sourceExchange, routingKey, arguments);
+            (channel ?? _conn.CreateModel()).ExchangeUnbindNoWait(destinationExchange, sourceExchange, routingKey, arguments);
         }
         #endregion
 
@@ -334,7 +340,7 @@ namespace ZqUtils.Helpers
         /// 客户端退出，该排他队列都会被自动删除的。这种队列适用于只限于一个客户端发送读取消息的应用场景。</param>
         /// <param name="autoDelete">自动删除</param>
         /// <param name="arguments">参数</param>
-        public static void QueueDeclare(
+        public void QueueDeclare(
             IModel channel,
             string queue,
             bool durable = true,
@@ -342,7 +348,7 @@ namespace ZqUtils.Helpers
             bool autoDelete = false,
             IDictionary<string, object> arguments = null)
         {
-            channel.QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
+            (channel ?? _conn.CreateModel()).QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
         }
 
         /// <summary>
@@ -358,7 +364,7 @@ namespace ZqUtils.Helpers
         /// 客户端退出，该排他队列都会被自动删除的。这种队列适用于只限于一个客户端发送读取消息的应用场景。</param>
         /// <param name="autoDelete">自动删除</param>
         /// <param name="arguments">参数</param>
-        public static void QueueDeclareNoWait(
+        public void QueueDeclareNoWait(
             IModel channel,
             string queue,
             bool durable = true,
@@ -366,7 +372,7 @@ namespace ZqUtils.Helpers
             bool autoDelete = false,
             IDictionary<string, object> arguments = null)
         {
-            channel.QueueDeclareNoWait(queue, durable, exclusive, autoDelete, arguments);
+            (channel ?? _conn.CreateModel()).QueueDeclareNoWait(queue, durable, exclusive, autoDelete, arguments);
         }
 
         /// <summary>
@@ -376,13 +382,13 @@ namespace ZqUtils.Helpers
         /// <param name="queue">队列名称</param>
         /// <param name="ifUnused">是否没有被使用</param>
         /// <param name="ifEmpty">是否为空</param>
-        public static void QueueDelete(
+        public void QueueDelete(
             IModel channel,
             string queue,
             bool ifUnused = false,
             bool ifEmpty = false)
         {
-            channel.QueueDelete(queue, ifUnused, ifEmpty);
+            (channel ?? _conn.CreateModel()).QueueDelete(queue, ifUnused, ifEmpty);
         }
 
         /// <summary>
@@ -392,13 +398,13 @@ namespace ZqUtils.Helpers
         /// <param name="queue">队列名称</param>
         /// <param name="ifUnused">是否没有被使用</param>
         /// <param name="ifEmpty">是否为空</param>
-        public static void QueueDeleteNoWait(
+        public void QueueDeleteNoWait(
             IModel channel,
             string queue,
             bool ifUnused = false,
             bool ifEmpty = false)
         {
-            channel.QueueDeleteNoWait(queue, ifUnused, ifEmpty);
+            (channel ?? _conn.CreateModel()).QueueDeleteNoWait(queue, ifUnused, ifEmpty);
         }
 
         /// <summary>
@@ -409,14 +415,14 @@ namespace ZqUtils.Helpers
         /// <param name="queue">队列名称</param>
         /// <param name="routingKey">路由键</param>
         /// <param name="arguments">参数</param>
-        public static void QueueBind(
+        public void QueueBind(
             IModel channel,
             string exchange,
             string queue,
             string routingKey,
             IDictionary<string, object> arguments = null)
         {
-            channel.QueueBind(queue, exchange, routingKey, arguments);
+            (channel ?? _conn.CreateModel()).QueueBind(queue, exchange, routingKey, arguments);
         }
 
         /// <summary>
@@ -427,14 +433,14 @@ namespace ZqUtils.Helpers
         /// <param name="queue">队列名称</param>
         /// <param name="routingKey">路由键</param>
         /// <param name="arguments">参数</param>
-        public static void QueueBindNoWait(
+        public void QueueBindNoWait(
             IModel channel,
             string exchange,
             string queue,
             string routingKey,
             IDictionary<string, object> arguments = null)
         {
-            channel.QueueBindNoWait(queue, exchange, routingKey, arguments);
+            (channel ?? _conn.CreateModel()).QueueBindNoWait(queue, exchange, routingKey, arguments);
         }
 
         /// <summary>
@@ -445,14 +451,14 @@ namespace ZqUtils.Helpers
         /// <param name="queue">队列名称</param>
         /// <param name="routingKey">路由键</param>
         /// <param name="arguments">参数</param>
-        public static void QueueUnbind(
+        public void QueueUnbind(
             IModel channel,
             string exchange,
             string queue,
             string routingKey,
             IDictionary<string, object> arguments = null)
         {
-            channel.QueueUnbind(queue, exchange, routingKey, arguments);
+            (channel ?? _conn.CreateModel()).QueueUnbind(queue, exchange, routingKey, arguments);
         }
 
         /// <summary>
@@ -460,9 +466,9 @@ namespace ZqUtils.Helpers
         /// </summary>
         /// <param name="channel">通道</param>
         /// <param name="queue">队列名称</param>
-        public static void QueuePurge(IModel channel, string queue)
+        public void QueuePurge(IModel channel, string queue)
         {
-            channel.QueuePurge(queue);
+            (channel ?? _conn.CreateModel()).QueuePurge(queue);
         }
         #endregion
 
