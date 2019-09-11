@@ -618,12 +618,13 @@ namespace ZqUtils.Helpers
                 var body = ea.Body.DeserializeUtf8();
                 var numberOfRetries = 0;
                 Exception exception = null;
+                bool? result = false;
                 while (numberOfRetries <= retryCount)
                 {
                     try
                     {
                         var msg = body.ToObject<T>();
-                        var result = subscriber?.Invoke(msg);
+                        result = subscriber?.Invoke(msg);
                         if (result == true)
                             channel.BasicAck(ea.DeliveryTag, false);
                         else
@@ -645,9 +646,9 @@ namespace ZqUtils.Helpers
                     channel.BasicNack(ea.DeliveryTag, false, false);
                 }
                 //是否进入死信队列
-                if (isDeadLetter)
+                if (isDeadLetter && (!(result == true) || exception != null))
                 {
-                    PublishToDead<DeadLetterQueue>(queue, body, exception, numberOfRetries - 1);
+                    PublishToDead<DeadLetterQueue>(queue, body, exception, exception == null ? numberOfRetries : numberOfRetries - 1);
                 }
             };
             //手动确认
