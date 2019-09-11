@@ -561,7 +561,7 @@ namespace ZqUtils.Helpers
                 Body = body,
                 CreateDateTime = DateTime.Now,
                 Exception = ex,
-                ExceptionMsg = ex.Message,
+                ExceptionMsg = ex?.Message,
                 Queue = queue,
                 RoutingKey = deadLetterRoutingKey,
                 Exchange = deadLetterExchange,
@@ -643,9 +643,11 @@ namespace ZqUtils.Helpers
                 if (exception != null)
                 {
                     channel.BasicNack(ea.DeliveryTag, false, false);
-                    //是否进入死信队列
-                    if (isDeadLetter)
-                        PublishToDead<DeadLetterQueue>(queue, body, exception, numberOfRetries - 1);
+                }
+                //是否进入死信队列
+                if (isDeadLetter)
+                {
+                    PublishToDead<DeadLetterQueue>(queue, body, exception, numberOfRetries - 1);
                 }
             };
             //手动确认
