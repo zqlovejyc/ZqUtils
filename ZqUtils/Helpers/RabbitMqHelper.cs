@@ -554,6 +554,7 @@ namespace ZqUtils.Helpers
             {
                 Body = body,
                 CreateDateTime = DateTime.Now,
+                Exception = ex,
                 ExceptionMsg = ex.Message,
                 Queue = queue,
                 RoutingKey = deadLetterRoutingKey,
@@ -638,7 +639,7 @@ namespace ZqUtils.Helpers
                     channel.BasicNack(ea.DeliveryTag, false, false);
                     //是否进入死信队列
                     if (isDeadLetter)
-                        PublishToDead<DeadLetterQueue>(queue, body, exception, numberOfRetries);
+                        PublishToDead<DeadLetterQueue>(queue, body, exception, numberOfRetries - 1);
                 }
             };
             //手动确认
@@ -853,6 +854,11 @@ namespace ZqUtils.Helpers
         /// 异常消息
         /// </summary>
         public string ExceptionMsg { get; set; }
+
+        /// <summary>
+        /// 异常
+        /// </summary>
+        public Exception Exception { get; set; }
 
         /// <summary>
         /// 创建时间
