@@ -22,7 +22,6 @@ using System.Collections.Generic;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using ZqUtils.Extensions;
-using ExchangeType = RabbitMQ.Client.ExchangeType;
 /****************************
 * [Author] 张强
 * [Date] 2018-06-01
