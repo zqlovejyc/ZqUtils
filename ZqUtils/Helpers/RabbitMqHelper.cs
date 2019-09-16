@@ -103,7 +103,7 @@ namespace ZqUtils.Helpers
         }
         #endregion
 
-        #region 通道
+        #region 信道
         /// <summary>
         /// 获取Channel
         /// </summary>
@@ -607,7 +607,7 @@ namespace ZqUtils.Helpers
             int retryCount = 5,
             bool durable = true,
             ushort prefetchCount = 1,
-            bool isDeadLetter = false) where T : class
+            bool isDeadLetter = true) where T : class
         {
             //队列声明
             var channel = GetChannel(queue, durable, prefetchCount);
@@ -804,12 +804,12 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 是否持久化
         /// </summary>
-        public bool Durable { get; set; }
+        public bool Durable { get; set; } = true;
 
         /// <summary>
         /// 预取数量
         /// </summary>
-        public ushort PrefetchCount { get; set; }
+        public ushort PrefetchCount { get; set; } = 1;
 
         /// <summary>
         /// 异常重试次数
@@ -819,12 +819,12 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 是否进入死信队列
         /// </summary>
-        public bool IsDeadLetter { get; set; }
+        public bool IsDeadLetter { get; set; } = true;
 
         /// <summary>
         /// 死信交换机生存时间
         /// </summary>
-        public int MessageTTL { get; set; } = 30 * 1000;
+        public int MessageTTL { get; set; } = 300 * 1000;
     }
 
     /// <summary>
