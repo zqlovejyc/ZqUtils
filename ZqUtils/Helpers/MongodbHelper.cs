@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -39,6 +40,11 @@ namespace ZqUtils.Helpers
     public class MongodbHelper
     {
         #region 私有字段
+        /// <summary>
+        /// 对象池
+        /// </summary>
+        private static readonly ConcurrentDictionary<string, Lazy<ObjectPoolHelper<MongodbHelper>>> _pool = new ConcurrentDictionary<string, Lazy<ObjectPoolHelper<MongodbHelper>>>();
+
         /// <summary>
         /// 链接字符串
         /// </summary>
@@ -349,6 +355,27 @@ namespace ZqUtils.Helpers
                 }
             }
             return fields;
+        }
+        #endregion
+
+        #region 获取实例
+        /// <summary>
+        /// 获取MongodbHelper实例对象
+        /// </summary>
+        /// <param name="databaseName">数据库</param>
+        /// <returns>返回MongodbHelper实例</returns>
+        public MongodbHelper GetInstance(string databaseName)
+        {
+            if (!_pool.ContainsKey(databaseName))
+            {
+                var objectPool = new Lazy<ObjectPoolHelper<MongodbHelper>>(() => new ObjectPoolHelper<MongodbHelper>(() => new MongodbHelper(databaseName)));
+                _pool.GetOrAdd(database.ToString(), objectPool);
+                return objectPool.Value.GetObject();
+            }
+            else
+            {
+                return _pool[databaseName].Value.GetObject();
+            }
         }
         #endregion
 
