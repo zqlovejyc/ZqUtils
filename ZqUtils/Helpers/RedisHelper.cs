@@ -20,6 +20,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using StackExchange.Redis;
 using ZqUtils.Extensions;
 /****************************
@@ -35,6 +36,11 @@ namespace ZqUtils.Helpers
     public class RedisHelper
     {
         #region 私有字段
+        /// <summary>
+        /// 对象池
+        /// </summary>
+        private static readonly ConcurrentDictionary<string, Lazy<ObjectPoolHelper<RedisHelper>>> _pool = new ConcurrentDictionary<string, Lazy<ObjectPoolHelper<RedisHelper>>>();
+
         /// <summary>
         /// 默认的key值（用来当作RedisKey的前缀）
         /// </summary>
@@ -243,6 +249,27 @@ namespace ZqUtils.Helpers
         #endregion
 
         #region 公有方法
+        #region 获取实例
+        /// <summary>
+        /// 获取RedisHelper实例对象
+        /// </summary>
+        /// <param name="database">数据库索引</param>
+        /// <returns>返回RedisHelper实例</returns>
+        public RedisHelper GetInstance(int database)
+        {
+            if (!_pool.ContainsKey(database.ToString()))
+            {
+                var objectPool = new Lazy<ObjectPoolHelper<RedisHelper>>(() => new ObjectPoolHelper<RedisHelper>(() => new RedisHelper(database)));
+                _pool.GetOrAdd(database.ToString(), objectPool);
+                return objectPool.Value.GetObject();
+            }
+            else
+            {
+                return _pool[database.ToString()].Value.GetObject();
+            }
+        }
+        #endregion
+
         #region String操作
         #region 同步方法
         #region StringSet
