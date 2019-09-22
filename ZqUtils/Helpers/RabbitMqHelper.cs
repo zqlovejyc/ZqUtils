@@ -140,8 +140,11 @@ namespace ZqUtils.Helpers
             return ChannelDic.GetOrAdd(queue, key =>
             {
                 var channel = _conn.CreateModel();
+                //声明交换机
                 ExchangeDeclare(channel, exchange, exchangeType, durable, arguments: exchangeArguments);
+                //声明队列
                 QueueDeclare(channel, queue, durable, arguments: queueArguments);
+                //绑定队列
                 channel.QueueBind(queue, exchange, routingKey);
                 ChannelDic[queue] = channel;
                 return channel;
@@ -152,18 +155,13 @@ namespace ZqUtils.Helpers
         /// 获取管道
         /// </summary>
         /// <param name="queue">队列名称</param>
-        /// <param name="durable">持久化</param>
         /// <param name="prefetchCount">预取数量</param>
         /// <returns></returns>
-        public IModel GetChannel(
-            string queue,
-            bool durable = true,
-            ushort prefetchCount = 1)
+        public IModel GetChannel(string queue, ushort prefetchCount = 1)
         {
             return ChannelDic.GetOrAdd(queue, key =>
             {
                 var channel = _conn.CreateModel();
-                QueueDeclare(channel, queue, durable);
                 //设置每次预取数量
                 channel.BasicQos(0, prefetchCount, false);
                 ChannelDic[queue] = channel;
@@ -604,16 +602,13 @@ namespace ZqUtils.Helpers
         /// <typeparam name="T"></typeparam>
         /// <param name="subscriber">消费处理委托</param>
         /// <param name="handler">异常处理委托</param>
-        public void Subscribe<T>(
-            Func<T, bool> subscriber,
-            Action<string, int,
-            Exception> handler) where T : class
+        public void Subscribe<T>(Func<T, bool> subscriber, Action<string, int, Exception> handler) where T : class
         {
             var attribute = typeof(T).GetAttribute<RabbitMqAttribute>();
             if (attribute == null)
                 throw new ArgumentException("RabbitMqAttribute Is Null!");
 
-            Subscribe(attribute.QueueName, subscriber, handler, attribute.RetryCount, attribute.Durable, attribute.PrefetchCount, attribute.IsDeadLetter);
+            Subscribe(attribute.QueueName, subscriber, handler, attribute.RetryCount, attribute.PrefetchCount, attribute.IsDeadLetter);
         }
 
         /// <summary>
@@ -624,7 +619,6 @@ namespace ZqUtils.Helpers
         /// <param name="subscriber">消费处理委托</param>
         /// <param name="handler">异常处理委托</param>
         /// <param name="retryCount">重试次数</param>
-        /// <param name="durable">持久化</param>
         /// <param name="prefetchCount">预取数量</param>
         /// <param name="isDeadLetter">异常是否进入死信队列</param>
         public void Subscribe<T>(
@@ -632,12 +626,11 @@ namespace ZqUtils.Helpers
             Func<T, bool> subscriber,
             Action<string, int, Exception> handler,
             int retryCount = 5,
-            bool durable = true,
             ushort prefetchCount = 1,
             bool isDeadLetter = true) where T : class
         {
             //队列声明
-            var channel = GetChannel(queue, durable, prefetchCount);
+            var channel = GetChannel(queue, prefetchCount);
             var consumer = new EventingBasicConsumer(channel);
             consumer.Received += (model, ea) =>
             {
