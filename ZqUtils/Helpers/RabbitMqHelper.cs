@@ -110,15 +110,15 @@ namespace ZqUtils.Helpers
         }
         #endregion
 
-        #region 信道
+        #region 管道
         /// <summary>
-        /// 获取Channel
+        /// 获取管道
         /// </summary>
         /// <returns></returns>
         public IModel GetChannel() => _conn.CreateModel();
 
         /// <summary>
-        /// 获取Channel
+        /// 获取管道
         /// </summary>
         /// <param name="exchange">交换机名称</param>
         /// <param name="queue">队列名称</param>
@@ -149,7 +149,7 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
-        /// 获取Model
+        /// 获取管道
         /// </summary>
         /// <param name="queue">队列名称</param>
         /// <param name="durable">持久化</param>
