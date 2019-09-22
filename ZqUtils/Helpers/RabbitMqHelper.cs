@@ -483,8 +483,13 @@ namespace ZqUtils.Helpers
         /// 发布消息
         /// </summary>
         /// <param name="command">消息指令</param>
+        /// <param name="confirm">消息发送确认</param>
+        /// <param name="handler">消息发送失败处理委托，仅当消息发送确认启用时生效</param>
         /// <returns></returns>
-        public void Publish<T>(T command) where T : class
+        public void Publish<T>(
+            T command,
+            bool confirm = false,
+            Action handler = null) where T : class
         {
             var attribute = typeof(T).GetAttribute<RabbitMqAttribute>();
 
@@ -509,7 +514,7 @@ namespace ZqUtils.Helpers
                     ["x-dead-letter-routing-key"] = $"{routingKey.ToLower()}.deadletter"
                 };
             }
-            Publish(exchange, queue, routingKey, body, exchangeType, durable, arguments);
+            Publish(exchange, queue, routingKey, body, exchangeType, durable, confirm, handler, arguments);
         }
 
         /// <summary>
@@ -521,6 +526,8 @@ namespace ZqUtils.Helpers
         /// <param name="body">消息内容</param>
         /// <param name="exchangeType">交换机类型</param>
         /// <param name="durable">持久化</param>
+        /// <param name="confirm">消息发送确认</param>
+        /// <param name="handler">消息发送失败处理委托，仅当消息发送确认启用时生效</param>
         /// <param name="queueArguments">队列参数</param>
         /// <param name="exchangeArguments">交换机参数</param>
         public void Publish(
@@ -530,13 +537,26 @@ namespace ZqUtils.Helpers
             string body,
             string exchangeType = ExchangeType.Direct,
             bool durable = true,
+            bool confirm = false,
+            Action handler = null,
             IDictionary<string, object> queueArguments = null,
             IDictionary<string, object> exchangeArguments = null)
         {
             var channel = GetChannel(exchange, queue, routingKey, exchangeType, durable, queueArguments, exchangeArguments);
             var props = channel.CreateBasicProperties();
-            props.Persistent = durable;//持久化
+            //持久化
+            props.Persistent = durable;
+            //是否启用消息发送确认机制
+            if (confirm)
+            {
+                channel.ConfirmSelect();
+            }
             channel.BasicPublish(exchange, routingKey, props, body.SerializeUtf8());
+            //消息发送失败处理
+            if (confirm && !channel.WaitForConfirms())
+            {
+                handler?.Invoke();
+            }
         }
 
         /// <summary>
