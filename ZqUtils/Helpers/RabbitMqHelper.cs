@@ -51,6 +51,13 @@ namespace ZqUtils.Helpers
         private static readonly object locker = new object();
         #endregion
 
+        #region 公有属性
+        /// <summary>
+        /// 死信交换机，默认：deadletter.default.router
+        /// </summary>
+        public string DeadLetterExchange { get; set; } = "deadletter.default.router";
+        #endregion
+
         #region 构造函数
         /// <summary>
         /// 构造函数
@@ -497,7 +504,7 @@ namespace ZqUtils.Helpers
             {
                 arguments = new Dictionary<string, object>
                 {
-                    ["x-dead-letter-exchange"] = "deadletter.default.router",
+                    ["x-dead-letter-exchange"] = DeadLetterExchange ?? typeof(DeadLetterQueue).GetAttribute<RabbitMqAttribute>().ExchangeName,
                     ["x-message-ttl"] = attribute.MessageTTL,
                     ["x-dead-letter-routing-key"] = $"{routingKey.ToLower()}.deadletter"
                 };
@@ -549,8 +556,8 @@ namespace ZqUtils.Helpers
             if (attribute == null)
                 throw new ArgumentException("RabbitMqAttribute Is Null!");
 
-            //死信交换机写死：deadletter.default.router
-            var deadLetterExchange = attribute.ExchangeName;
+            //死信交换机、队列、路由键
+            var deadLetterExchange = DeadLetterExchange ?? attribute.ExchangeName;
             var deadLetterQueue = attribute.QueueName.Replace("{queue}", $"{queue.ToLower()}.{(ex != null ? "error" : "fail")}");
             var deadLetterRoutingKey = attribute.RoutingKey.Replace("{routingkey}", queue.ToLower());
 
