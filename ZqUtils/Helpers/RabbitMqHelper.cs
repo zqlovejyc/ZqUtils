@@ -822,27 +822,27 @@ namespace ZqUtils.Helpers
         public string RoutingKey { get; set; }
 
         /// <summary>
-        /// 是否持久化
+        /// 是否持久化，默认true
         /// </summary>
         public bool Durable { get; set; } = true;
 
         /// <summary>
-        /// 预取数量
+        /// 预取数量，默认1
         /// </summary>
         public ushort PrefetchCount { get; set; } = 1;
 
         /// <summary>
-        /// 异常重试次数
+        /// 异常重试次数，默认5次
         /// </summary>
         public int RetryCount { get; set; } = 5;
 
         /// <summary>
-        /// 是否进入死信队列
+        /// 是否进入死信队列，默认true
         /// </summary>
         public bool IsDeadLetter { get; set; } = true;
 
         /// <summary>
-        /// 死信交换机生存时间
+        /// 消息过期时间，默认10天，单位ms
         /// </summary>
         public int MessageTTL { get; set; } = 864000000;
     }
