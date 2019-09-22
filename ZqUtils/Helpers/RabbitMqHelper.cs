@@ -497,9 +497,9 @@ namespace ZqUtils.Helpers
             {
                 arguments = new Dictionary<string, object>
                 {
-                    ["x-dead-letter-exchange"] = $"DeadLetterExchange",
+                    ["x-dead-letter-exchange"] = "deadletter.default.router",
                     ["x-message-ttl"] = attribute.MessageTTL,
-                    ["x-dead-letter-routing-key"] = $"{routingKey}@DeadLetter"
+                    ["x-dead-letter-routing-key"] = $"{routingKey.ToLower()}.deadletter"
                 };
             }
             Publish(exchange, queue, routingKey, body, exchangeType, durable, arguments);
@@ -549,10 +549,10 @@ namespace ZqUtils.Helpers
             if (attribute == null)
                 throw new ArgumentException("RabbitMqAttribute Is Null!");
 
-            //死信交换机写死：DeadLetterExchange
+            //死信交换机写死：deadletter.default.router
             var deadLetterExchange = attribute.ExchangeName;
-            var deadLetterQueue = attribute.QueueName.Replace("{queue}", queue);
-            var deadLetterRoutingKey = attribute.RoutingKey.Replace("{routingkey}", queue);
+            var deadLetterQueue = attribute.QueueName.Replace("{queue}", $"{queue.ToLower()}.{(ex != null ? "error" : "fail")}");
+            var deadLetterRoutingKey = attribute.RoutingKey.Replace("{routingkey}", queue.ToLower());
 
             //死信队列内容
             var deadLetterBody = new DeadLetterQueue
@@ -824,13 +824,13 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 死信交换机生存时间
         /// </summary>
-        public int MessageTTL { get; set; } = 300 * 1000;
+        public int MessageTTL { get; set; } = 864000000;
     }
 
     /// <summary>
     /// 死信队列实体
     /// </summary>
-    [RabbitMq("{queue}@DeadLetter", ExchangeName = "DeadLetterExchange", RoutingKey = "{routingkey}@DeadLetter")]
+    [RabbitMq("{queue}", ExchangeName = "deadletter.default.router", RoutingKey = "{routingkey}.deadletter")]
     public class DeadLetterQueue
     {
         /// <summary>
