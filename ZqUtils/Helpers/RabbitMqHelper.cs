@@ -17,8 +17,9 @@
 #endregion
 
 using System;
-using System.Collections.Concurrent;
+using System.Linq;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using ZqUtils.Extensions;
@@ -139,7 +140,7 @@ namespace ZqUtils.Helpers
         {
             return ChannelDic.GetOrAdd(queue, key =>
             {
-                var channel = _conn.CreateModel();
+                var channel = GetChannel();
                 //声明交换机
                 ExchangeDeclare(channel, exchange, exchangeType, durable, arguments: exchangeArguments);
                 //声明队列
@@ -161,7 +162,7 @@ namespace ZqUtils.Helpers
         {
             return ChannelDic.GetOrAdd(queue, key =>
             {
-                var channel = _conn.CreateModel();
+                var channel = GetChannel();
                 //设置每次预取数量
                 channel.BasicQos(0, prefetchCount, false);
                 ChannelDic[queue] = channel;
@@ -174,7 +175,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 声明交换机
         /// </summary>
-        /// <param name="channel">通道</param>
+        /// <param name="channel">管道</param>
         /// <param name="exchange">交换机名称</param>
         /// <param name="exchangeType">交换机类型：
         /// 1、Direct Exchange – 处理路由键。需要将一个队列绑定到交换机上，要求该消息与一个特定的路由键完全
@@ -197,13 +198,13 @@ namespace ZqUtils.Helpers
             bool autoDelete = false,
             IDictionary<string, object> arguments = null)
         {
-            (channel ?? _conn.CreateModel()).ExchangeDeclare(exchange, exchangeType, durable, autoDelete, arguments);
+            (channel ?? GetChannel()).ExchangeDeclare(exchange, exchangeType, durable, autoDelete, arguments);
         }
 
         /// <summary>
         /// 声明交换机
         /// </summary>
-        /// <param name="channel">通道</param>
+        /// <param name="channel">管道</param>
         /// <param name="exchange">交换机名称</param>
         /// <param name="exchangeType">交换机类型：
         /// 1、Direct Exchange – 处理路由键。需要将一个队列绑定到交换机上，要求该消息与一个特定的路由键完全
@@ -226,13 +227,13 @@ namespace ZqUtils.Helpers
             bool autoDelete = false,
             IDictionary<string, object> arguments = null)
         {
-            (channel ?? _conn.CreateModel()).ExchangeDeclareNoWait(exchange, exchangeType, durable, autoDelete, arguments);
+            (channel ?? GetChannel()).ExchangeDeclareNoWait(exchange, exchangeType, durable, autoDelete, arguments);
         }
 
         /// <summary>
         /// 删除交换机
         /// </summary>
-        /// <param name="channel">通道</param>
+        /// <param name="channel">管道</param>
         /// <param name="exchange">交换机名称</param>
         /// <param name="ifUnused">是否没有被使用</param>
         public void ExchangeDelete(
@@ -240,13 +241,13 @@ namespace ZqUtils.Helpers
             string exchange,
             bool ifUnused = false)
         {
-            (channel ?? _conn.CreateModel()).ExchangeDelete(exchange, ifUnused);
+            (channel ?? GetChannel()).ExchangeDelete(exchange, ifUnused);
         }
 
         /// <summary>
         /// 删除交换机
         /// </summary>
-        /// <param name="channel">通道</param>
+        /// <param name="channel">管道</param>
         /// <param name="exchange">交换机名称</param>
         /// <param name="ifUnused">是否没有被使用</param>
         public void ExchangeDeleteNoWait(
@@ -254,13 +255,13 @@ namespace ZqUtils.Helpers
             string exchange,
             bool ifUnused = false)
         {
-            (channel ?? _conn.CreateModel()).ExchangeDeleteNoWait(exchange, ifUnused);
+            (channel ?? GetChannel()).ExchangeDeleteNoWait(exchange, ifUnused);
         }
 
         /// <summary>
         /// 绑定交换机
         /// </summary>
-        /// <param name="channel">通道</param>
+        /// <param name="channel">管道</param>
         /// <param name="destinationExchange">目标交换机</param>
         /// <param name="sourceExchange">源交换机</param>
         /// <param name="routingKey">路由键</param>
@@ -272,13 +273,13 @@ namespace ZqUtils.Helpers
             string routingKey,
             IDictionary<string, object> arguments = null)
         {
-            (channel ?? _conn.CreateModel()).ExchangeBind(destinationExchange, sourceExchange, routingKey, arguments);
+            (channel ?? GetChannel()).ExchangeBind(destinationExchange, sourceExchange, routingKey, arguments);
         }
 
         /// <summary>
         /// 绑定交换机
         /// </summary>
-        /// <param name="channel">通道</param>
+        /// <param name="channel">管道</param>
         /// <param name="destinationExchange">目标交换机</param>
         /// <param name="sourceExchange">源交换机</param>
         /// <param name="routingKey">路由键</param>
@@ -290,13 +291,13 @@ namespace ZqUtils.Helpers
             string routingKey,
             IDictionary<string, object> arguments = null)
         {
-            (channel ?? _conn.CreateModel()).ExchangeBindNoWait(destinationExchange, sourceExchange, routingKey, arguments);
+            (channel ?? GetChannel()).ExchangeBindNoWait(destinationExchange, sourceExchange, routingKey, arguments);
         }
 
         /// <summary>
         /// 解绑交换机
         /// </summary>
-        /// <param name="channel">通道</param>
+        /// <param name="channel">管道</param>
         /// <param name="destinationExchange">目标交换机</param>
         /// <param name="sourceExchange">源交换机</param>
         /// <param name="routingKey">路由键</param>
@@ -308,13 +309,13 @@ namespace ZqUtils.Helpers
             string routingKey,
             IDictionary<string, object> arguments = null)
         {
-            (channel ?? _conn.CreateModel()).ExchangeUnbind(destinationExchange, sourceExchange, routingKey, arguments);
+            (channel ?? GetChannel()).ExchangeUnbind(destinationExchange, sourceExchange, routingKey, arguments);
         }
 
         /// <summary>
         /// 解绑交换机
         /// </summary>
-        /// <param name="channel">通道</param>
+        /// <param name="channel">管道</param>
         /// <param name="destinationExchange">目标交换机</param>
         /// <param name="sourceExchange">源交换机</param>
         /// <param name="routingKey">路由键</param>
@@ -326,7 +327,7 @@ namespace ZqUtils.Helpers
             string routingKey,
             IDictionary<string, object> arguments = null)
         {
-            (channel ?? _conn.CreateModel()).ExchangeUnbindNoWait(destinationExchange, sourceExchange, routingKey, arguments);
+            (channel ?? GetChannel()).ExchangeUnbindNoWait(destinationExchange, sourceExchange, routingKey, arguments);
         }
         #endregion
 
@@ -334,7 +335,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 声明队列
         /// </summary>
-        /// <param name="channel">通道</param>
+        /// <param name="channel">管道</param>
         /// <param name="queue">队列名称</param>
         /// <param name="durable">持久化</param>
         /// <param name="exclusive">排他队列，如果一个队列被声明为排他队列，该队列仅对首次声明它的连接可见，
@@ -352,13 +353,13 @@ namespace ZqUtils.Helpers
             bool autoDelete = false,
             IDictionary<string, object> arguments = null)
         {
-            (channel ?? _conn.CreateModel()).QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
+            (channel ?? GetChannel()).QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
         }
 
         /// <summary>
         /// 声明队列
         /// </summary>
-        /// <param name="channel">通道</param>
+        /// <param name="channel">管道</param>
         /// <param name="queue">队列名称</param>
         /// <param name="durable">持久化</param>
         /// <param name="exclusive">排他队列，如果一个队列被声明为排他队列，该队列仅对首次声明它的连接可见，
@@ -376,29 +377,30 @@ namespace ZqUtils.Helpers
             bool autoDelete = false,
             IDictionary<string, object> arguments = null)
         {
-            (channel ?? _conn.CreateModel()).QueueDeclareNoWait(queue, durable, exclusive, autoDelete, arguments);
+            (channel ?? GetChannel()).QueueDeclareNoWait(queue, durable, exclusive, autoDelete, arguments);
         }
 
         /// <summary>
         /// 删除队列
         /// </summary>
-        /// <param name="channel">通道</param>
+        /// <param name="channel">管道</param>
         /// <param name="queue">队列名称</param>
         /// <param name="ifUnused">是否没有被使用</param>
         /// <param name="ifEmpty">是否为空</param>
-        public void QueueDelete(
+        /// <returns></returns>
+        public uint QueueDelete(
             IModel channel,
             string queue,
             bool ifUnused = false,
             bool ifEmpty = false)
         {
-            (channel ?? _conn.CreateModel()).QueueDelete(queue, ifUnused, ifEmpty);
+            return (channel ?? GetChannel()).QueueDelete(queue, ifUnused, ifEmpty);
         }
 
         /// <summary>
         /// 删除队列
         /// </summary>
-        /// <param name="channel">通道</param>
+        /// <param name="channel">管道</param>
         /// <param name="queue">队列名称</param>
         /// <param name="ifUnused">是否没有被使用</param>
         /// <param name="ifEmpty">是否为空</param>
@@ -408,13 +410,13 @@ namespace ZqUtils.Helpers
             bool ifUnused = false,
             bool ifEmpty = false)
         {
-            (channel ?? _conn.CreateModel()).QueueDeleteNoWait(queue, ifUnused, ifEmpty);
+            (channel ?? GetChannel()).QueueDeleteNoWait(queue, ifUnused, ifEmpty);
         }
 
         /// <summary>
         /// 绑定队列
         /// </summary>
-        /// <param name="channel">通道</param>
+        /// <param name="channel">管道</param>
         /// <param name="exchange">交换机名称</param>
         /// <param name="queue">队列名称</param>
         /// <param name="routingKey">路由键</param>
@@ -426,13 +428,13 @@ namespace ZqUtils.Helpers
             string routingKey,
             IDictionary<string, object> arguments = null)
         {
-            (channel ?? _conn.CreateModel()).QueueBind(queue, exchange, routingKey, arguments);
+            (channel ?? GetChannel()).QueueBind(queue, exchange, routingKey, arguments);
         }
 
         /// <summary>
         /// 绑定队列
         /// </summary>
-        /// <param name="channel">通道</param>
+        /// <param name="channel">管道</param>
         /// <param name="exchange">交换机名称</param>
         /// <param name="queue">队列名称</param>
         /// <param name="routingKey">路由键</param>
@@ -444,13 +446,13 @@ namespace ZqUtils.Helpers
             string routingKey,
             IDictionary<string, object> arguments = null)
         {
-            (channel ?? _conn.CreateModel()).QueueBindNoWait(queue, exchange, routingKey, arguments);
+            (channel ?? GetChannel()).QueueBindNoWait(queue, exchange, routingKey, arguments);
         }
 
         /// <summary>
         /// 解绑队列
         /// </summary>
-        /// <param name="channel">通道</param>
+        /// <param name="channel">管道</param>
         /// <param name="exchange">交换机名称</param>
         /// <param name="queue">队列名称</param>
         /// <param name="routingKey">路由键</param>
@@ -462,17 +464,17 @@ namespace ZqUtils.Helpers
             string routingKey,
             IDictionary<string, object> arguments = null)
         {
-            (channel ?? _conn.CreateModel()).QueueUnbind(queue, exchange, routingKey, arguments);
+            (channel ?? GetChannel()).QueueUnbind(queue, exchange, routingKey, arguments);
         }
 
         /// <summary>
         /// 清除队列
         /// </summary>
-        /// <param name="channel">通道</param>
+        /// <param name="channel">管道</param>
         /// <param name="queue">队列名称</param>
         public void QueuePurge(IModel channel, string queue)
         {
-            (channel ?? _conn.CreateModel()).QueuePurge(queue);
+            (channel ?? GetChannel()).QueuePurge(queue);
         }
         #endregion
 
@@ -482,12 +484,8 @@ namespace ZqUtils.Helpers
         /// </summary>
         /// <param name="command">消息指令</param>
         /// <param name="confirm">消息发送确认</param>
-        /// <param name="handler">消息发送失败处理委托，仅当消息发送确认启用时生效</param>
         /// <returns></returns>
-        public void Publish<T>(
-            T command,
-            bool confirm = false,
-            Action handler = null) where T : class
+        public bool Publish<T>(T command, bool confirm = false) where T : class
         {
             var attribute = typeof(T).GetAttribute<RabbitMqAttribute>();
 
@@ -501,18 +499,70 @@ namespace ZqUtils.Helpers
             var routingKey = attribute.RoutingKey;
             var durable = attribute.Durable;
             var isDeadLetter = attribute.IsDeadLetter;
-            //是否设置死信队列
             Dictionary<string, object> arguments = null;
+            //设置死信队列
             if (isDeadLetter)
             {
                 arguments = new Dictionary<string, object>
                 {
                     ["x-dead-letter-exchange"] = DeadLetterExchange ?? typeof(DeadLetterQueue).GetAttribute<RabbitMqAttribute>().ExchangeName,
-                    ["x-message-ttl"] = attribute.MessageTTL,
                     ["x-dead-letter-routing-key"] = $"{routingKey.ToLower()}.deadletter"
                 };
             }
-            Publish(exchange, queue, routingKey, body, exchangeType, durable, confirm, handler, arguments);
+            //设置消息过期时间
+            if (attribute.MessageTTL != null)
+            {
+                if (arguments == null)
+                {
+                    arguments = new Dictionary<string, object>();
+                }
+                arguments["x-message-ttl"] = attribute.MessageTTL;
+            }
+            //发送消息
+            return Publish(exchange, queue, routingKey, body, exchangeType, durable, confirm, arguments);
+        }
+
+        /// <summary>
+        /// 发布消息
+        /// </summary>
+        /// <param name="command">消息指令</param>
+        /// <param name="confirm">消息发送确认</param>
+        /// <returns></returns>
+        public bool Publish<T>(IEnumerable<T> command, bool confirm = false) where T : class
+        {
+            var attribute = typeof(T).GetAttribute<RabbitMqAttribute>();
+
+            if (attribute == null)
+                throw new ArgumentException("RabbitMqAttribute Is Null!");
+
+            var body = command.Select(x => x.ToJson());
+            var exchange = attribute.ExchangeName;
+            var exchangeType = attribute.ExchangeType;
+            var queue = attribute.QueueName;
+            var routingKey = attribute.RoutingKey;
+            var durable = attribute.Durable;
+            var isDeadLetter = attribute.IsDeadLetter;
+            Dictionary<string, object> arguments = null;
+            //设置死信队列
+            if (isDeadLetter)
+            {
+                arguments = new Dictionary<string, object>
+                {
+                    ["x-dead-letter-exchange"] = DeadLetterExchange ?? typeof(DeadLetterQueue).GetAttribute<RabbitMqAttribute>().ExchangeName,
+                    ["x-dead-letter-routing-key"] = $"{routingKey.ToLower()}.deadletter"
+                };
+            }
+            //设置消息过期时间
+            if (attribute.MessageTTL != null)
+            {
+                if (arguments == null)
+                {
+                    arguments = new Dictionary<string, object>();
+                }
+                arguments["x-message-ttl"] = attribute.MessageTTL;
+            }
+            //发送消息
+            return Publish(exchange, queue, routingKey, body, exchangeType, durable, confirm, arguments);
         }
 
         /// <summary>
@@ -525,10 +575,10 @@ namespace ZqUtils.Helpers
         /// <param name="exchangeType">交换机类型</param>
         /// <param name="durable">持久化</param>
         /// <param name="confirm">消息发送确认</param>
-        /// <param name="handler">消息发送失败处理委托，仅当消息发送确认启用时生效</param>
         /// <param name="queueArguments">队列参数</param>
         /// <param name="exchangeArguments">交换机参数</param>
-        public void Publish(
+        /// <returns></returns>
+        public bool Publish(
             string exchange,
             string queue,
             string routingKey,
@@ -536,7 +586,6 @@ namespace ZqUtils.Helpers
             string exchangeType = ExchangeType.Direct,
             bool durable = true,
             bool confirm = false,
-            Action handler = null,
             IDictionary<string, object> queueArguments = null,
             IDictionary<string, object> exchangeArguments = null)
         {
@@ -549,12 +598,60 @@ namespace ZqUtils.Helpers
             {
                 channel.ConfirmSelect();
             }
+            //发送消息
             channel.BasicPublish(exchange, routingKey, props, body.SerializeUtf8());
             //消息发送失败处理
             if (confirm && !channel.WaitForConfirms())
             {
-                handler?.Invoke();
+                return false;
             }
+            return true;
+        }
+
+        /// <summary>
+        /// 发布消息
+        /// </summary>
+        /// <param name="exchange">交换机名称</param>
+        /// <param name="queue">队列名称</param>
+        /// <param name="routingKey">路由键</param>
+        /// <param name="body">消息内容</param>
+        /// <param name="exchangeType">交换机类型</param>
+        /// <param name="durable">持久化</param>
+        /// <param name="confirm">消息发送确认</param>
+        /// <param name="queueArguments">队列参数</param>
+        /// <param name="exchangeArguments">交换机参数</param>
+        /// <returns></returns>
+        public bool Publish(
+            string exchange,
+            string queue,
+            string routingKey,
+            IEnumerable<string> body,
+            string exchangeType = ExchangeType.Direct,
+            bool durable = true,
+            bool confirm = false,
+            IDictionary<string, object> queueArguments = null,
+            IDictionary<string, object> exchangeArguments = null)
+        {
+            var channel = GetChannel(exchange, queue, routingKey, exchangeType, durable, queueArguments, exchangeArguments);
+            var props = channel.CreateBasicProperties();
+            //持久化
+            props.Persistent = durable;
+            //是否启用消息发送确认机制
+            if (confirm)
+            {
+                channel.ConfirmSelect();
+            }
+            //发送消息
+            foreach (var item in body)
+            {
+                channel.BasicPublish(exchange, routingKey, props, item.SerializeUtf8());
+            }
+            //消息发送失败处理
+            if (confirm && !channel.WaitForConfirms())
+            {
+                return false;
+            }
+            return true;
         }
 
         /// <summary>
@@ -564,7 +661,8 @@ namespace ZqUtils.Helpers
         /// <param name="body">消息内容</param>
         /// <param name="ex">异常</param>
         /// <param name="retryCount">重试次数</param>
-        private void PublishToDead<T>(
+        /// <returns></returns>
+        private bool PublishToDead<T>(
             string queue,
             string body,
             Exception ex,
@@ -591,7 +689,7 @@ namespace ZqUtils.Helpers
                 Exchange = deadLetterExchange,
                 RetryCount = retryCount
             };
-            Publish(deadLetterExchange, deadLetterQueue, deadLetterRoutingKey, deadLetterBody.ToJson());
+            return Publish(deadLetterExchange, deadLetterQueue, deadLetterRoutingKey, deadLetterBody.ToJson());
         }
         #endregion
 
@@ -724,6 +822,17 @@ namespace ZqUtils.Helpers
                 channel.BasicAck(result.DeliveryTag, false);
             }
         }
+
+        /// <summary>
+        /// 获取消息数量
+        /// </summary>
+        /// <param name="channel">管道</param>
+        /// <param name="queue">队列名称</param>
+        /// <returns></returns>
+        public uint GetMessageCount(IModel channel, string queue)
+        {
+            return (channel ?? GetChannel()).MessageCount(queue);
+        }
         #endregion
 
         #region 释放资源
@@ -842,9 +951,9 @@ namespace ZqUtils.Helpers
         public bool IsDeadLetter { get; set; } = true;
 
         /// <summary>
-        /// 消息过期时间，默认10天，单位ms
+        /// 消息过期时间，单位ms
         /// </summary>
-        public int MessageTTL { get; set; } = 864000000;
+        public int? MessageTTL { get; set; }
     }
 
     /// <summary>
