@@ -485,8 +485,9 @@ namespace ZqUtils.Helpers
         /// <param name="command">消息指令</param>
         /// <param name="confirm">消息发送确认</param>
         /// <param name="expiration">单个消息过期时间，单位ms</param>
+        /// <param name="priority">单个消息优先级，数值越大优先级越高，取值范围：0-9</param>
         /// <returns></returns>
-        public bool Publish<T>(T command, bool confirm = false, string expiration = null) where T : class
+        public bool Publish<T>(T command, bool confirm = false, string expiration = null, byte? priority = null) where T : class
         {
             var attribute = typeof(T).GetAttribute<RabbitMqAttribute>();
 
@@ -507,18 +508,33 @@ namespace ZqUtils.Helpers
                 arguments["x-dead-letter-exchange"] = DeadLetterExchange ?? typeof(DeadLetterQueue).GetAttribute<RabbitMqAttribute>().ExchangeName;
                 arguments["x-dead-letter-routing-key"] = $"{routingKey.ToLower()}.deadletter";
             }
-            //设置消息过期时间
+            //设置队列消息过期时间，指整个队列的所有消息
             if (attribute.MessageTTL > 0)
             {
                 arguments["x-message-ttl"] = attribute.MessageTTL;
             }
-            //设置惰性模式
-            if (!attribute.LazyMode.IsNullOrEmpty())
+            //设置队列惰性模式
+            if (attribute.LazyMode == "default" || attribute.LazyMode == "lazy")
             {
                 arguments["x-queue-mode"] = attribute.LazyMode;
             }
+            //设置队列最大长度
+            if (attribute.MaxLength > 0)
+            {
+                arguments["x-max-length"] = attribute.MaxLength;
+            }
+            //设置队列占用最大空间
+            if (attribute.MaxLengthBytes > 0)
+            {
+                arguments["x-max-length-bytes"] = attribute.MaxLengthBytes;
+            }
+            //设置队列优先级
+            if (attribute.MaximumPriority >= 1 && attribute.MaximumPriority <= 10)
+            {
+                arguments["x-max-priority"] = attribute.MaximumPriority;
+            }
             //发送消息
-            return Publish(exchange, queue, routingKey, body, exchangeType, durable, confirm, expiration, arguments);
+            return Publish(exchange, queue, routingKey, body, exchangeType, durable, confirm, expiration, priority, arguments);
         }
 
         /// <summary>
@@ -527,8 +543,9 @@ namespace ZqUtils.Helpers
         /// <param name="command">消息指令</param>
         /// <param name="confirm">消息发送确认</param>
         /// <param name="expiration">单个消息过期时间，单位ms</param>
+        /// <param name="priority">单个消息优先级，数值越大优先级越高，取值范围：0-9</param>
         /// <returns></returns>
-        public bool Publish<T>(IEnumerable<T> command, bool confirm = false, string expiration = null) where T : class
+        public bool Publish<T>(IEnumerable<T> command, bool confirm = false, string expiration = null, byte? priority = null) where T : class
         {
             var attribute = typeof(T).GetAttribute<RabbitMqAttribute>();
 
@@ -549,18 +566,33 @@ namespace ZqUtils.Helpers
                 arguments["x-dead-letter-exchange"] = DeadLetterExchange ?? typeof(DeadLetterQueue).GetAttribute<RabbitMqAttribute>().ExchangeName;
                 arguments["x-dead-letter-routing-key"] = $"{routingKey.ToLower()}.deadletter";
             }
-            //设置消息过期时间
+            //设置队列消息过期时间，指整个队列的所有消息
             if (attribute.MessageTTL > 0)
             {
                 arguments["x-message-ttl"] = attribute.MessageTTL;
             }
-            //设置惰性模式
-            if (!attribute.LazyMode.IsNullOrEmpty())
+            //设置队列惰性模式
+            if (attribute.LazyMode == "default" || attribute.LazyMode == "lazy")
             {
                 arguments["x-queue-mode"] = attribute.LazyMode;
             }
+            //设置队列最大长度
+            if (attribute.MaxLength > 0)
+            {
+                arguments["x-max-length"] = attribute.MaxLength;
+            }
+            //设置队列占用最大空间
+            if (attribute.MaxLengthBytes > 0)
+            {
+                arguments["x-max-length-bytes"] = attribute.MaxLengthBytes;
+            }
+            //设置队列优先级
+            if (attribute.MaximumPriority >= 1 && attribute.MaximumPriority <= 10)
+            {
+                arguments["x-max-priority"] = attribute.MaximumPriority;
+            }
             //发送消息
-            return Publish(exchange, queue, routingKey, body, exchangeType, durable, confirm, expiration, arguments);
+            return Publish(exchange, queue, routingKey, body, exchangeType, durable, confirm, expiration, priority, arguments);
         }
 
         /// <summary>
@@ -574,6 +606,7 @@ namespace ZqUtils.Helpers
         /// <param name="durable">持久化</param>
         /// <param name="confirm">消息发送确认</param>
         /// <param name="expiration">单个消息过期时间，单位ms</param>
+        /// <param name="priority">单个消息优先级，数值越大优先级越高，取值范围：0-9</param>
         /// <param name="queueArguments">队列参数</param>
         /// <param name="exchangeArguments">交换机参数</param>
         /// <returns></returns>
@@ -586,6 +619,7 @@ namespace ZqUtils.Helpers
             bool durable = true,
             bool confirm = false,
             string expiration = null,
+            byte? priority = null,
             IDictionary<string, object> queueArguments = null,
             IDictionary<string, object> exchangeArguments = null)
         {
@@ -597,6 +631,11 @@ namespace ZqUtils.Helpers
             if (!expiration.IsNullOrEmpty())
             {
                 props.Expiration = expiration;
+            }
+            //单个消息优先级
+            if (priority >= 0 && priority <= 9)
+            {
+                props.Priority = priority.Value;
             }
             //是否启用消息发送确认机制
             if (confirm)
@@ -624,6 +663,7 @@ namespace ZqUtils.Helpers
         /// <param name="durable">持久化</param>
         /// <param name="confirm">消息发送确认</param>
         /// <param name="expiration">单个消息过期时间，单位ms</param>
+        /// <param name="priority">单个消息优先级，数值越大优先级越高，取值范围：0-9</param>
         /// <param name="queueArguments">队列参数</param>
         /// <param name="exchangeArguments">交换机参数</param>
         /// <returns></returns>
@@ -636,6 +676,7 @@ namespace ZqUtils.Helpers
             bool durable = true,
             bool confirm = false,
             string expiration = null,
+            byte? priority = null,
             IDictionary<string, object> queueArguments = null,
             IDictionary<string, object> exchangeArguments = null)
         {
@@ -647,6 +688,11 @@ namespace ZqUtils.Helpers
             if (!expiration.IsNullOrEmpty())
             {
                 props.Expiration = expiration;
+            }
+            //单个消息优先级
+            if (priority >= 0 && priority <= 9)
+            {
+                props.Priority = priority.Value;
             }
             //是否启用消息发送确认机制
             if (confirm)
@@ -870,7 +916,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 主机名
         /// </summary>
-        public string HostName { get; set; } = "127.0.0.1";
+        public string HostName { get; set; } = "localhost";
 
         /// <summary>
         /// 心跳时间
@@ -968,9 +1014,24 @@ namespace ZqUtils.Helpers
         public int MessageTTL { get; set; }
 
         /// <summary>
-        /// 惰性模式，默认：default，惰性队列设置：x-queue-mode:lazy
+        /// 队列惰性模式，可选值：default或者lazy
         /// </summary>
         public string LazyMode { get; set; }
+
+        /// <summary>
+        /// 队列最大长度
+        /// </summary>
+        public int MaxLength { get; set; }
+
+        /// <summary>
+        /// 队列占用的最大空间
+        /// </summary>
+        public int MaxLengthBytes { get; set; }
+
+        /// <summary>
+        /// 队列最大优先级，数值越大优先级越高，范围1-255，建议取值1-10
+        /// </summary>
+        public int MaximumPriority { get; set; }
     }
 
     /// <summary>
