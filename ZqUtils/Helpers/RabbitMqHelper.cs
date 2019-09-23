@@ -484,8 +484,9 @@ namespace ZqUtils.Helpers
         /// </summary>
         /// <param name="command">消息指令</param>
         /// <param name="confirm">消息发送确认</param>
+        /// <param name="expiration">单个消息过期时间，单位ms</param>
         /// <returns></returns>
-        public bool Publish<T>(T command, bool confirm = false) where T : class
+        public bool Publish<T>(T command, bool confirm = false, string expiration = null) where T : class
         {
             var attribute = typeof(T).GetAttribute<RabbitMqAttribute>();
 
@@ -519,7 +520,7 @@ namespace ZqUtils.Helpers
                 arguments["x-message-ttl"] = attribute.MessageTTL;
             }
             //发送消息
-            return Publish(exchange, queue, routingKey, body, exchangeType, durable, confirm, arguments);
+            return Publish(exchange, queue, routingKey, body, exchangeType, durable, confirm, expiration, arguments);
         }
 
         /// <summary>
@@ -527,8 +528,9 @@ namespace ZqUtils.Helpers
         /// </summary>
         /// <param name="command">消息指令</param>
         /// <param name="confirm">消息发送确认</param>
+        /// <param name="expiration">单个消息过期时间，单位ms</param>
         /// <returns></returns>
-        public bool Publish<T>(IEnumerable<T> command, bool confirm = false) where T : class
+        public bool Publish<T>(IEnumerable<T> command, bool confirm = false, string expiration = null) where T : class
         {
             var attribute = typeof(T).GetAttribute<RabbitMqAttribute>();
 
@@ -562,7 +564,7 @@ namespace ZqUtils.Helpers
                 arguments["x-message-ttl"] = attribute.MessageTTL;
             }
             //发送消息
-            return Publish(exchange, queue, routingKey, body, exchangeType, durable, confirm, arguments);
+            return Publish(exchange, queue, routingKey, body, exchangeType, durable, confirm, expiration, arguments);
         }
 
         /// <summary>
@@ -575,6 +577,7 @@ namespace ZqUtils.Helpers
         /// <param name="exchangeType">交换机类型</param>
         /// <param name="durable">持久化</param>
         /// <param name="confirm">消息发送确认</param>
+        /// <param name="expiration">单个消息过期时间，单位ms</param>
         /// <param name="queueArguments">队列参数</param>
         /// <param name="exchangeArguments">交换机参数</param>
         /// <returns></returns>
@@ -586,6 +589,7 @@ namespace ZqUtils.Helpers
             string exchangeType = ExchangeType.Direct,
             bool durable = true,
             bool confirm = false,
+            string expiration = null,
             IDictionary<string, object> queueArguments = null,
             IDictionary<string, object> exchangeArguments = null)
         {
@@ -593,6 +597,11 @@ namespace ZqUtils.Helpers
             var props = channel.CreateBasicProperties();
             //持久化
             props.Persistent = durable;
+            //单个消息过期时间
+            if (!expiration.IsNullOrEmpty())
+            {
+                props.Expiration = expiration;
+            }
             //是否启用消息发送确认机制
             if (confirm)
             {
@@ -618,6 +627,7 @@ namespace ZqUtils.Helpers
         /// <param name="exchangeType">交换机类型</param>
         /// <param name="durable">持久化</param>
         /// <param name="confirm">消息发送确认</param>
+        /// <param name="expiration">单个消息过期时间，单位ms</param>
         /// <param name="queueArguments">队列参数</param>
         /// <param name="exchangeArguments">交换机参数</param>
         /// <returns></returns>
@@ -629,6 +639,7 @@ namespace ZqUtils.Helpers
             string exchangeType = ExchangeType.Direct,
             bool durable = true,
             bool confirm = false,
+            string expiration = null,
             IDictionary<string, object> queueArguments = null,
             IDictionary<string, object> exchangeArguments = null)
         {
@@ -636,6 +647,11 @@ namespace ZqUtils.Helpers
             var props = channel.CreateBasicProperties();
             //持久化
             props.Persistent = durable;
+            //单个消息过期时间
+            if (!expiration.IsNullOrEmpty())
+            {
+                props.Expiration = expiration;
+            }
             //是否启用消息发送确认机制
             if (confirm)
             {
