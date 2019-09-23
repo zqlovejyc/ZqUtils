@@ -510,7 +510,7 @@ namespace ZqUtils.Helpers
                 };
             }
             //设置消息过期时间
-            if (attribute.MessageTTL != null)
+            if (attribute.MessageTTL > 0)
             {
                 if (arguments == null)
                 {
@@ -553,7 +553,7 @@ namespace ZqUtils.Helpers
                 };
             }
             //设置消息过期时间
-            if (attribute.MessageTTL != null)
+            if (attribute.MessageTTL > 0)
             {
                 if (arguments == null)
                 {
@@ -953,7 +953,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 消息过期时间，单位ms
         /// </summary>
-        public int? MessageTTL { get; set; }
+        public int MessageTTL { get; set; }
     }
 
     /// <summary>
