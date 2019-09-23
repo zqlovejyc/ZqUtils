@@ -500,24 +500,22 @@ namespace ZqUtils.Helpers
             var routingKey = attribute.RoutingKey;
             var durable = attribute.Durable;
             var isDeadLetter = attribute.IsDeadLetter;
-            Dictionary<string, object> arguments = null;
+            var arguments = new Dictionary<string, object>();
             //设置死信队列
             if (isDeadLetter)
             {
-                arguments = new Dictionary<string, object>
-                {
-                    ["x-dead-letter-exchange"] = DeadLetterExchange ?? typeof(DeadLetterQueue).GetAttribute<RabbitMqAttribute>().ExchangeName,
-                    ["x-dead-letter-routing-key"] = $"{routingKey.ToLower()}.deadletter"
-                };
+                arguments["x-dead-letter-exchange"] = DeadLetterExchange ?? typeof(DeadLetterQueue).GetAttribute<RabbitMqAttribute>().ExchangeName;
+                arguments["x-dead-letter-routing-key"] = $"{routingKey.ToLower()}.deadletter";
             }
             //设置消息过期时间
             if (attribute.MessageTTL > 0)
             {
-                if (arguments == null)
-                {
-                    arguments = new Dictionary<string, object>();
-                }
                 arguments["x-message-ttl"] = attribute.MessageTTL;
+            }
+            //设置惰性模式
+            if (!attribute.LazyMode.IsNullOrEmpty())
+            {
+                arguments["x-queue-mode"] = attribute.LazyMode;
             }
             //发送消息
             return Publish(exchange, queue, routingKey, body, exchangeType, durable, confirm, expiration, arguments);
@@ -544,24 +542,22 @@ namespace ZqUtils.Helpers
             var routingKey = attribute.RoutingKey;
             var durable = attribute.Durable;
             var isDeadLetter = attribute.IsDeadLetter;
-            Dictionary<string, object> arguments = null;
+            var arguments = new Dictionary<string, object>();
             //设置死信队列
             if (isDeadLetter)
             {
-                arguments = new Dictionary<string, object>
-                {
-                    ["x-dead-letter-exchange"] = DeadLetterExchange ?? typeof(DeadLetterQueue).GetAttribute<RabbitMqAttribute>().ExchangeName,
-                    ["x-dead-letter-routing-key"] = $"{routingKey.ToLower()}.deadletter"
-                };
+                arguments["x-dead-letter-exchange"] = DeadLetterExchange ?? typeof(DeadLetterQueue).GetAttribute<RabbitMqAttribute>().ExchangeName;
+                arguments["x-dead-letter-routing-key"] = $"{routingKey.ToLower()}.deadletter";
             }
             //设置消息过期时间
             if (attribute.MessageTTL > 0)
             {
-                if (arguments == null)
-                {
-                    arguments = new Dictionary<string, object>();
-                }
                 arguments["x-message-ttl"] = attribute.MessageTTL;
+            }
+            //设置惰性模式
+            if (!attribute.LazyMode.IsNullOrEmpty())
+            {
+                arguments["x-queue-mode"] = attribute.LazyMode;
             }
             //发送消息
             return Publish(exchange, queue, routingKey, body, exchangeType, durable, confirm, expiration, arguments);
@@ -967,9 +963,14 @@ namespace ZqUtils.Helpers
         public bool IsDeadLetter { get; set; } = true;
 
         /// <summary>
-        /// 消息过期时间，单位ms
+        /// 队列消息过期时间，单位ms
         /// </summary>
         public int MessageTTL { get; set; }
+
+        /// <summary>
+        /// 惰性模式，默认：default，惰性队列设置：x-queue-mode:lazy
+        /// </summary>
+        public string LazyMode { get; set; }
     }
 
     /// <summary>
