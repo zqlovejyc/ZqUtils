@@ -54,9 +54,9 @@ namespace ZqUtils.Helpers
 
         #region 公有属性
         /// <summary>
-        /// 死信交换机，默认：deadletter.default.router
+        /// 默认死信交换机，默认值：deadletter.default.router
         /// </summary>
-        public string DeadLetterExchange { get; set; } = "deadletter.default.router";
+        public string DefaultDeadLetterExchange { get; set; } = "deadletter.default.router";
         #endregion
 
         #region 构造函数
@@ -490,33 +490,22 @@ namespace ZqUtils.Helpers
         public bool Publish<T>(T command, bool confirm = false, string expiration = null, byte? priority = null) where T : class
         {
             var attribute = typeof(T).GetAttribute<RabbitMqAttribute>();
-
             if (attribute == null)
                 throw new ArgumentException("RabbitMqAttribute Is Null!");
 
+            //消息内容
             var body = command.ToJson();
-            var exchange = attribute.ExchangeName;
-            var exchangeType = attribute.ExchangeType;
-            var queue = attribute.QueueName;
-            var routingKey = attribute.RoutingKey;
-            var durable = attribute.Durable;
-            var isDeadLetter = attribute.IsDeadLetter;
+            //自定义参数
             var arguments = new Dictionary<string, object>();
-            //设置死信队列
-            if (isDeadLetter)
-            {
-                arguments["x-dead-letter-exchange"] = DeadLetterExchange ?? typeof(DeadLetterQueue).GetAttribute<RabbitMqAttribute>().ExchangeName;
-                arguments["x-dead-letter-routing-key"] = $"{routingKey.ToLower()}.deadletter";
-            }
             //设置队列消息过期时间，指整个队列的所有消息
             if (attribute.MessageTTL > 0)
             {
                 arguments["x-message-ttl"] = attribute.MessageTTL;
             }
-            //设置队列惰性模式
-            if (attribute.LazyMode == "default" || attribute.LazyMode == "lazy")
+            //设置队列过期时间
+            if (attribute.AutoExpire > 0)
             {
-                arguments["x-queue-mode"] = attribute.LazyMode;
+                arguments["x-expires"] = attribute.AutoExpire;
             }
             //设置队列最大长度
             if (attribute.MaxLength > 0)
@@ -528,13 +517,38 @@ namespace ZqUtils.Helpers
             {
                 arguments["x-max-length-bytes"] = attribute.MaxLengthBytes;
             }
+            //设置队列溢出行为
+            if (attribute.OverflowBehaviour == "drop-head" || attribute.OverflowBehaviour == "reject-publish")
+            {
+                arguments["x-overflow"] = attribute.OverflowBehaviour;
+            }
+            //设置死信交换机
+            if (!attribute.DeadLetterExchange.IsNullOrEmpty())
+            {
+                arguments["x-dead-letter-exchange"] = attribute.DeadLetterExchange;
+            }
+            //设置死信路由键
+            if (!attribute.DeadLetterRoutingKey.IsNullOrEmpty())
+            {
+                arguments["x-dead-letter-routing-key"] = attribute.DeadLetterRoutingKey;
+            }
             //设置队列优先级
-            if (attribute.MaximumPriority >= 1 && attribute.MaximumPriority <= 10)
+            if (attribute.MaximumPriority > 0 && attribute.MaximumPriority <= 10)
             {
                 arguments["x-max-priority"] = attribute.MaximumPriority;
             }
+            //设置队列惰性模式
+            if (attribute.LazyMode == "default" || attribute.LazyMode == "lazy")
+            {
+                arguments["x-queue-mode"] = attribute.LazyMode;
+            }
+            //设置集群配置
+            if (!attribute.MasterLocator.IsNullOrEmpty())
+            {
+                arguments["x-queue-master-locator"] = attribute.MasterLocator;
+            }
             //发送消息
-            return Publish(exchange, queue, routingKey, body, exchangeType, durable, confirm, expiration, priority, arguments);
+            return Publish(attribute.Exchange, attribute.Queue, attribute.RoutingKey, body, attribute.ExchangeType, attribute.Durable, confirm, expiration, priority, arguments);
         }
 
         /// <summary>
@@ -548,33 +562,22 @@ namespace ZqUtils.Helpers
         public bool Publish<T>(IEnumerable<T> command, bool confirm = false, string expiration = null, byte? priority = null) where T : class
         {
             var attribute = typeof(T).GetAttribute<RabbitMqAttribute>();
-
             if (attribute == null)
                 throw new ArgumentException("RabbitMqAttribute Is Null!");
 
+            //消息内容
             var body = command.Select(x => x.ToJson());
-            var exchange = attribute.ExchangeName;
-            var exchangeType = attribute.ExchangeType;
-            var queue = attribute.QueueName;
-            var routingKey = attribute.RoutingKey;
-            var durable = attribute.Durable;
-            var isDeadLetter = attribute.IsDeadLetter;
+            //自定义参数
             var arguments = new Dictionary<string, object>();
-            //设置死信队列
-            if (isDeadLetter)
-            {
-                arguments["x-dead-letter-exchange"] = DeadLetterExchange ?? typeof(DeadLetterQueue).GetAttribute<RabbitMqAttribute>().ExchangeName;
-                arguments["x-dead-letter-routing-key"] = $"{routingKey.ToLower()}.deadletter";
-            }
             //设置队列消息过期时间，指整个队列的所有消息
             if (attribute.MessageTTL > 0)
             {
                 arguments["x-message-ttl"] = attribute.MessageTTL;
             }
-            //设置队列惰性模式
-            if (attribute.LazyMode == "default" || attribute.LazyMode == "lazy")
+            //设置队列过期时间
+            if (attribute.AutoExpire > 0)
             {
-                arguments["x-queue-mode"] = attribute.LazyMode;
+                arguments["x-expires"] = attribute.AutoExpire;
             }
             //设置队列最大长度
             if (attribute.MaxLength > 0)
@@ -586,13 +589,38 @@ namespace ZqUtils.Helpers
             {
                 arguments["x-max-length-bytes"] = attribute.MaxLengthBytes;
             }
+            //设置队列溢出行为
+            if (attribute.OverflowBehaviour == "drop-head" || attribute.OverflowBehaviour == "reject-publish")
+            {
+                arguments["x-overflow"] = attribute.OverflowBehaviour;
+            }
+            //设置死信交换机
+            if (!attribute.DeadLetterExchange.IsNullOrEmpty())
+            {
+                arguments["x-dead-letter-exchange"] = attribute.DeadLetterExchange;
+            }
+            //设置死信路由键
+            if (!attribute.DeadLetterRoutingKey.IsNullOrEmpty())
+            {
+                arguments["x-dead-letter-routing-key"] = attribute.DeadLetterRoutingKey;
+            }
             //设置队列优先级
-            if (attribute.MaximumPriority >= 1 && attribute.MaximumPriority <= 10)
+            if (attribute.MaximumPriority > 0 && attribute.MaximumPriority <= 10)
             {
                 arguments["x-max-priority"] = attribute.MaximumPriority;
             }
+            //设置队列惰性模式
+            if (attribute.LazyMode == "default" || attribute.LazyMode == "lazy")
+            {
+                arguments["x-queue-mode"] = attribute.LazyMode;
+            }
+            //设置集群配置
+            if (!attribute.MasterLocator.IsNullOrEmpty())
+            {
+                arguments["x-queue-master-locator"] = attribute.MasterLocator;
+            }
             //发送消息
-            return Publish(exchange, queue, routingKey, body, exchangeType, durable, confirm, expiration, priority, arguments);
+            return Publish(attribute.Exchange, attribute.Queue, attribute.RoutingKey, body, attribute.ExchangeType, attribute.Durable, confirm, expiration, priority, arguments);
         }
 
         /// <summary>
@@ -715,25 +743,27 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 发布消息到死信队列
         /// </summary>
-        /// <param name="queue">死信队列名称</param>
+        /// <param name="queue">队列名称</param>
+        /// <param name="exchange">交换机名称</param>
+        /// <param name="routingKey">路由键</param>
+        /// <param name="deadLetterExchange">死信交换机</param>
+        /// <param name="deadLetterRoutingKey">死信路由键</param>
         /// <param name="body">消息内容</param>
         /// <param name="ex">异常</param>
         /// <param name="retryCount">重试次数</param>
         /// <returns></returns>
-        private bool PublishToDead<T>(
+        private bool PublishToDead(
             string queue,
+            string exchange,
+            string routingKey,
+            string deadLetterExchange,
+            string deadLetterRoutingKey,
             string body,
             Exception ex,
-            int retryCount) where T : class
+            int retryCount)
         {
-            var attribute = typeof(T).GetAttribute<RabbitMqAttribute>();
-            if (attribute == null)
-                throw new ArgumentException("RabbitMqAttribute Is Null!");
-
-            //死信交换机、队列、路由键
-            var deadLetterExchange = DeadLetterExchange ?? attribute.ExchangeName;
-            var deadLetterQueue = attribute.QueueName.Replace("{queue}", $"{queue.ToLower()}.{(ex != null ? "error" : "fail")}");
-            var deadLetterRoutingKey = attribute.RoutingKey.Replace("{routingkey}", queue.ToLower());
+            //死信队列
+            var deadLetterQueue = $"{queue.ToLower()}.{(ex != null ? "error" : "fail")}";
 
             //死信队列内容
             var deadLetterBody = new DeadLetterQueue
@@ -743,8 +773,8 @@ namespace ZqUtils.Helpers
                 Exception = ex,
                 ExceptionMsg = ex?.Message,
                 Queue = queue,
-                RoutingKey = deadLetterRoutingKey,
-                Exchange = deadLetterExchange,
+                RoutingKey = routingKey,
+                Exchange = exchange,
                 RetryCount = retryCount
             };
             return Publish(deadLetterExchange, deadLetterQueue, deadLetterRoutingKey, deadLetterBody.ToJson());
@@ -764,7 +794,7 @@ namespace ZqUtils.Helpers
             if (attribute == null)
                 throw new ArgumentException("RabbitMqAttribute Is Null!");
 
-            Subscribe(attribute.QueueName, subscriber, handler, attribute.RetryCount, attribute.PrefetchCount, attribute.IsDeadLetter);
+            Subscribe(attribute.Queue, subscriber, handler, attribute.RetryCount, attribute.PrefetchCount);
         }
 
         /// <summary>
@@ -776,14 +806,12 @@ namespace ZqUtils.Helpers
         /// <param name="handler">异常处理委托</param>
         /// <param name="retryCount">重试次数</param>
         /// <param name="prefetchCount">预取数量</param>
-        /// <param name="isDeadLetter">异常是否进入死信队列</param>
         public void Subscribe<T>(
             string queue,
             Func<T, bool> subscriber,
             Action<string, int, Exception> handler,
             int retryCount = 5,
-            ushort prefetchCount = 1,
-            bool isDeadLetter = true) where T : class
+            ushort prefetchCount = 1) where T : class
         {
             //队列声明
             var channel = GetChannel(queue, prefetchCount);
@@ -821,9 +849,24 @@ namespace ZqUtils.Helpers
                     channel.BasicNack(ea.DeliveryTag, false, false);
                 }
                 //是否进入死信队列
-                if (isDeadLetter && (!(result == true) || exception != null))
+                if (!(result == true) || exception != null)
                 {
-                    PublishToDead<DeadLetterQueue>(queue, body, exception, exception == null ? numberOfRetries : numberOfRetries - 1);
+                    var deadLetterExchange = DefaultDeadLetterExchange;
+                    var deadLetterRoutingKey = $"{queue.ToLower()}.deadletter";
+                    var attribute = typeof(T).GetAttribute<RabbitMqAttribute>();
+                    if (attribute != null)
+                    {
+                        if (!string.IsNullOrEmpty(attribute.DeadLetterExchange))
+                        {
+                            deadLetterExchange = attribute.DeadLetterExchange;
+                        }
+                        if (!string.IsNullOrEmpty(attribute.DeadLetterRoutingKey))
+                        {
+                            deadLetterRoutingKey = attribute.DeadLetterRoutingKey;
+                        }
+                    }
+                    //发送消息到死信队列
+                    PublishToDead(queue, ea.Exchange, ea.RoutingKey, deadLetterExchange, deadLetterRoutingKey, body, exception, exception == null ? numberOfRetries : numberOfRetries - 1);
                 }
             };
             //手动确认
@@ -843,7 +886,7 @@ namespace ZqUtils.Helpers
             if (attribute == null)
                 throw new ArgumentException("RabbitMqAttribute Is Null!");
 
-            Pull(attribute.ExchangeName, attribute.QueueName, attribute.RoutingKey, handler);
+            Pull(attribute.Exchange, attribute.Queue, attribute.RoutingKey, handler);
         }
 
         /// <summary>
@@ -962,16 +1005,16 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 构造函数
         /// </summary>
-        /// <param name="queueName"></param>
-        public RabbitMqAttribute(string queueName)
+        /// <param name="queue"></param>
+        public RabbitMqAttribute(string queue)
         {
-            QueueName = queueName ?? string.Empty;
+            Queue = queue ?? string.Empty;
         }
 
         /// <summary>
-        /// 交换机名称
+        /// 交换机
         /// </summary>
-        public string ExchangeName { get; set; }
+        public string Exchange { get; set; }
 
         /// <summary>
         /// 交换机类型
@@ -979,9 +1022,9 @@ namespace ZqUtils.Helpers
         public string ExchangeType { get; set; }
 
         /// <summary>
-        /// 队列名称
+        /// 队列
         /// </summary>
-        public string QueueName { get; set; }
+        public string Queue { get; set; }
 
         /// <summary>
         /// 路由键
@@ -1004,19 +1047,14 @@ namespace ZqUtils.Helpers
         public int RetryCount { get; set; } = 5;
 
         /// <summary>
-        /// 是否进入死信队列，默认true
-        /// </summary>
-        public bool IsDeadLetter { get; set; } = true;
-
-        /// <summary>
-        /// 队列消息过期时间，单位ms
+        /// 消息过期时间，过期后队列中消息自动被删除，单位ms
         /// </summary>
         public int MessageTTL { get; set; }
 
         /// <summary>
-        /// 队列惰性模式，可选值：default或者lazy
+        /// 队列过期时间，过期后队列自动被删除，单位ms
         /// </summary>
-        public string LazyMode { get; set; }
+        public int AutoExpire { get; set; }
 
         /// <summary>
         /// 队列最大长度
@@ -1029,15 +1067,39 @@ namespace ZqUtils.Helpers
         public int MaxLengthBytes { get; set; }
 
         /// <summary>
+        /// 队列溢出行为，可选值：drop-head或者reject-publish，默认drop-head
+        /// </summary>
+        public string OverflowBehaviour { get; set; }
+
+        /// <summary>
+        /// 死信交换机
+        /// </summary>
+        public string DeadLetterExchange { get; set; }
+
+        /// <summary>
+        /// 死信路由键
+        /// </summary>
+        public string DeadLetterRoutingKey { get; set; }
+
+        /// <summary>
         /// 队列最大优先级，数值越大优先级越高，范围1-255，建议取值1-10
         /// </summary>
         public int MaximumPriority { get; set; }
+
+        /// <summary>
+        /// 队列惰性模式，可选值：default或者lazy
+        /// </summary>
+        public string LazyMode { get; set; }
+
+        /// <summary>
+        /// 主定位器，集群设置
+        /// </summary>
+        public string MasterLocator { get; set; }
     }
 
     /// <summary>
     /// 死信队列实体
     /// </summary>
-    [RabbitMq("{queue}", ExchangeName = "deadletter.default.router", RoutingKey = "{routingkey}.deadletter")]
     public class DeadLetterQueue
     {
         /// <summary>
