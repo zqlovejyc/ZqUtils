@@ -80,31 +80,34 @@ namespace ZqUtils.Utilities
         /// <summary>
         /// 设置证书
         /// </summary>
-        /// <param name="item">http参数</param>
-        private void SetCer(HttpItem item)
+        /// <param name="req">http请求参数</param>
+        private void SetCer(HttpRequest req)
         {
             //这一句一定要写在创建连接的前面。使用回调的方法进行证书验证。
-            if (item.Url.StartsWith("https", StringComparison.OrdinalIgnoreCase)) ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(CheckValidationResult);
+            if (req.Url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(CheckValidationResult);
+            }
             //初始化对像，并设置请求的URL地址
-            request = WebRequest.Create(item.Url) as HttpWebRequest;
+            request = WebRequest.Create(req.Url) as HttpWebRequest;
             if (request != null)
             {
                 //多个证书
-                if (item.ClentCertificates != null && item.ClentCertificates.Count > 0)
+                if (req.ClentCertificates?.Count > 0)
                 {
-                    SetCerList(item);
+                    SetCerList(req);
                 }
                 //单个证书
-                else if (!string.IsNullOrEmpty(item.CerPath))
+                else if (!string.IsNullOrEmpty(req.CerPath))
                 {
                     //证书是否包含密码
-                    if (!string.IsNullOrEmpty(item.CerPassword))
+                    if (!string.IsNullOrEmpty(req.CerPassword))
                     {
-                        request.ClientCertificates.Add(new X509Certificate2(item.CerPath, item.CerPassword));
+                        request.ClientCertificates.Add(new X509Certificate2(req.CerPath, req.CerPassword));
                     }
                     else
                     {
-                        request.ClientCertificates.Add(new X509Certificate(item.CerPath));
+                        request.ClientCertificates.Add(new X509Certificate(req.CerPath));
                     }
                 }
             }
@@ -113,12 +116,12 @@ namespace ZqUtils.Utilities
         /// <summary>
         /// 设置多个证书
         /// </summary>
-        /// <param name="item">http参数</param>
-        private void SetCerList(HttpItem item)
+        /// <param name="req">http请求参数</param>
+        private void SetCerList(HttpRequest req)
         {
-            if (item.ClentCertificates != null && item.ClentCertificates.Count > 0)
+            if (req.ClentCertificates?.Count > 0)
             {
-                foreach (X509Certificate c in item.ClentCertificates)
+                foreach (X509Certificate c in req.ClentCertificates)
                 {
                     request.ClientCertificates.Add(c);
                 }
@@ -137,158 +140,168 @@ namespace ZqUtils.Utilities
         /// <summary>
         /// 设置代理
         /// </summary>
-        /// <param name="item">http参数</param>
-        private void SetProxy(HttpItem item)
+        /// <param name="req">http请求参数</param>
+        private void SetProxy(HttpRequest req)
         {
             var isIeProxy = false;
-            if (!string.IsNullOrEmpty(item.ProxyIp)) isIeProxy = item.ProxyIp.ToLower().Contains("ieproxy");
-            if (!string.IsNullOrEmpty(item.ProxyIp) && !isIeProxy)
+            if (!string.IsNullOrEmpty(req.ProxyIp))
             {
-                //设置代理服务器
-                if (item.ProxyIp.Contains(":"))
+                isIeProxy = req.ProxyIp.ToLower().Contains("ieproxy");
+            }
+            //非IE代理
+            if (!isIeProxy)
+            {
+                if (!string.IsNullOrEmpty(req.ProxyIp))
                 {
-                    var plist = item.ProxyIp.Split(':');
-                    var myProxy = new WebProxy(plist[0].Trim(), Convert.ToInt32(plist[1].Trim()))
+                    //设置代理服务器
+                    if (req.ProxyIp.Contains(":"))
                     {
-                        //建议连接
-                        Credentials = new NetworkCredential(item.ProxyUserName, item.ProxyPwd)
-                    };
-                    //给当前请求对象
-                    request.Proxy = myProxy;
+                        var plist = req.ProxyIp.Split(':');
+                        //给当前请求对象
+                        request.Proxy = new WebProxy(plist[0].Trim(), Convert.ToInt32(plist[1].Trim()))
+                        {
+                            //建议连接
+                            Credentials = new NetworkCredential(req.ProxyUserName, req.ProxyPwd)
+                        };
+                    }
+                    else
+                    {
+                        //给当前请求对象
+                        request.Proxy = new WebProxy(req.ProxyIp, false)
+                        {
+                            //建议连接
+                            Credentials = new NetworkCredential(req.ProxyUserName, req.ProxyPwd)
+                        };
+                    }
                 }
                 else
                 {
-                    var myProxy = new WebProxy(item.ProxyIp, false)
-                    {
-                        //建议连接
-                        Credentials = new NetworkCredential(item.ProxyUserName, item.ProxyPwd)
-                    };
-                    //给当前请求对象
-                    request.Proxy = myProxy;
+                    request.Proxy = req.WebProxy;
                 }
-            }
-            else if (isIeProxy)
-            {
-                //设置为IE代理
-            }
-            else
-            {
-                request.Proxy = item.WebProxy;
             }
         }
 
         /// <summary>
         /// 设置Cookie
         /// </summary>
-        /// <param name="item">http参数</param>
-        private void SetCookie(HttpItem item)
+        /// <param name="req">http请求参数</param>
+        private void SetCookie(HttpRequest req)
         {
-            if (!string.IsNullOrEmpty(item.Cookie)) request.Headers[HttpRequestHeader.Cookie] = item.Cookie;
+            //设置Cookie字符串
+            if (!string.IsNullOrEmpty(req.Cookie))
+            {
+                request.Headers[HttpRequestHeader.Cookie] = req.Cookie;
+            }
             //设置CookieCollection
-            if (item.CookieCollection != null && item.CookieCollection.Count > 0)
+            if (req.CookieCollection?.Count > 0)
             {
                 request.CookieContainer = new CookieContainer();
-                request.CookieContainer.Add(item.CookieCollection);
+                request.CookieContainer.Add(req.CookieCollection);
             }
         }
 
         /// <summary>
         /// 设置Post数据
         /// </summary>
-        /// <param name="item">http参数</param>
-        private void SetPostData(HttpItem item)
+        /// <param name="req">http请求参数</param>
+        private void SetPostData(HttpRequest req)
         {
             //验证在得到结果时是否有传入数据
-            if (!request.Method.Trim().ToLower().Contains("get"))
+            if (request.Method?.Trim().ToLower().Contains("get") == false)
             {
-                //Post数据编码
-                if (item.PostEncoding != null) postEncoding = item.PostEncoding;
+                //post数据编码
+                if (req.PostEncoding != null)
+                {
+                    postEncoding = req.PostEncoding;
+                }
+                //表单数据
                 byte[] buffer = null;
+                //文件数据
                 var fileStream = new MemoryStream();
+                //分隔符
                 var boundary = $"---------------------------{DateTime.Now.Ticks.ToString("x")}";
-                //写入byte类型
-                if (item.PostDataType == PostDataType.Byte && item.PostByte != null && item.PostByte.Length > 0)
+                //byte字节
+                if (req.PostDataType == PostDataType.Byte && req.PostByte?.Length > 0)
                 {
                     //验证在得到结果时是否有传入数据
-                    buffer = item.PostByte;
+                    buffer = req.PostByte;
                 }
-                //写入文件
-                else if (item.PostDataType == PostDataType.File)
+                //文件
+                else if (req.PostDataType == PostDataType.File)
                 {
-                    if ((item.PostFiles == null || item.PostFiles.Count == 0) && !string.IsNullOrEmpty(item.PostString))
+                    if ((req.PostFiles == null || req.PostFiles.Count == 0) && !string.IsNullOrEmpty(req.PostString))
                     {
-                        using (var sr = new StreamReader(item.PostString, postEncoding))
+                        using (var sr = new StreamReader(req.PostString, postEncoding))
                         {
                             buffer = postEncoding.GetBytes(sr.ReadToEnd());
                         }
                     }
                     else
                     {
-                        #region 表单数据组装
+                        #region 表单数据+文件数据
                         var formData = new StringBuilder();
-                        if (!string.IsNullOrEmpty(item.PostString))
+                        if (!string.IsNullOrEmpty(req.PostString))
                         {
                             //表单数据
                             formData.Append($"--{boundary}")
                                     .Append("\r\n")
                                     .Append("Content-Disposition: form-data; name=\"content\"")
                                     .Append("\r\n\r\n")
-                                    .Append(item.PostString)
+                                    .Append(req.PostString)
                                     .Append("\r\n");
                         }
                         //文件数据
-                        var fileList = item.PostFiles.ToList();
-                        fileList.ForEach(o =>
+                        var fileList = req.PostFiles?.ToList();
+                        if (fileList?.Count > 0)
                         {
-                            if (File.Exists(o.Value))
+                            fileList.ForEach(o =>
                             {
-                                formData.Append($"--{boundary}")
-                                        .Append("\r\n")
-                                        .Append($"Content-Disposition: form-data; name=\"{o.Key}\"; filename=\"{o.Value}\"")
-                                        .Append("\r\n")
-                                        .Append("Content-Type: application/octet-stream")
-                                        .Append("\r\n\r\n");
-                            }
-                        });
-                        buffer = postEncoding.GetBytes(formData.ToString());
-                        #endregion
-
-                        #region 文件数据
-                        fileList.ForEach(o =>
-                        {
-                            if (File.Exists(o.Value))
-                            {
-                                using (var fs = new FileStream(o.Value, FileMode.Open, FileAccess.Read))
+                                if (File.Exists(o.Value))
                                 {
-                                    //写入文件
-                                    var fileBuffer = new byte[1024];
-                                    var fileBytesRead = 0;
-                                    while ((fileBytesRead = fs.Read(fileBuffer, 0, fileBuffer.Length)) != 0)
+                                    formData.Append($"--{boundary}")
+                                            .Append("\r\n")
+                                            .Append($"Content-Disposition: form-data; name=\"{o.Key}\"; filename=\"{o.Value}\"")
+                                            .Append("\r\n")
+                                            .Append("Content-Type: application/octet-stream")
+                                            .Append("\r\n\r\n");
+                                    //文件流
+                                    using (var fs = new FileStream(o.Value, FileMode.Open, FileAccess.Read))
                                     {
-                                        fileStream.Write(fileBuffer, 0, fileBytesRead);
+                                        //写入文件
+                                        var fileBuffer = new byte[1024];
+                                        var fileBytesRead = 0;
+                                        while ((fileBytesRead = fs.Read(fileBuffer, 0, fileBuffer.Length)) != 0)
+                                        {
+                                            fileStream.Write(fileBuffer, 0, fileBytesRead);
+                                        }
                                     }
                                 }
-                            }
-                        });
-                        #endregion                                            
+                            });
+                        }
+                        buffer = postEncoding.GetBytes(formData.ToString());
+                        #endregion                                           
                     }
                 }
-                //写入字符串
-                else if (!string.IsNullOrEmpty(item.PostString))
+                //字符串
+                else if (!string.IsNullOrEmpty(req.PostString))
                 {
-                    buffer = postEncoding.GetBytes(item.PostString);
+                    buffer = postEncoding.GetBytes(req.PostString);
                 }
-                if (buffer != null)
+                //写入请求内容
+                if (buffer != null || fileStream.Length > 0)
                 {
-                    if (item.PostFiles != null && item.PostFiles.Count > 0 && fileStream.Length > 0)
+                    if (req.PostFiles?.Count > 0 && fileStream.Length > 0)
                     {
                         var footData = postEncoding.GetBytes($"\r\n--{boundary}--\r\n");
                         request.ContentType = $"multipart/form-data; boundary={boundary}";
-                        request.ContentLength = buffer.Length + fileStream.Length + footData.Length;
+                        request.ContentLength = (buffer?.Length ?? 0) + fileStream.Length + footData.Length;
                         //请求流
                         var requestStream = request.GetRequestStream();
                         //写入表单数据
-                        requestStream.Write(buffer, 0, buffer.Length);
+                        if (buffer != null)
+                        {
+                            requestStream.Write(buffer, 0, buffer.Length);
+                        }
                         //写入文件内容
                         var buff = new byte[1024];
                         var bytesRead = 0;
@@ -319,77 +332,99 @@ namespace ZqUtils.Utilities
         /// <summary>
         /// 为请求准备参数
         /// </summary>
-        ///<param name="item">http参数</param>
-        private void SetRequest(HttpItem item)
+        ///<param name="req">http请求参数</param>
+        private void SetRequest(HttpRequest req)
         {
-            // 验证证书
-            SetCer(item);
-            if (item.IPEndPoint != null)
+            //设置证书
+            SetCer(req);
+            //设置ip地址和端口
+            if (req.IPEndPoint != null)
             {
-                ipEndPoint = item.IPEndPoint;
+                ipEndPoint = req.IPEndPoint;
                 //设置本地的出口ip和端口
                 request.ServicePoint.BindIPEndPointDelegate = new BindIPEndPoint(BindIPEndPointCallback);
             }
             //设置Header参数
-            if (item.Header != null && item.Header.Count > 0)
+            if (req.Header?.Count > 0)
             {
-                foreach (var key in item.Header.AllKeys)
+                foreach (var key in req.Header.AllKeys)
                 {
-                    request.Headers.Add(key, item.Header[key]);
+                    request.Headers.Add(key, req.Header[key]);
                 }
             }
             //设置浏览器支持的编码类型
-            if (!string.IsNullOrEmpty(item.AcceptEncoding)) request.Headers.Add("Accept-Encoding", item.AcceptEncoding);
+            if (!string.IsNullOrEmpty(req.AcceptEncoding))
+            {
+                request.Headers.Add("Accept-Encoding", req.AcceptEncoding);
+            }
             // 设置代理
-            SetProxy(item);
-            if (item.ProtocolVersion != null) request.ProtocolVersion = item.ProtocolVersion;
-            request.ServicePoint.Expect100Continue = item.Expect100Continue;
+            SetProxy(req);
+            if (req.ProtocolVersion != null)
+            {
+                request.ProtocolVersion = req.ProtocolVersion;
+            }
+            request.ServicePoint.Expect100Continue = req.Expect100Continue;
             //请求方式Get或者Post
-            request.Method = item.Method;
-            request.Timeout = item.Timeout;
-            request.KeepAlive = item.KeepAlive;
-            request.ReadWriteTimeout = item.ReadWriteTimeout;
-            if (!string.IsNullOrEmpty(item.Host)) request.Host = item.Host;
-            if (item.IfModifiedSince != null) request.IfModifiedSince = Convert.ToDateTime(item.IfModifiedSince);
+            request.Method = req.Method;
+            request.Timeout = req.Timeout;
+            request.KeepAlive = req.KeepAlive;
+            request.ReadWriteTimeout = req.ReadWriteTimeout;
+            if (!string.IsNullOrEmpty(req.Host))
+            {
+                request.Host = req.Host;
+            }
+            if (req.IfModifiedSince != null)
+            {
+                request.IfModifiedSince = Convert.ToDateTime(req.IfModifiedSince);
+            }
             //Accept
-            request.Accept = item.Accept;
+            request.Accept = req.Accept;
             //ContentType返回类型
-            request.ContentType = item.ContentType;
+            request.ContentType = req.ContentType;
             //UserAgent客户端的访问类型，包括浏览器版本和操作系统信息
-            request.UserAgent = item.UserAgent;
+            request.UserAgent = req.UserAgent;
             //设置安全凭证
-            request.Credentials = item.ICredentials;
+            request.Credentials = req.ICredentials;
             //设置Cookie
-            SetCookie(item);
+            SetCookie(req);
             //来源地址
-            request.Referer = item.Referer;
+            request.Referer = req.Referer;
             //是否执行跳转功能
-            request.AllowAutoRedirect = item.AllowAutoRedirect;
-            if (item.MaximumAutomaticRedirections > 0) request.MaximumAutomaticRedirections = item.MaximumAutomaticRedirections;
+            request.AllowAutoRedirect = req.AllowAutoRedirect;
+            if (req.MaximumAutomaticRedirections > 0)
+            {
+                request.MaximumAutomaticRedirections = req.MaximumAutomaticRedirections;
+            }
             //设置Post数据
-            SetPostData(item);
+            SetPostData(req);
             //设置最大连接
-            if (item.ConnectionLimit > 0) request.ServicePoint.ConnectionLimit = item.ConnectionLimit;
+            if (req.ConnectionLimit > 0)
+            {
+                request.ServicePoint.ConnectionLimit = req.ConnectionLimit;
+            }
         }
 
         /// <summary>
         /// 设置编码
         /// </summary>
-        /// <param name="item">http参数</param>
+        /// <param name="req">http请求参数</param>
         /// <param name="result">http返回参数</param>
         /// <param name="ResponseByte">返回的字节码数组</param>
-        private void SetEncoding(HttpItem item, HttpResult result, byte[] ResponseByte)
+        private void SetEncoding(HttpRequest req, HttpResult result, byte[] ResponseByte)
         {
             //是否返回byte类型数据
-            if (item.ResultType == ResultType.Byte) result.ResultByte = ResponseByte;
+            if (req.ResultType == ResultType.Byte)
+            {
+                result.ResultByte = ResponseByte;
+            }
             //返回数据编码
-            responseEncoding = item.ResponseEncoding;
+            responseEncoding = req.ResponseEncoding;
             //自动识别返回数据编码
             if (responseEncoding == null)
             {
                 var meta = Regex.Match(Encoding.Default.GetString(ResponseByte), "<meta[^<]*charset=([^<]*)[\"']", RegexOptions.IgnoreCase);
                 string c = string.Empty;
-                if (meta != null && meta.Groups.Count > 0)
+                if (meta.Groups?.Count > 0)
                 {
                     c = meta.Groups[1].Value.ToLower().Trim();
                 }
@@ -428,36 +463,44 @@ namespace ZqUtils.Utilities
         /// <summary>
         /// 获取返回的byte数据
         /// </summary>
-        /// <param name="item">http参数</param>
+        /// <param name="req">http请求参数</param>
         /// <param name="result">http返回参数</param>
         /// <returns>byte[]</returns>
-        private byte[] GetByte(HttpItem item, HttpResult result)
+        private byte[] GetByte(HttpRequest req, HttpResult result)
         {
             byte[] ResponseByte = null;
             var responseStream = response.GetResponseStream();
             //解压缩
-            if (response.ContentEncoding.ToLower().Contains("gzip"))
+            if (response.ContentEncoding?.ToLower().Contains("gzip") == true)
             {
                 responseStream = new GZipStream(responseStream, CompressionMode.Decompress);
             }
-            else if (response.ContentEncoding.ToLower().Contains("deflate"))
+            else if (response.ContentEncoding?.ToLower().Contains("deflate") == true)
             {
                 responseStream = new DeflateStream(responseStream, CompressionMode.Decompress);
             }
-            if (item.ResultType != ResultType.File)
+            //返回类型非文件
+            if (req.ResultType != ResultType.File)
             {
                 using (var ms = new MemoryStream())
                 {
-                    responseStream.CopyTo(ms, 10240);
+                    var buffer = new byte[1024];
+                    var bytesRead = 0;
+                    //每次读取1kb数据
+                    while ((bytesRead = responseStream.Read(buffer, 0, buffer.Length)) != 0)
+                    {
+                        ms.Write(buffer, 0, bytesRead);
+                    }
                     ResponseByte = ms.ToArray();
                 }
             }
-            else if (!string.IsNullOrEmpty(item.DownloadSaveFileUrl))
+            //文件
+            else if (!string.IsNullOrEmpty(req.DownloadSaveFileUrl))
             {
                 //判断文件目录是否存在
-                var dirPath = Path.GetDirectoryName(item.DownloadSaveFileUrl);
+                var dirPath = Path.GetDirectoryName(req.DownloadSaveFileUrl);
                 if (!Directory.Exists(dirPath)) Directory.CreateDirectory(dirPath);
-                using (var fs = File.Create(item.DownloadSaveFileUrl))
+                using (var fs = File.Create(req.DownloadSaveFileUrl))
                 {
                     var buffer = new byte[1024];
                     var bytesRead = 0;
@@ -467,7 +510,7 @@ namespace ZqUtils.Utilities
                         fs.Write(buffer, 0, bytesRead);
                     }
                     //赋值返回文件路径
-                    result.ResultFileUrl = item.DownloadSaveFileUrl;
+                    result.ResultFileUrl = req.DownloadSaveFileUrl;
                 }
             }
             responseStream.Close();
@@ -477,9 +520,9 @@ namespace ZqUtils.Utilities
         /// <summary>
         /// 获取数据的并解析的方法
         /// </summary>
-        /// <param name="item">http参数</param>
+        /// <param name="req">http请求参数</param>
         /// <param name="result">http返回参数</param>
-        private void GetData(HttpItem item, HttpResult result)
+        private void GetData(HttpRequest req, HttpResult result)
         {
             if (response == null) return;
             //获取StatusCode
@@ -491,22 +534,25 @@ namespace ZqUtils.Utilities
             //获取最后访问的URl
             result.ResponseUri = response.ResponseUri.ToString();
             //获取CookieCollection
-            if (response.Cookies != null && response.Cookies.Count > 0)
+            if (response.Cookies?.Count > 0)
             {
                 result.CookieCollection = response.Cookies;
             }
-            else if (item.CookieCollection != null && item.CookieCollection.Count > 0)
+            else if (req.CookieCollection?.Count > 0)
             {
                 result.CookieCollection = request.CookieContainer.GetCookies(response.ResponseUri);
             }
             //获取set-cookie
-            if (!string.IsNullOrEmpty(response.Headers["set-cookie"])) result.Cookie = response.Headers["set-cookie"];
+            if (!string.IsNullOrEmpty(response.Headers["set-cookie"]))
+            {
+                result.Cookie = response.Headers["set-cookie"];
+            }
             //处理网页byte
-            var ResponseByte = GetByte(item, result);
-            if (ResponseByte != null && ResponseByte.Length > 0)
+            var ResponseByte = GetByte(req, result);
+            if (ResponseByte?.Length > 0)
             {
                 //设置编码
-                SetEncoding(item, result, ResponseByte);
+                SetEncoding(req, result, ResponseByte);
                 //得到返回的HTML
                 result.ResultString = responseEncoding.GetString(ResponseByte);
             }
@@ -517,16 +563,16 @@ namespace ZqUtils.Utilities
         /// <summary>
         /// 根据相传入的数据，得到相应页面数据
         /// </summary>
-        /// <param name="item">http参数</param>
+        /// <param name="req">http请求参数</param>
         /// <returns>返回HttpResult类型</returns>
-        public HttpResult GetResult(HttpItem item)
+        public HttpResult GetResult(HttpRequest req)
         {
             //返回参数
             var result = new HttpResult();
             try
             {
                 //准备参数
-                SetRequest(item);
+                SetRequest(req);
             }
             catch (Exception ex)
             {
@@ -544,7 +590,7 @@ namespace ZqUtils.Utilities
                 //请求数据
                 using (response = request.GetResponse() as HttpWebResponse)
                 {
-                    GetData(item, result);
+                    GetData(req, result);
                 }
             }
             catch (WebException ex)
@@ -553,7 +599,7 @@ namespace ZqUtils.Utilities
                 {
                     using (response = ex.Response as HttpWebResponse)
                     {
-                        GetData(item, result);
+                        GetData(req, result);
                     }
                 }
                 else
@@ -565,9 +611,13 @@ namespace ZqUtils.Utilities
             {
                 result.ResultString = ex.Message;
             }
-            if (item.IsToLower) result.ResultString = result.ResultString.ToLower();
+            //是否设置小写
+            if (req.IsToLower)
+            {
+                result.ResultString = result.ResultString?.ToLower();
+            }
             //重置request，response为空
-            if (item.IsReset)
+            if (req.IsReset)
             {
                 request = null;
                 response = null;
@@ -594,7 +644,7 @@ namespace ZqUtils.Utilities
     /// <summary>
     /// Http请求参数类
     /// </summary>
-    public class HttpItem
+    public class HttpRequest
     {
         /// <summary>
         /// 请求URL必须填写
@@ -642,9 +692,9 @@ namespace ZqUtils.Utilities
         public string ContentType { get; set; } = "text/html";
 
         /// <summary>
-        /// 浏览器类型，默认：Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.62 Safari/537.36
+        /// 浏览器类型，默认：Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36
         /// </summary>
-        public string UserAgent { get; set; } = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.62 Safari/537.36";
+        public string UserAgent { get; set; } = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36";
 
         /// <summary>
         /// Post的数据类型(String/Byte/File)，默认：string
@@ -770,7 +820,7 @@ namespace ZqUtils.Utilities
         /// 设置本地的出口ip和端口，默认：null
         /// </summary>]
         /// <example>
-        ///item.IPEndPoint = new IPEndPoint(IPAddress.Parse("192.168.1.1"),80);
+        ///req.IPEndPoint = new IPEndPoint(IPAddress.Parse("192.168.1.1"),80);
         /// </example>
         public IPEndPoint IPEndPoint { get; set; } = null;
 
@@ -838,17 +888,17 @@ namespace ZqUtils.Utilities
         public string StatusDescription { get; set; }
 
         /// <summary>
-        /// 返回状态码,默认为OK
+        /// 返回状态码,默认为ok
         /// </summary>
         public HttpStatusCode StatusCode { get; set; }
 
         /// <summary>
-        /// 最后访问的URl
+        /// 最后访问的url
         /// </summary>
         public string ResponseUri { get; set; }
 
         /// <summary>
-        /// 获取重定向的URl
+        /// 获取重定向的url
         /// </summary>
         public string RedirectUrl
         {
@@ -856,15 +906,15 @@ namespace ZqUtils.Utilities
             {
                 try
                 {
-                    if (Header != null && Header.Count > 0)
+                    if (Header?.Count > 0)
                     {
                         if (Header.AllKeys.Any(k => k.ToLower().Contains("location")))
                         {
-                            string baseurl = Header["location"].ToString().Trim();
-                            string locationurl = baseurl.ToLower();
+                            var baseurl = Header["location"].ToString().Trim();
+                            var locationurl = baseurl.ToLower();
                             if (!string.IsNullOrEmpty(locationurl))
                             {
-                                bool b = locationurl.StartsWith("http://") || locationurl.StartsWith("https://");
+                                var b = locationurl.StartsWith("http://") || locationurl.StartsWith("https://");
                                 if (!b) baseurl = new Uri(new Uri(ResponseUri), baseurl).AbsoluteUri;
                             }
                             return baseurl;
