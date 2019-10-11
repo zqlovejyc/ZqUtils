@@ -22,6 +22,7 @@ using System.Text;
 using System.Web;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using ICSharpCode.SharpZipLib.Zip;
@@ -72,9 +73,10 @@ namespace ZqUtils.Helpers
         /// 日志写锁
         /// </summary>
         private static readonly ReaderWriterLockSlim logWriteLock = new ReaderWriterLockSlim();
-        #endregion        
+        #endregion
 
         #region 获取文件
+        #region 同步方法
         /// <summary>
         /// 续传获取文件
         /// </summary>
@@ -298,6 +300,241 @@ namespace ZqUtils.Helpers
         }
         #endregion
 
+        #region 异步方法
+        /// <summary>
+        /// 续传获取文件
+        /// </summary>
+        /// <param name="filePath">文件路径</param>
+        /// <param name="fileName">文件名</param>
+        /// <param name="isDeleteFile">是否删除源文件</param>
+        public static async Task GetFileAsync(string filePath, string fileName, bool isDeleteFile = false)
+        {
+            try
+            {
+                using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    var buffer = new byte[10240];
+                    HttpContext.Current.Response.Clear();
+                    var dataToRead = fileStream.Length;
+                    long p = 0;
+                    if (HttpContext.Current.Request.Headers["Range"] != null)
+                    {
+                        HttpContext.Current.Response.StatusCode = 206;
+                        var range = HttpContext.Current.Request.Headers["Range"].Replace("bytes=", "");
+                        p = long.Parse(range.Substring(0, range.IndexOf("-")));
+                    }
+                    if (p != 0) HttpContext.Current.Response.AddHeader("Content-Range", $"bytes {p.ToString()}-{(dataToRead - 1).ToString()}/{dataToRead.ToString()}");
+                    HttpContext.Current.Response.AddHeader("Content-Length", (dataToRead - p).ToString());
+                    HttpContext.Current.Response.ContentType = "application/octet-stream";
+                    HttpContext.Current.Response.AddHeader("Content-Disposition", $"attachment; filename={HttpUtility.UrlEncode(HttpContext.Current.Request.ContentEncoding.GetBytes(fileName))}");
+                    //jquery.fileDownload插件必须添加以下Cookie设置，否则successCallback回调无效                
+                    HttpContext.Current.Response.Cookies.Add(new HttpCookie("fileDownload", "true"));
+                    fileStream.Position = p;
+                    dataToRead = dataToRead - p;
+                    while (dataToRead > 0)
+                    {
+                        if (HttpContext.Current.Response.IsClientConnected)
+                        {
+                            var length = await fileStream.ReadAsync(buffer, 0, 10240);
+                            await HttpContext.Current.Response.OutputStream.WriteAsync(buffer, 0, length);
+                            await HttpContext.Current.Response.OutputStream.FlushAsync();
+                            buffer = new byte[10240];
+                            dataToRead = dataToRead - length;
+                        }
+                        else
+                        {
+                            dataToRead = -1;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                if (isDeleteFile) if (File.Exists(filePath)) File.Delete(filePath);
+                HttpContext.Current.Response.End();
+            }
+        }
+
+        /// <summary>
+        ///  限速续传获取文件
+        /// </summary>
+        /// <param name="fileName">下载文件名</param>
+        /// <param name="fullPath">带文件名下载路径</param>
+        /// <param name="speed">每秒允许下载的字节数</param>
+        /// <param name="isDeleteFile">是否删除源文件</param>        
+        public static async Task GetFileAsync(string fileName, string fullPath, long speed, bool isDeleteFile = false)
+        {
+            try
+            {
+                var request = HttpContext.Current.Request;
+                var response = HttpContext.Current.Response;
+                using (var fileStream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    using (var binaryReader = new BinaryReader(fileStream))
+                    {
+                        response.AddHeader("Accept-Ranges", "bytes");
+                        response.Buffer = false;
+                        var fileLength = fileStream.Length;
+                        long startBytes = 0;
+                        var pack = 10240;  //10K bytes
+                        var sleep = (int)Math.Floor((double)(1000 * pack / speed)) + 1;
+                        if (request.Headers["Range"] != null)
+                        {
+                            response.StatusCode = 206;
+                            var range = request.Headers["Range"].Split(new char[] { '=', '-' });
+                            startBytes = Convert.ToInt64(range[1]);
+                        }
+                        response.AddHeader("Content-Length", (fileLength - startBytes).ToString());
+                        if (startBytes != 0)
+                        {
+                            response.AddHeader("Content-Range", string.Format(" bytes {0}-{1}/{2}", startBytes, fileLength - 1, fileLength));
+                        }
+                        response.AddHeader("Connection", "Keep-Alive");
+                        response.ContentType = "application/octet-stream";
+                        response.AddHeader("Content-Disposition", "attachment;filename=" + HttpUtility.UrlEncode(fileName, Encoding.UTF8));
+                        //jquery.fileDownload插件必须添加以下Cookie设置，否则successCallback回调无效                
+                        HttpContext.Current.Response.Cookies.Add(new HttpCookie("fileDownload", "true"));
+                        binaryReader.BaseStream.Seek(startBytes, SeekOrigin.Begin);
+                        var maxCount = Math.Floor((double)((fileLength - startBytes) / pack)) + 1;
+                        for (var i = 0d; i < maxCount; i++)
+                        {
+                            if (response.IsClientConnected)
+                            {
+                                var bytes = binaryReader.ReadBytes(pack);
+                                await response.OutputStream.WriteAsync(bytes, 0, bytes.Length);
+                                Thread.Sleep(sleep);
+                            }
+                            else
+                            {
+                                i = maxCount;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                if (isDeleteFile) if (File.Exists(fullPath)) File.Delete(fullPath);
+                HttpContext.Current.Response.End();
+            }
+        }
+
+        /// <summary>
+        /// 普通获取文件
+        /// </summary>
+        /// <param name="filePath">文件路径</param>
+        /// <param name="fileName">文件名称</param>
+        /// <param name="contentType">文件类型【application/pdf、text/plain、text/html、application/zip、application/msword、application/vnd.ms-excel、application/vnd.ms-powerpoint、image/gif、image/png、image/jpg】</param>
+        /// <param name="isDeleteFile">是否删除源文件</param>
+        public static async Task GetFileAsync(string filePath, string fileName, string contentType, bool isDeleteFile = false)
+        {
+            try
+            {
+                HttpContext.Current.Response.ClearContent();
+                HttpContext.Current.Response.AddHeader("Pragma", "public");
+                HttpContext.Current.Response.AddHeader("Expires", "0");
+                HttpContext.Current.Response.AddHeader("Cache-Control", "must-revalidate, pre-check=0");
+                HttpContext.Current.Response.AddHeader("Content-Disposition", $"attachment; filename={fileName}");
+                HttpContext.Current.Response.AddHeader("Content-Type", contentType);
+                HttpContext.Current.Response.AddHeader("Content-Transfer-Encoding", "binary");
+                HttpContext.Current.Response.AddHeader("Content-Length", new FileInfo(filePath).Length.ToString());
+                //jquery.fileDownload插件必须添加以下Cookie设置，否则successCallback回调无效                
+                HttpContext.Current.Response.Cookies.Add(new HttpCookie("fileDownload", "true"));
+                using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    var buffer = new byte[2048];
+                    var bytesRead = 0;
+                    //每次读取2kb数据，然后写入文件
+                    while ((bytesRead = await fileStream.ReadAsync(buffer, 0, buffer.Length)) != 0)
+                    {
+                        await HttpContext.Current.Response.OutputStream.WriteAsync(buffer, 0, buffer.Length);
+                        await HttpContext.Current.Response.OutputStream.FlushAsync();//输出缓存，此部不可少
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                if (isDeleteFile) if (File.Exists(filePath)) File.Delete(filePath);
+                HttpContext.Current.Response.End();
+            }
+        }
+
+        /// <summary>
+        /// 获取压缩过的文件
+        /// </summary>
+        /// <param name="pathArr">文件路径数组</param>
+        /// <param name="zipName">压缩文件名</param>
+        /// <param name="isDeleteFiles">是否删除源文件</param>
+        public static async Task GetFileOfZipAsync(string[] pathArr, string zipName, bool isDeleteFiles = false)
+        {
+            try
+            {
+                if (pathArr?.Length > 0)
+                {
+                    HttpContext.Current.Response.ContentType = "application/zip";
+                    HttpContext.Current.Response.AddHeader("content-disposition", $"filename={zipName}");
+                    //jquery.fileDownload插件必须添加以下Cookie设置，否则successCallback回调无效                
+                    HttpContext.Current.Response.Cookies.Add(new HttpCookie("fileDownload", "true"));
+                    using (var zipOutputStream = new ZipOutputStream(HttpContext.Current.Response.OutputStream))
+                    {
+                        zipOutputStream.SetLevel(3); //0-9, 9 being the highest level of compression
+                        foreach (string fileName in pathArr)
+                        {
+                            using (var fs = File.OpenRead(fileName))
+                            {
+                                var entry = new ZipEntry(ZipEntry.CleanName(fileName))
+                                {
+                                    Size = fs.Length
+                                };
+                                //Setting the Size provides WinXP built-in extractor compatibility,
+                                //but if not available, you can set zipOutputStream.UseZip64 = UseZip64.Off instead.
+                                zipOutputStream.PutNextEntry(entry);
+                                var buffer = new byte[4096];
+                                var count = await fs.ReadAsync(buffer, 0, buffer.Length);
+                                while (count > 0)
+                                {
+                                    await zipOutputStream.WriteAsync(buffer, 0, count);
+                                    count = await fs.ReadAsync(buffer, 0, buffer.Length);
+                                    if (!HttpContext.Current.Response.IsClientConnected) break;
+                                    await HttpContext.Current.Response.OutputStream.FlushAsync();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                //删除文件
+                if (isDeleteFiles)
+                {
+                    foreach (var j in pathArr)
+                    {
+                        if (File.Exists(j)) File.Delete(j);
+                    }
+                }
+                HttpContext.Current.Response.End();
+            }
+        }
+        #endregion
+        #endregion
+
         #region 读取文件
         /// <summary>
         /// 读取文件内容
@@ -315,6 +552,35 @@ namespace ZqUtils.Helpers
                     {
                         string line;
                         while ((line = sr.ReadLine()) != null)
+                        {
+                            sb.AppendLine(line);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Error(ex, "读取文件内容");
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// 读取文件内容
+        /// </summary>
+        /// <param name="filePath">物理路径</param>
+        /// <returns>string</returns>
+        public static async Task<string> ReadFileAsync(string filePath)
+        {
+            var sb = new StringBuilder();
+            try
+            {
+                if (File.Exists(filePath))
+                {
+                    using (var sr = new StreamReader(filePath))
+                    {
+                        string line;
+                        while ((line = await sr.ReadLineAsync()) != null)
                         {
                             sb.AppendLine(line);
                         }
@@ -422,6 +688,34 @@ namespace ZqUtils.Helpers
                 logWriteLock.ExitWriteLock();
             }
         }
+
+        /// <summary>
+        /// 写入文本
+        /// </summary>
+        /// <param name="content">文本内容</param>
+        /// <param name="filePath">文件路径</param>
+        /// <param name="isAppend">是否追加</param>
+        /// <param name="encoding">编码格式</param>
+        public static async Task WriteFileAsync(string content, string filePath, bool isAppend = false, string encoding = "utf-8")
+        {
+            try
+            {
+                logWriteLock.EnterWriteLock();
+                IsExist(filePath);
+                using (var sw = new StreamWriter(filePath, isAppend, Encoding.GetEncoding(encoding)))
+                {
+                    await sw.WriteAsync(content);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Error(ex, "写入文本");
+            }
+            finally
+            {
+                logWriteLock.ExitWriteLock();
+            }
+        }
         #endregion
 
         #region 检测文件
@@ -476,6 +770,42 @@ namespace ZqUtils.Helpers
                 return false;
             }
         }
+
+        /// <summary>
+        /// 复制文件
+        /// </summary>
+        /// <param name="sourceFileName">源路径</param>
+        /// <param name="destFileName">目的路径</param>
+        /// <param name="overwrite">是否覆盖，默认：否</param>
+        /// <returns>bool</returns>
+        public static async Task<bool> FileCopyAsync(string sourceFileName, string destFileName, bool overwrite = false)
+        {
+            try
+            {
+                var isExist = File.Exists(destFileName);
+                if (!overwrite && isExist) return true;
+                if (overwrite && isExist) File.Delete(destFileName);
+                using (var fStream = new FileStream(sourceFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    using (var fs = File.Create(destFileName))
+                    {
+                        var buffer = new byte[2048];
+                        var bytesRead = 0;
+                        //每次读取2kb数据，然后写入文件
+                        while ((bytesRead = await fStream.ReadAsync(buffer, 0, buffer.Length)) != 0)
+                        {
+                            await fs.WriteAsync(buffer, 0, bytesRead);
+                        }
+                    }
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Error(ex, "复制文件");
+                return false;
+            }
+        }
         #endregion
 
         #region 移动文件
@@ -503,6 +833,43 @@ namespace ZqUtils.Helpers
                         while ((bytesRead = fStream.Read(buffer, 0, buffer.Length)) != 0)
                         {
                             fs.Write(buffer, 0, bytesRead);
+                        }
+                    }
+                }
+                if (File.Exists(sourceFileName)) File.Delete(sourceFileName);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Error(ex, "移动文件");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 移动文件
+        /// </summary>
+        /// <param name="sourceFileName">源路径</param>
+        /// <param name="destFileName">目的路径</param>
+        /// <param name="overwrite">是否覆盖，默认：否</param>
+        /// <returns>bool</returns>
+        public static async Task<bool> FileMoveAsync(string sourceFileName, string destFileName, bool overwrite = false)
+        {
+            try
+            {
+                var isExist = File.Exists(destFileName);
+                if (!overwrite && isExist) return true;
+                if (overwrite && isExist) File.Delete(destFileName);
+                using (var fStream = new FileStream(sourceFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    using (var fs = File.Create(destFileName))
+                    {
+                        var buffer = new byte[2048];
+                        var bytesRead = 0;
+                        //每次读取2kb数据，然后写入文件
+                        while ((bytesRead = await fStream.ReadAsync(buffer, 0, buffer.Length)) != 0)
+                        {
+                            await fs.WriteAsync(buffer, 0, bytesRead);
                         }
                     }
                 }
@@ -569,6 +936,37 @@ namespace ZqUtils.Helpers
                     {
                         var bytes = Convert.FromBase64String(data);
                         fs.Write(bytes, 0, bytes.Length);
+                        result = true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                result = false;
+                LogHelper.Error(ex, "html5 base64数据保存到文件");
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// html5 base64数据保存到文件
+        /// </summary>
+        /// <param name="data">base64数据</param>
+        /// <param name="filePath">文件路径(包含文件扩展名)</param>
+        /// <returns>bool</returns>
+        public static async Task<bool> SaveBase64ToFileAsync(string data, string filePath)
+        {
+            var result = false;
+            try
+            {
+                var index = data?.ToLower().IndexOf("base64,") ?? -1;
+                if (index > -1)
+                {
+                    data = data.Substring(index + 7);
+                    using (var fs = File.Create(filePath))
+                    {
+                        var bytes = Convert.FromBase64String(data);
+                        await fs.WriteAsync(bytes, 0, bytes.Length);
                         result = true;
                     }
                 }
