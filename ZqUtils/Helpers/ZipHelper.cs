@@ -74,6 +74,7 @@ namespace ZqUtils.Helpers
             var result = true;
             string[] folders, files;
             var crc = new Crc32();
+            //压缩文件
             try
             {
                 var ent = new ZipEntry(Path.Combine(parentFolderName, Path.GetFileName(folderToZip) + "/"));
@@ -102,9 +103,11 @@ namespace ZqUtils.Helpers
                 LogHelper.Error(ex, "递归压缩文件夹的内部方法");
                 result = false;
             }
+            //获取文件夹
             folders = Directory.GetDirectories(folderToZip);
             foreach (var folder in folders)
             {
+                //递归压缩文件夹中的文件
                 if (!ZipDirectory(folder, zipStream, folderToZip)) return false;
             }
             return result;
@@ -320,7 +323,17 @@ namespace ZqUtils.Helpers
         /// <param name="compressing">压缩进度事件</param>
         /// <param name="fileCompressionFinished">压缩完成事件</param>
         /// <returns>压缩结果</returns>
-        public static bool CompressTo7z(string sourcePath, string destFileName, string password = null, CompressionMode compressionMode = CompressionMode.Create, OutArchiveFormat outArchiveFormat = OutArchiveFormat.SevenZip, CompressionLevel compressionLevel = CompressionLevel.High, EventHandler<FileNameEventArgs> fileCompressionStarted = null, EventHandler<IntEventArgs> filesFound = null, EventHandler<ProgressEventArgs> compressing = null, EventHandler<EventArgs> fileCompressionFinished = null)
+        public static bool CompressTo7z(
+            string sourcePath,
+            string destFileName,
+            string password = null,
+            CompressionMode compressionMode = CompressionMode.Create,
+            OutArchiveFormat outArchiveFormat = OutArchiveFormat.SevenZip,
+            CompressionLevel compressionLevel = CompressionLevel.High,
+            EventHandler<FileNameEventArgs> fileCompressionStarted = null,
+            EventHandler<IntEventArgs> filesFound = null,
+            EventHandler<ProgressEventArgs> compressing = null,
+            EventHandler<EventArgs> fileCompressionFinished = null)
         {
             var result = true;
             try
@@ -347,6 +360,7 @@ namespace ZqUtils.Helpers
                 {
                     tmp.FileCompressionFinished += fileCompressionFinished;
                 }
+                //文件夹
                 if (Directory.Exists(sourcePath))
                 {
                     if (!string.IsNullOrEmpty(password))
@@ -358,11 +372,8 @@ namespace ZqUtils.Helpers
                         tmp.CompressDirectory(sourcePath, destFileName);
                     }
                 }
-                else
-                {
-                    result = false;
-                }
-                if (File.Exists(sourcePath))
+                //文件
+                else if (File.Exists(sourcePath))
                 {
                     if (!string.IsNullOrEmpty(password))
                     {
@@ -400,7 +411,17 @@ namespace ZqUtils.Helpers
         /// <param name="compressing">压缩进度事件</param>
         /// <param name="fileCompressionFinished">压缩完成事件</param>
         /// <returns>压缩结果</returns>
-        public static bool CompressTo7z(List<string> sourceFiles, string destFileName, string password = null, CompressionMode compressionMode = CompressionMode.Create, OutArchiveFormat outArchiveFormat = OutArchiveFormat.SevenZip, CompressionLevel compressionLevel = CompressionLevel.High, EventHandler<FileNameEventArgs> fileCompressionStarted = null, EventHandler<IntEventArgs> filesFound = null, EventHandler<ProgressEventArgs> compressing = null, EventHandler<EventArgs> fileCompressionFinished = null)
+        public static bool CompressTo7z(
+            List<string> sourceFiles,
+            string destFileName,
+            string password = null,
+            CompressionMode compressionMode = CompressionMode.Create,
+            OutArchiveFormat outArchiveFormat = OutArchiveFormat.SevenZip,
+            CompressionLevel compressionLevel = CompressionLevel.High,
+            EventHandler<FileNameEventArgs> fileCompressionStarted = null,
+            EventHandler<IntEventArgs> filesFound = null,
+            EventHandler<ProgressEventArgs> compressing = null,
+            EventHandler<EventArgs> fileCompressionFinished = null)
         {
             var result = true;
             try
@@ -465,7 +486,14 @@ namespace ZqUtils.Helpers
         /// <param name="extracting">解压进度事件</param>
         /// <param name="fileExtractionFinished">解压缩完成事件</param>
         /// <returns>解压结果</returns>
-        public static bool ExtractFrom7z(string filePath, string extractFolder, string password = null, EventHandler<FileInfoEventArgs> fileExtractionStarted = null, EventHandler<FileOverwriteEventArgs> fileExists = null, EventHandler<ProgressEventArgs> extracting = null, EventHandler<FileInfoEventArgs> fileExtractionFinished = null)
+        public static bool ExtractFrom7z(
+            string filePath,
+            string extractFolder,
+            string password = null,
+            EventHandler<FileInfoEventArgs> fileExtractionStarted = null,
+            EventHandler<FileOverwriteEventArgs> fileExists = null,
+            EventHandler<ProgressEventArgs> extracting = null,
+            EventHandler<FileInfoEventArgs> fileExtractionFinished = null)
         {
             var result = true;
             try
