@@ -17,14 +17,14 @@
 #endregion
 
 using System;
-using System.Text;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Mail;
-using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
 using OpenPop.Mime;
 using OpenPop.Mime.Header;
 using OpenPop.Pop3;
-using System.Threading.Tasks;
 /****************************
 * [Author] 张强
 * [Date] 2015-10-26
