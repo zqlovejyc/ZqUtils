@@ -62,7 +62,7 @@ namespace ZqUtils.Helpers
                 HolidayName = name;
             }
         }
-        
+
         /// <summary>
         /// 农历
         /// </summary>
@@ -81,7 +81,7 @@ namespace ZqUtils.Helpers
                 HolidayName = name;
             }
         }
-        
+
         /// <summary>
         /// 节假日
         /// </summary>
@@ -717,7 +717,7 @@ namespace ZqUtils.Helpers
         #endregion
         #endregion
 
-        #region  属性
+        #region 属性
         #region 节日
         #region NewCalendarHoliday
         /// <summary>
@@ -1318,6 +1318,7 @@ namespace ZqUtils.Helpers
         #endregion
         #endregion
     }
+
     /// <summary>
     /// 农历属性
     /// </summary>
@@ -1327,43 +1328,53 @@ namespace ZqUtils.Helpers
         /// 农历年(整型)
         /// </summary>
         public int CnIntYear { get; set; } = 0;
+
         /// <summary>
         /// 农历月份(整型)
         /// </summary>
         public int CnIntMonth { get; set; } = 0;
+
         /// <summary>
         /// 农历天(整型)
         /// </summary>
         public int CnIntDay { get; set; } = 0;
+
         /// <summary>
         /// 农历年(支干)
         /// </summary>
         public string CnStrYear { get; set; } = "";
+
         /// <summary>
         /// 农历月份(字符)
         /// </summary>
         public string CnStrMonth { get; set; } = "";
+
         /// <summary>
         /// 农历天(字符)
         /// </summary>
         public string CnStrDay { get; set; } = "";
+
         /// <summary>
         /// 农历属象
         /// </summary>
         public string CnAnm { get; set; } = "";
+
         /// <summary>
         /// 二十四节气
         /// </summary>
         public string CnSolarTerm { get; set; } = "";
+
         /// <summary>
         /// 阴历节日
         /// </summary>
         public string CnFtvl { get; set; } = "";
+
         /// <summary>
         /// 阳历节日
         /// </summary>
         public string CnFtvs { get; set; } = "";
     }
+
     /// <summary>
     /// 公历转农历
     /// </summary>
@@ -1500,6 +1511,7 @@ namespace ZqUtils.Helpers
             "1226 毛主席诞辰",
             "1229 国际生物多样性日"
         };
+
         /// <summary>
         /// 传回农历y年的总天数
         /// </summary>
@@ -1513,6 +1525,7 @@ namespace ZqUtils.Helpers
             }
             return (sum + LeapDays(y));
         }
+
         /// <summary>
         /// 传回农历y年闰月的天数
         /// </summary>
@@ -1534,6 +1547,7 @@ namespace ZqUtils.Helpers
                 return 0;
             }
         }
+
         /// <summary>
         /// 传回农历y年闰哪个月 1-12 , 没闰传回 0
         /// </summary>
@@ -1541,6 +1555,7 @@ namespace ZqUtils.Helpers
         {
             return (int)(lunarInfo[y - 1900] & 0xf);
         }
+
         /// <summary>
         /// 传回农历y年m月的总天数
         /// </summary>
@@ -1555,6 +1570,7 @@ namespace ZqUtils.Helpers
                 return 30;
             }
         }
+
         /// <summary>
         /// 传回农历y年的生肖
         /// </summary>
@@ -1562,6 +1578,7 @@ namespace ZqUtils.Helpers
         {
             return Animals[(y - 4) % 12];
         }
+
         /// <summary>
         /// 传入月日的offset 传回干支,0=甲子
         /// </summary>
@@ -1569,6 +1586,7 @@ namespace ZqUtils.Helpers
         {
             return (Gan[num % 10] + Zhi[num % 12]);
         }
+
         /// <summary>
         /// 传入offset 传回干支, 0=甲子
         /// </summary>
@@ -1577,79 +1595,7 @@ namespace ZqUtils.Helpers
             int num = y - 1900 + 36;
             return (Cyclicalm(num));
         }
-        /// <summary>
-        /// 传出农历.year0 .month1 .day2 .yearCyl3 .monCyl4 .dayCyl5 .isLeap6
-        /// </summary>
-        private long[] Lunar(int y, int m)
-        {
-            long[] nongDate = new long[7];
-            int i = 0, temp = 0, leap = 0;
-            DateTime baseDate = new DateTime(1900 + 1900, 2, 31);
-            DateTime objDate = new DateTime(y + 1900, m + 1, 1);
-            TimeSpan ts = objDate - baseDate;
-            long offset = (long)ts.TotalDays;
-            if (y < 2000) offset += year19[m - 1];
-            if (y > 2000) offset += year20[m - 1];
-            if (y == 2000) offset += year2000[m - 1];
-            nongDate[5] = offset + 40;
-            nongDate[4] = 14;
-            for (i = 1900; i < 2050 && offset > 0; i++)
-            {
-                temp = LYearDays(i);
-                offset -= temp;
-                nongDate[4] += 12;
-            }
-            if (offset < 0)
-            {
-                offset += temp;
-                i--;
-                nongDate[4] -= 12;
-            }
-            nongDate[0] = i;
-            nongDate[3] = i - 1864;
-            leap = LeapMonth(i); // 闰哪个月
-            nongDate[6] = 0;
-            for (i = 1; i < 13 && offset > 0; i++)
-            {
-                // 闰月
-                if (leap > 0 && i == (leap + 1) && nongDate[6] == 0)
-                {
-                    --i;
-                    nongDate[6] = 1;
-                    temp = LeapDays((int)nongDate[0]);
-                }
-                else
-                {
-                    temp = MonthDays((int)nongDate[0], i);
-                }
-                // 解除闰月
-                if (nongDate[6] == 1 && i == (leap + 1)) nongDate[6] = 0;
-                offset -= temp;
-                if (nongDate[6] == 0) nongDate[4]++;
-            }
-            if (offset == 0 && leap > 0 && i == leap + 1)
-            {
-                if (nongDate[6] == 1)
-                {
-                    nongDate[6] = 0;
-                }
-                else
-                {
-                    nongDate[6] = 1;
-                    --i;
-                    --nongDate[4];
-                }
-            }
-            if (offset < 0)
-            {
-                offset += temp;
-                --i;
-                --nongDate[4];
-            }
-            nongDate[1] = i;
-            nongDate[2] = offset + 1;
-            return nongDate;
-        }
+
         /// <summary>
         /// 传出y年m月d日对应的农历.year0 .month1 .day2 .yearCyl3 .monCyl4 .dayCyl5 .isLeap6
         /// </summary>
@@ -1720,6 +1666,12 @@ namespace ZqUtils.Helpers
             nongDate[2] = offset + 1;
             return nongDate;
         }
+
+        /// <summary>
+        /// 获取中文日期
+        /// </summary>
+        /// <param name="day"></param>
+        /// <returns></returns>
         private static string GetChinaDate(int day)
         {
             string a = "";
@@ -1764,6 +1716,13 @@ namespace ZqUtils.Helpers
             }
             return a;
         }
+
+        /// <summary>
+        /// STerm
+        /// </summary>
+        /// <param name="y"></param>
+        /// <param name="n"></param>
+        /// <returns></returns>
         private static DateTime STerm(int y, int n)
         {
             double ms = 31556925974.7 * (y - 1900);
@@ -1773,6 +1732,13 @@ namespace ZqUtils.Helpers
             offDate = offDate.AddMinutes(ms1);
             return offDate;
         }
+
+        /// <summary>
+        /// 格式化日期
+        /// </summary>
+        /// <param name="m"></param>
+        /// <param name="d"></param>
+        /// <returns></returns>
         private static string FormatDate(int m, int d)
         {
             return string.Format("{0:00}{1:00}", m, d);
@@ -1788,6 +1754,7 @@ namespace ZqUtils.Helpers
             int[] days = new int[] { 31, DateTime.IsLeapYear(y) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
             return days[m - 1];
         }
+
         /// <summary>
         /// 根据日期值获得周一的日期
         /// </summary>
@@ -1808,6 +1775,7 @@ namespace ZqUtils.Helpers
             }
             return dt.AddDays(d);
         }
+
         /// <summary>
         /// 获取农历
         /// </summary>
