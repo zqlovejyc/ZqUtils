@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
+using System.Threading.Tasks;
 /****************************
 * [Author] 张强
 * [Date] 2019-05-06
@@ -39,19 +40,19 @@ namespace ZqUtils.Helpers
         private readonly ConcurrentQueue<T> _innerQueue;
 
         /// <summary>
-        /// The deal thread.
+        /// The deal task.
         /// </summary>
-        private readonly Thread dealThread;
+        private readonly Task _dealTask;
 
         /// <summary>
         /// The flag for end thread.
         /// </summary>
-        private bool endThreadFlag = false;
+        private bool _endThreadFlag = false;
 
         /// <summary>
         /// The auto reset event.
         /// </summary>
-        private readonly AutoResetEvent autoResetEvent = new AutoResetEvent(true);
+        private readonly AutoResetEvent _autoResetEvent = new AutoResetEvent(true);
         #endregion
 
         #region Public Property
@@ -68,8 +69,7 @@ namespace ZqUtils.Helpers
         public QueueHelper()
         {
             this._innerQueue = new ConcurrentQueue<T>();
-            this.dealThread = new Thread(this.DealQueue);
-            this.dealThread.Start();
+            this._dealTask = Task.Run(() => this.DealQueue());
         }
 
         /// <summary>
@@ -80,8 +80,7 @@ namespace ZqUtils.Helpers
         {
             this.DealAction = DealAction;
             this._innerQueue = new ConcurrentQueue<T>();
-            this.dealThread = new Thread(this.DealQueue);
-            this.dealThread.Start();
+            this._dealTask = Task.Run(() => this.DealQueue());
         }
         #endregion
 
@@ -92,8 +91,11 @@ namespace ZqUtils.Helpers
         /// <param name="entity">The entity what will be deal.</param>
         public void Enqueue(T entity)
         {
-            this._innerQueue.Enqueue(entity);
-            this.autoResetEvent.Set();
+            if (!this._endThreadFlag)
+            {
+                this._innerQueue.Enqueue(entity);
+                this._autoResetEvent.Set();
+            }
         }
 
         /// <summary>
@@ -111,11 +113,19 @@ namespace ZqUtils.Helpers
         /// </summary>
         public void Dispose()
         {
-            this.endThreadFlag = true;
-            this._innerQueue.Enqueue(default(T));
-            this.autoResetEvent.Set();
-            this.dealThread.Join();
-            this.autoResetEvent.Close();
+            if (!this._endThreadFlag)
+            {
+                this._endThreadFlag = true;
+                this._innerQueue.Enqueue(default(T));
+                this._autoResetEvent.Set();
+
+                if (!this._dealTask.IsCompleted)
+                    this._dealTask.Wait();
+                this._dealTask.Dispose();
+
+                this._autoResetEvent.Dispose();
+                this._autoResetEvent.Close();
+            }
         }
         #endregion
 
@@ -129,9 +139,9 @@ namespace ZqUtils.Helpers
             {
                 if (this.Dequeue(out T entity))
                 {
-                    if (this.endThreadFlag && entity == null)
+                    if (this._endThreadFlag && entity == null)
                     {
-                        return;   // Exit the deal thread.
+                        return;
                     }
 
                     try
@@ -142,7 +152,7 @@ namespace ZqUtils.Helpers
                 }
                 else
                 {
-                    this.autoResetEvent.WaitOne();
+                    this._autoResetEvent.WaitOne();
                 }
             }
         }
