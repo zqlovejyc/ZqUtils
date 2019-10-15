@@ -22,8 +22,8 @@ using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 using System.Collections.Generic;
-using ZqUtils.Extensions;
 using Newtonsoft.Json;
+using ZqUtils.Extensions;
 /****************************
 * [Author] 张强
 * [Date] 2015-10-26
@@ -40,22 +40,23 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// XML字符串转换为Dictionary
         /// </summary>
-        /// <param name="xmlStr">XML字符串</param>
+        /// <param name="xml">XML字符串</param>
+        /// <param name="rootNode">根节点</param>
         /// <returns>Dictionary</returns>
-        public static Dictionary<string, string> XmlToDictionary(string xmlStr)
+        public static Dictionary<string, string> XmlToDictionary(string xml, string rootNode = "xml")
         {
             var dic = new Dictionary<string, string>();
             try
             {
-                if (!xmlStr.IsNull())
+                if (!xml.IsNull())
                 {
                     var xmlDoc = new XmlDocument
                     {
                         //修复XML外部实体注入漏洞(XML External Entity Injection，简称 XXE)
                         XmlResolver = null
                     };
-                    xmlDoc.LoadXml(xmlStr);
-                    var root = xmlDoc.SelectSingleNode("xml");
+                    xmlDoc.LoadXml(xml);
+                    var root = xmlDoc.SelectSingleNode(rootNode);
                     var xnl = root.ChildNodes;
                     foreach (XmlNode xnf in xnl)
                     {
@@ -74,8 +75,9 @@ namespace ZqUtils.Helpers
         /// Stream转换为Dictionary
         /// </summary>
         /// <param name="stream">XML字节流</param>
+        /// <param name="rootNode">根节点</param>
         /// <returns>Dictionary</returns>
-        public static Dictionary<string, string> XmlToDictionary(Stream stream)
+        public static Dictionary<string, string> XmlToDictionary(Stream stream, string rootNode = "xml")
         {
             var dic = new Dictionary<string, string>();
             try
@@ -88,7 +90,7 @@ namespace ZqUtils.Helpers
                         XmlResolver = null
                     };
                     xmlDoc.Load(stream);
-                    var root = xmlDoc.SelectSingleNode("xml");
+                    var root = xmlDoc.SelectSingleNode(rootNode);
                     var xnl = root.ChildNodes;
                     foreach (XmlNode xnf in xnl)
                     {
@@ -112,14 +114,25 @@ namespace ZqUtils.Helpers
         /// <returns>JSON字符串</returns>
         public static string XmlToJson(string xml)
         {
-            if (xml.IsNullOrEmpty())
-                return null;
-            var doc = new XmlDocument()
+            try
             {
-                XmlResolver = null
-            };
-            doc.LoadXml(xml);
-            return JsonConvert.SerializeXmlNode(doc);
+                if (xml.IsNullOrEmpty())
+                    return null;
+
+                var doc = new XmlDocument()
+                {
+                    //修复XML外部实体注入漏洞(XML External Entity Injection，简称 XXE)
+                    XmlResolver = null
+                };
+                doc.LoadXml(xml);
+
+                return JsonConvert.SerializeXmlNode(doc);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Error(ex, "xml字符串转换为json异常");
+            }
+            return null;
         }
         #endregion
 
