@@ -23,6 +23,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using System.Collections.Generic;
 using ZqUtils.Extensions;
+using Newtonsoft.Json;
 /****************************
 * [Author] 张强
 * [Date] 2015-10-26
@@ -100,6 +101,25 @@ namespace ZqUtils.Helpers
                 LogHelper.Error(ex, "stream转换为Dictionary");
             }
             return dic;
+        }
+        #endregion
+
+        #region XML转换为JSON字符串
+        /// <summary>
+        /// XML字符串转JSON字符串
+        /// </summary>
+        /// <param name="xml">XML字符串</param>
+        /// <returns>JSON字符串</returns>
+        public static string XmlToJson(string xml)
+        {
+            if (xml.IsNullOrEmpty())
+                return null;
+            var doc = new XmlDocument()
+            {
+                XmlResolver = null
+            };
+            doc.LoadXml(xml);
+            return JsonConvert.SerializeXmlNode(doc);
         }
         #endregion
 
