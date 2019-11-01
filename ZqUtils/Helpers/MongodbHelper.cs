@@ -133,8 +133,8 @@ namespace ZqUtils.Helpers
         /// <param name="property">属性</param>
         /// <param name="propertyValue">属性值</param>
         /// <param name="item">更新子项</param>
-        /// <param name="father">父级字段</param>
-        public static void BuildUpdateDefinition<T>(List<UpdateDefinition<T>> fieldList, PropertyInfo property, object propertyValue, T item, string father)
+        /// <param name="parent">父级字段</param>
+        public static void BuildUpdateDefinition<T>(List<UpdateDefinition<T>> fieldList, PropertyInfo property, object propertyValue, T item, string parent)
         {
             #region 复杂类型
             if (property.PropertyType.IsClass && property.PropertyType != typeof(string) && propertyValue != null)
@@ -152,26 +152,26 @@ namespace ZqUtils.Helpers
                             {
                                 foreach (var subInner in elementType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
                                 {
-                                    if (string.IsNullOrWhiteSpace(father))
+                                    if (string.IsNullOrWhiteSpace(parent))
                                     {
                                         BuildUpdateDefinition(fieldList, subInner, subInner.GetValue(arr[index]), item, $"{property.Name}.$");
                                     }
                                     else
                                     {
-                                        BuildUpdateDefinition(fieldList, subInner, subInner.GetValue(arr[index]), item, $"{father}.{property.Name}.$");
+                                        BuildUpdateDefinition(fieldList, subInner, subInner.GetValue(arr[index]), item, $"{parent}.{property.Name}.$");
                                     }
                                 }
                             }
                             //简单类型
                             else if (property.Name != "_id" && arr[index] != null)
                             {
-                                if (string.IsNullOrWhiteSpace(father))
+                                if (string.IsNullOrWhiteSpace(parent))
                                 {
                                     fieldList.Add(Builders<T>.Update.Set($"{property.Name}.$", arr[index]));
                                 }
                                 else
                                 {
-                                    fieldList.Add(Builders<T>.Update.Set($"{father}.{property.Name}.$", arr[index]));
+                                    fieldList.Add(Builders<T>.Update.Set($"{parent}.{property.Name}.$", arr[index]));
                                 }
                             }
                         }
@@ -193,26 +193,26 @@ namespace ZqUtils.Helpers
                                 {
                                     foreach (var subInner in sub.PropertyType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
                                     {
-                                        if (string.IsNullOrWhiteSpace(father))
+                                        if (string.IsNullOrWhiteSpace(parent))
                                         {
                                             BuildUpdateDefinition(fieldList, subInner, subInner.GetValue(arr[index]), item, $"{property.Name}.$");
                                         }
                                         else
                                         {
-                                            BuildUpdateDefinition(fieldList, subInner, subInner.GetValue(arr[index]), item, $"{father}.{property.Name}.$");
+                                            BuildUpdateDefinition(fieldList, subInner, subInner.GetValue(arr[index]), item, $"{parent}.{property.Name}.$");
                                         }
                                     }
                                 }
                                 //简单类型
                                 else if (property.Name != "_id" && arr[index] != null)
                                 {
-                                    if (string.IsNullOrWhiteSpace(father))
+                                    if (string.IsNullOrWhiteSpace(parent))
                                     {
                                         fieldList.Add(Builders<T>.Update.Set($"{property.Name}.$", arr[index]));
                                     }
                                     else
                                     {
-                                        fieldList.Add(Builders<T>.Update.Set($"{father}.{property.Name}.$", arr[index]));
+                                        fieldList.Add(Builders<T>.Update.Set($"{parent}.{property.Name}.$", arr[index]));
                                     }
                                 }
                             }
@@ -226,13 +226,13 @@ namespace ZqUtils.Helpers
                 {
                     foreach (var sub in property.PropertyType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
                     {
-                        if (string.IsNullOrWhiteSpace(father))
+                        if (string.IsNullOrWhiteSpace(parent))
                         {
                             BuildUpdateDefinition(fieldList, sub, sub.GetValue(propertyValue), item, property.Name);
                         }
                         else
                         {
-                            BuildUpdateDefinition(fieldList, sub, sub.GetValue(propertyValue), item, $"{father}.{property.Name}");
+                            BuildUpdateDefinition(fieldList, sub, sub.GetValue(propertyValue), item, $"{parent}.{property.Name}");
                         }
                     }
                 }
@@ -246,13 +246,13 @@ namespace ZqUtils.Helpers
                 //更新集中不能有实体键_id
                 if (property.Name != "_id" && propertyValue != null)
                 {
-                    if (string.IsNullOrWhiteSpace(father))
+                    if (string.IsNullOrWhiteSpace(parent))
                     {
                         fieldList.Add(Builders<T>.Update.Set(property.Name, propertyValue));
                     }
                     else
                     {
-                        fieldList.Add(Builders<T>.Update.Set($"{father}.{property.Name}", propertyValue));
+                        fieldList.Add(Builders<T>.Update.Set($"{parent}.{property.Name}", propertyValue));
                     }
                 }
             }
@@ -282,10 +282,10 @@ namespace ZqUtils.Helpers
         /// </summary>        
         /// <param name="property">属性</param>
         /// <param name="entity">更新实体</param>
-        /// <param name="father">父级字段</param>
+        /// <param name="parent">父级字段</param>
         /// <param name="isExists">是否存在</param>
         /// <returns>返回字段名称</returns>
-        public static string GetField(PropertyInfo property, object entity, string father, ref bool isExists)
+        public static string GetField(PropertyInfo property, object entity, string parent, ref bool isExists)
         {
             foreach (var prop in property.PropertyType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
             {
@@ -294,7 +294,7 @@ namespace ZqUtils.Helpers
                 {
                     if (prop.PropertyType.GetElementType() == entity.GetType())
                     {
-                        father += "." + prop.Name;
+                        parent += "." + prop.Name;
                         isExists = true;
                     }
                 }
@@ -303,17 +303,17 @@ namespace ZqUtils.Helpers
                 {
                     if (prop.PropertyType.GetProperties(BindingFlags.Instance | BindingFlags.Public).Any(o => o.PropertyType == entity.GetType()))
                     {
-                        father += "." + prop.Name;
+                        parent += "." + prop.Name;
                         isExists = true;
                     }
                 }
                 //对象
                 else if (prop.PropertyType.IsClass && prop.PropertyType != typeof(string))
                 {
-                    father += "." + GetField(prop, entity, prop.Name, ref isExists);
+                    parent += "." + GetField(prop, entity, prop.Name, ref isExists);
                 }
             }
-            return father;
+            return parent;
         }
 
         /// <summary>
@@ -391,27 +391,31 @@ namespace ZqUtils.Helpers
         /// <param name="parent">父级字段</param>
         public void CreateIndex<T>(PropertyInfo property, IMongoCollection<T> collection, string parent)
         {
-            foreach (var prop in property.PropertyType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+            var props = property.PropertyType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
+            if (props?.Length > 0)
             {
-                //判断是否有索引
-                var customAttributes = prop.GetCustomAttributes(typeof(MongoIndexAttribute), false);
-                if (customAttributes?.Length > 0 && customAttributes.FirstOrDefault() is MongoIndexAttribute mongoIndex)
+                foreach (var prop in props)
                 {
-                    var name = (string.IsNullOrWhiteSpace(parent) ? prop.Name : $"{parent}.{prop.Name}");
-                    var keys = mongoIndex.Ascending ?
-                            Builders<T>.IndexKeys.Ascending(name) :
-                            Builders<T>.IndexKeys.Descending(name);
-                    var model = new CreateIndexModel<T>(keys, new CreateIndexOptions
+                    //判断是否有索引
+                    var customAttributes = prop.GetCustomAttributes(typeof(MongoIndexAttribute), false);
+                    if (customAttributes?.Length > 0 && customAttributes.FirstOrDefault() is MongoIndexAttribute mongoIndex)
                     {
-                        Name = mongoIndex.Name,
-                        Unique = mongoIndex.Unique
-                    });
-                    collection.Indexes.CreateOne(model);
-                }
-                //实体
-                else if (prop.PropertyType.IsClass && prop.PropertyType != typeof(string))
-                {
-                    this.CreateIndex(prop, collection, (string.IsNullOrWhiteSpace(parent) ? prop.Name : $"{parent}.{prop.Name}"));
+                        var name = (string.IsNullOrWhiteSpace(parent) ? prop.Name : $"{parent}.{prop.Name}");
+                        var keys = mongoIndex.Ascending ?
+                                Builders<T>.IndexKeys.Ascending(name) :
+                                Builders<T>.IndexKeys.Descending(name);
+                        var model = new CreateIndexModel<T>(keys, new CreateIndexOptions
+                        {
+                            Name = mongoIndex.Name,
+                            Unique = mongoIndex.Unique
+                        });
+                        collection.Indexes.CreateOne(model);
+                    }
+                    //实体
+                    else if (prop.PropertyType.IsClass && prop.PropertyType != typeof(string))
+                    {
+                        this.CreateIndex(prop, collection, (string.IsNullOrWhiteSpace(parent) ? prop.Name : $"{parent}.{prop.Name}"));
+                    }
                 }
             }
         }
@@ -425,26 +429,29 @@ namespace ZqUtils.Helpers
         {
             var collection = this.database.GetCollection<T>(collectionName ?? typeof(T).Name);
             var props = typeof(T).GetProperties(BindingFlags.Instance | BindingFlags.Public);
-            foreach (var prop in props)
+            if (props?.Length > 0)
             {
-                //判断是否有索引
-                var customAttributes = prop.GetCustomAttributes(typeof(MongoIndexAttribute), false);
-                if (customAttributes?.Length > 0 && customAttributes.FirstOrDefault() is MongoIndexAttribute mongoIndex)
+                foreach (var prop in props)
                 {
-                    var keys = mongoIndex.Ascending ?
-                            Builders<T>.IndexKeys.Ascending(prop.Name) :
-                            Builders<T>.IndexKeys.Descending(prop.Name);
-                    var model = new CreateIndexModel<T>(keys, new CreateIndexOptions
+                    //判断是否有索引
+                    var customAttributes = prop.GetCustomAttributes(typeof(MongoIndexAttribute), false);
+                    if (customAttributes?.Length > 0 && customAttributes.FirstOrDefault() is MongoIndexAttribute mongoIndex)
                     {
-                        Name = mongoIndex.Name,
-                        Unique = mongoIndex.Unique
-                    });
-                    collection.Indexes.CreateOne(model);
-                }
-                //实体
-                else if (prop.PropertyType.IsClass && prop.PropertyType != typeof(string))
-                {
-                    this.CreateIndex(prop, collection, prop.Name);
+                        var keys = mongoIndex.Ascending ?
+                                Builders<T>.IndexKeys.Ascending(prop.Name) :
+                                Builders<T>.IndexKeys.Descending(prop.Name);
+                        var model = new CreateIndexModel<T>(keys, new CreateIndexOptions
+                        {
+                            Name = mongoIndex.Name,
+                            Unique = mongoIndex.Unique
+                        });
+                        collection.Indexes.CreateOne(model);
+                    }
+                    //实体
+                    else if (prop.PropertyType.IsClass && prop.PropertyType != typeof(string))
+                    {
+                        this.CreateIndex(prop, collection, prop.Name);
+                    }
                 }
             }
         }
@@ -477,27 +484,31 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public async Task CreateIndexAsync<T>(PropertyInfo property, IMongoCollection<T> collection, string parent)
         {
-            foreach (var prop in property.PropertyType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+            var props = property.PropertyType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
+            if (props?.Length > 0)
             {
-                //判断是否有索引
-                var customAttributes = prop.GetCustomAttributes(typeof(MongoIndexAttribute), false);
-                if (customAttributes?.Length > 0 && customAttributes.FirstOrDefault() is MongoIndexAttribute mongoIndex)
+                foreach (var prop in props)
                 {
-                    var name = (string.IsNullOrWhiteSpace(parent) ? prop.Name : $"{parent}.{prop.Name}");
-                    var keys = mongoIndex.Ascending ?
-                            Builders<T>.IndexKeys.Ascending(name) :
-                            Builders<T>.IndexKeys.Descending(name);
-                    var model = new CreateIndexModel<T>(keys, new CreateIndexOptions
+                    //判断是否有索引
+                    var customAttributes = prop.GetCustomAttributes(typeof(MongoIndexAttribute), false);
+                    if (customAttributes?.Length > 0 && customAttributes.FirstOrDefault() is MongoIndexAttribute mongoIndex)
                     {
-                        Name = mongoIndex.Name,
-                        Unique = mongoIndex.Unique
-                    });
-                    await collection.Indexes.CreateOneAsync(model);
-                }
-                //实体
-                else if (prop.PropertyType.IsClass && prop.PropertyType != typeof(string))
-                {
-                    await this.CreateIndexAsync(prop, collection, (string.IsNullOrWhiteSpace(parent) ? prop.Name : $"{parent}.{prop.Name}"));
+                        var name = (string.IsNullOrWhiteSpace(parent) ? prop.Name : $"{parent}.{prop.Name}");
+                        var keys = mongoIndex.Ascending ?
+                                Builders<T>.IndexKeys.Ascending(name) :
+                                Builders<T>.IndexKeys.Descending(name);
+                        var model = new CreateIndexModel<T>(keys, new CreateIndexOptions
+                        {
+                            Name = mongoIndex.Name,
+                            Unique = mongoIndex.Unique
+                        });
+                        await collection.Indexes.CreateOneAsync(model);
+                    }
+                    //实体
+                    else if (prop.PropertyType.IsClass && prop.PropertyType != typeof(string))
+                    {
+                        await this.CreateIndexAsync(prop, collection, (string.IsNullOrWhiteSpace(parent) ? prop.Name : $"{parent}.{prop.Name}"));
+                    }
                 }
             }
         }
@@ -511,26 +522,29 @@ namespace ZqUtils.Helpers
         {
             var collection = this.database.GetCollection<T>(collectionName ?? typeof(T).Name);
             var props = typeof(T).GetProperties(BindingFlags.Instance | BindingFlags.Public);
-            foreach (var prop in props)
+            if (props?.Length > 0)
             {
-                //判断是否有索引
-                var customAttributes = prop.GetCustomAttributes(typeof(MongoIndexAttribute), false);
-                if (customAttributes?.Length > 0 && customAttributes.FirstOrDefault() is MongoIndexAttribute mongoIndex)
+                foreach (var prop in props)
                 {
-                    var keys = mongoIndex.Ascending ?
-                            Builders<T>.IndexKeys.Ascending(prop.Name) :
-                            Builders<T>.IndexKeys.Descending(prop.Name);
-                    var model = new CreateIndexModel<T>(keys, new CreateIndexOptions
+                    //判断是否有索引
+                    var customAttributes = prop.GetCustomAttributes(typeof(MongoIndexAttribute), false);
+                    if (customAttributes?.Length > 0 && customAttributes.FirstOrDefault() is MongoIndexAttribute mongoIndex)
                     {
-                        Name = mongoIndex.Name,
-                        Unique = mongoIndex.Unique
-                    });
-                    await collection.Indexes.CreateOneAsync(model);
-                }
-                //实体
-                else if (prop.PropertyType.IsClass && prop.PropertyType != typeof(string))
-                {
-                    await this.CreateIndexAsync(prop, collection, prop.Name);
+                        var keys = mongoIndex.Ascending ?
+                                Builders<T>.IndexKeys.Ascending(prop.Name) :
+                                Builders<T>.IndexKeys.Descending(prop.Name);
+                        var model = new CreateIndexModel<T>(keys, new CreateIndexOptions
+                        {
+                            Name = mongoIndex.Name,
+                            Unique = mongoIndex.Unique
+                        });
+                        await collection.Indexes.CreateOneAsync(model);
+                    }
+                    //实体
+                    else if (prop.PropertyType.IsClass && prop.PropertyType != typeof(string))
+                    {
+                        await this.CreateIndexAsync(prop, collection, prop.Name);
+                    }
                 }
             }
         }
