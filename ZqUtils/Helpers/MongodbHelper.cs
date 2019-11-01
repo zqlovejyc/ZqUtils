@@ -388,8 +388,8 @@ namespace ZqUtils.Helpers
         /// <typeparam name="T">泛型类型</typeparam>
         /// <param name="property">属性</param>
         /// <param name="collection">mongo集合</param>
-        /// <param name="father">父级字段</param>
-        public void CreateIndex<T>(PropertyInfo property, IMongoCollection<T> collection, string father)
+        /// <param name="parent">父级字段</param>
+        public void CreateIndex<T>(PropertyInfo property, IMongoCollection<T> collection, string parent)
         {
             foreach (var prop in property.PropertyType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
             {
@@ -397,7 +397,7 @@ namespace ZqUtils.Helpers
                 var customAttributes = prop.GetCustomAttributes(typeof(MongoIndexAttribute), false);
                 if (customAttributes?.Length > 0 && customAttributes.FirstOrDefault() is MongoIndexAttribute mongoIndex)
                 {
-                    var name = (string.IsNullOrWhiteSpace(father) ? prop.Name : $"{father}.{prop.Name}");
+                    var name = (string.IsNullOrWhiteSpace(parent) ? prop.Name : $"{parent}.{prop.Name}");
                     var keys = mongoIndex.Ascending ?
                             Builders<T>.IndexKeys.Ascending(name) :
                             Builders<T>.IndexKeys.Descending(name);
@@ -411,7 +411,7 @@ namespace ZqUtils.Helpers
                 //实体
                 else if (prop.PropertyType.IsClass && prop.PropertyType != typeof(string))
                 {
-                    this.CreateIndex(prop, collection, (string.IsNullOrWhiteSpace(father) ? prop.Name : $"{father}.{prop.Name}"));
+                    this.CreateIndex(prop, collection, (string.IsNullOrWhiteSpace(parent) ? prop.Name : $"{parent}.{prop.Name}"));
                 }
             }
         }
@@ -473,9 +473,9 @@ namespace ZqUtils.Helpers
         /// <typeparam name="T">泛型类型</typeparam>
         /// <param name="property">属性</param>
         /// <param name="collection">mongo集合</param>
-        /// <param name="father">父级字段</param>
+        /// <param name="parent">父级字段</param>
         /// <returns></returns>
-        public async Task CreateIndexAsync<T>(PropertyInfo property, IMongoCollection<T> collection, string father)
+        public async Task CreateIndexAsync<T>(PropertyInfo property, IMongoCollection<T> collection, string parent)
         {
             foreach (var prop in property.PropertyType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
             {
@@ -483,7 +483,7 @@ namespace ZqUtils.Helpers
                 var customAttributes = prop.GetCustomAttributes(typeof(MongoIndexAttribute), false);
                 if (customAttributes?.Length > 0 && customAttributes.FirstOrDefault() is MongoIndexAttribute mongoIndex)
                 {
-                    var name = (string.IsNullOrWhiteSpace(father) ? prop.Name : $"{father}.{prop.Name}");
+                    var name = (string.IsNullOrWhiteSpace(parent) ? prop.Name : $"{parent}.{prop.Name}");
                     var keys = mongoIndex.Ascending ?
                             Builders<T>.IndexKeys.Ascending(name) :
                             Builders<T>.IndexKeys.Descending(name);
@@ -497,7 +497,7 @@ namespace ZqUtils.Helpers
                 //实体
                 else if (prop.PropertyType.IsClass && prop.PropertyType != typeof(string))
                 {
-                    await this.CreateIndexAsync(prop, collection, (string.IsNullOrWhiteSpace(father) ? prop.Name : $"{father}.{prop.Name}"));
+                    await this.CreateIndexAsync(prop, collection, (string.IsNullOrWhiteSpace(parent) ? prop.Name : $"{parent}.{prop.Name}"));
                 }
             }
         }
