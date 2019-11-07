@@ -391,7 +391,6 @@ namespace ZqUtils.Helpers
         /// <param name="parent">父级字段</param>
         public void CreateIndex<T>(PropertyInfo property, IMongoCollection<T> collection, string parent)
         {
-            var indexs = collection.Indexes.List().ToList().Select(i => i.GetValue("name").AsString);
             var props = property.PropertyType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
             if (props?.Length > 0)
             {
@@ -401,7 +400,7 @@ namespace ZqUtils.Helpers
                     var customAttributes = prop.GetCustomAttributes(typeof(MongoIndexAttribute), false);
                     if (customAttributes?.Length > 0
                         && customAttributes.FirstOrDefault() is MongoIndexAttribute mongoIndex
-                        && !indexs.Contains(mongoIndex?.Name))
+                        && !this.ExistIndex(mongoIndex.Name, collection))
                     {
                         var name = (string.IsNullOrWhiteSpace(parent) ? prop.Name : $"{parent}.{prop.Name}");
                         var keys = mongoIndex.Ascending ?
@@ -431,7 +430,6 @@ namespace ZqUtils.Helpers
         public void CreateIndex<T>(string collectionName = null)
         {
             var collection = this.database.GetCollection<T>(collectionName ?? typeof(T).Name);
-            var indexs = collection.Indexes.List().ToList().Select(i => i.GetValue("name").AsString);
             var props = typeof(T).GetProperties(BindingFlags.Instance | BindingFlags.Public);
             if (props?.Length > 0)
             {
@@ -441,7 +439,7 @@ namespace ZqUtils.Helpers
                     var customAttributes = prop.GetCustomAttributes(typeof(MongoIndexAttribute), false);
                     if (customAttributes?.Length > 0
                         && customAttributes.FirstOrDefault() is MongoIndexAttribute mongoIndex
-                        && !indexs.Contains(mongoIndex?.Name))
+                        && !this.ExistIndex(mongoIndex.Name, collection))
                     {
                         var keys = mongoIndex.Ascending ?
                                 Builders<T>.IndexKeys.Ascending(prop.Name) :
@@ -460,6 +458,37 @@ namespace ZqUtils.Helpers
                     }
                 }
             }
+        }
+        #endregion
+
+        #region ExistIndex
+        /// <summary>
+        /// 判断索引是否存在
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="indexName">索引名称</param>
+        /// <param name="collectionName">表名</param>
+        /// <returns></returns>
+        public bool ExistIndex<T>(string indexName, string collectionName = null)
+        {
+            var collection = this.database.GetCollection<T>(collectionName ?? typeof(T).Name);
+            var indexes = collection.Indexes.List();
+            var indexNames = indexes.ToList().Select(i => i.GetValue("name").AsString);
+            return indexNames.Contains(indexName);
+        }
+
+        /// <summary>
+        /// 判断索引是否存在
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="indexName">索引名称</param>
+        /// <param name="collection">mongodb集合</param>
+        /// <returns></returns>
+        public bool ExistIndex<T>(string indexName, IMongoCollection<T> collection)
+        {
+            var indexes = collection.Indexes.List();
+            var indexNames = indexes.ToList().Select(i => i.GetValue("name").AsString);
+            return indexNames.Contains(indexName);
         }
         #endregion
 
@@ -490,7 +519,6 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public async Task CreateIndexAsync<T>(PropertyInfo property, IMongoCollection<T> collection, string parent)
         {
-            var indexs = (await (await collection.Indexes.ListAsync()).ToListAsync()).Select(i => i.GetValue("name").AsString);
             var props = property.PropertyType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
             if (props?.Length > 0)
             {
@@ -500,7 +528,7 @@ namespace ZqUtils.Helpers
                     var customAttributes = prop.GetCustomAttributes(typeof(MongoIndexAttribute), false);
                     if (customAttributes?.Length > 0
                         && customAttributes.FirstOrDefault() is MongoIndexAttribute mongoIndex
-                        && !indexs.Contains(mongoIndex.Name))
+                        && !(await this.ExistIndexAsync(mongoIndex.Name, collection)))
                     {
                         var name = (string.IsNullOrWhiteSpace(parent) ? prop.Name : $"{parent}.{prop.Name}");
                         var keys = mongoIndex.Ascending ?
@@ -530,7 +558,6 @@ namespace ZqUtils.Helpers
         public async Task CreateIndexAsync<T>(string collectionName = null)
         {
             var collection = this.database.GetCollection<T>(collectionName ?? typeof(T).Name);
-            var indexs = (await (await collection.Indexes.ListAsync()).ToListAsync()).Select(i => i.GetValue("name").AsString);
             var props = typeof(T).GetProperties(BindingFlags.Instance | BindingFlags.Public);
             if (props?.Length > 0)
             {
@@ -540,7 +567,7 @@ namespace ZqUtils.Helpers
                     var customAttributes = prop.GetCustomAttributes(typeof(MongoIndexAttribute), false);
                     if (customAttributes?.Length > 0
                         && customAttributes.FirstOrDefault() is MongoIndexAttribute mongoIndex
-                        && !indexs.Contains(mongoIndex.Name))
+                        && !(await this.ExistIndexAsync(mongoIndex.Name, collection)))
                     {
                         var keys = mongoIndex.Ascending ?
                                 Builders<T>.IndexKeys.Ascending(prop.Name) :
@@ -559,6 +586,37 @@ namespace ZqUtils.Helpers
                     }
                 }
             }
+        }
+        #endregion
+
+        #region ExistIndexAsync
+        /// <summary>
+        /// 判断索引是否存在
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="indexName">索引名称</param>
+        /// <param name="collectionName">表名</param>
+        /// <returns></returns>
+        public async Task<bool> ExistIndexAsync<T>(string indexName, string collectionName = null)
+        {
+            var collection = this.database.GetCollection<T>(collectionName ?? typeof(T).Name);
+            var indexes = await collection.Indexes.ListAsync();
+            var indexNames = (await indexes.ToListAsync()).Select(i => i.GetValue("name").AsString);
+            return indexNames.Contains(indexName);
+        }
+
+        /// <summary>
+        /// 判断索引是否存在
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="indexName">索引名称</param>
+        /// <param name="collection">mongodb集合</param>
+        /// <returns></returns>
+        public async Task<bool> ExistIndexAsync<T>(string indexName, IMongoCollection<T> collection)
+        {
+            var indexes = await collection.Indexes.ListAsync();
+            var indexNames = (await indexes.ToListAsync()).Select(i => i.GetValue("name").AsString);
+            return indexNames.Contains(indexName);
         }
         #endregion
 
