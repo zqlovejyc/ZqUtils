@@ -391,6 +391,7 @@ namespace ZqUtils.Helpers
         /// <param name="parent">父级字段</param>
         public void CreateIndex<T>(PropertyInfo property, IMongoCollection<T> collection, string parent)
         {
+            var indexs = collection.Indexes.List().ToList().Select(i => i.GetValue("name").AsString);
             var props = property.PropertyType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
             if (props?.Length > 0)
             {
@@ -398,7 +399,9 @@ namespace ZqUtils.Helpers
                 {
                     //判断是否有索引
                     var customAttributes = prop.GetCustomAttributes(typeof(MongoIndexAttribute), false);
-                    if (customAttributes?.Length > 0 && customAttributes.FirstOrDefault() is MongoIndexAttribute mongoIndex)
+                    if (customAttributes?.Length > 0
+                        && customAttributes.FirstOrDefault() is MongoIndexAttribute mongoIndex
+                        && !indexs.Contains(mongoIndex?.Name))
                     {
                         var name = (string.IsNullOrWhiteSpace(parent) ? prop.Name : $"{parent}.{prop.Name}");
                         var keys = mongoIndex.Ascending ?
@@ -428,6 +431,7 @@ namespace ZqUtils.Helpers
         public void CreateIndex<T>(string collectionName = null)
         {
             var collection = this.database.GetCollection<T>(collectionName ?? typeof(T).Name);
+            var indexs = collection.Indexes.List().ToList().Select(i => i.GetValue("name").AsString);
             var props = typeof(T).GetProperties(BindingFlags.Instance | BindingFlags.Public);
             if (props?.Length > 0)
             {
@@ -435,7 +439,9 @@ namespace ZqUtils.Helpers
                 {
                     //判断是否有索引
                     var customAttributes = prop.GetCustomAttributes(typeof(MongoIndexAttribute), false);
-                    if (customAttributes?.Length > 0 && customAttributes.FirstOrDefault() is MongoIndexAttribute mongoIndex)
+                    if (customAttributes?.Length > 0
+                        && customAttributes.FirstOrDefault() is MongoIndexAttribute mongoIndex
+                        && !indexs.Contains(mongoIndex?.Name))
                     {
                         var keys = mongoIndex.Ascending ?
                                 Builders<T>.IndexKeys.Ascending(prop.Name) :
@@ -484,6 +490,7 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public async Task CreateIndexAsync<T>(PropertyInfo property, IMongoCollection<T> collection, string parent)
         {
+            var indexs = (await (await collection.Indexes.ListAsync()).ToListAsync()).Select(i => i.GetValue("name").AsString);
             var props = property.PropertyType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
             if (props?.Length > 0)
             {
@@ -491,7 +498,9 @@ namespace ZqUtils.Helpers
                 {
                     //判断是否有索引
                     var customAttributes = prop.GetCustomAttributes(typeof(MongoIndexAttribute), false);
-                    if (customAttributes?.Length > 0 && customAttributes.FirstOrDefault() is MongoIndexAttribute mongoIndex)
+                    if (customAttributes?.Length > 0
+                        && customAttributes.FirstOrDefault() is MongoIndexAttribute mongoIndex
+                        && !indexs.Contains(mongoIndex.Name))
                     {
                         var name = (string.IsNullOrWhiteSpace(parent) ? prop.Name : $"{parent}.{prop.Name}");
                         var keys = mongoIndex.Ascending ?
@@ -521,6 +530,7 @@ namespace ZqUtils.Helpers
         public async Task CreateIndexAsync<T>(string collectionName = null)
         {
             var collection = this.database.GetCollection<T>(collectionName ?? typeof(T).Name);
+            var indexs = (await (await collection.Indexes.ListAsync()).ToListAsync()).Select(i => i.GetValue("name").AsString);
             var props = typeof(T).GetProperties(BindingFlags.Instance | BindingFlags.Public);
             if (props?.Length > 0)
             {
@@ -528,7 +538,9 @@ namespace ZqUtils.Helpers
                 {
                     //判断是否有索引
                     var customAttributes = prop.GetCustomAttributes(typeof(MongoIndexAttribute), false);
-                    if (customAttributes?.Length > 0 && customAttributes.FirstOrDefault() is MongoIndexAttribute mongoIndex)
+                    if (customAttributes?.Length > 0
+                        && customAttributes.FirstOrDefault() is MongoIndexAttribute mongoIndex
+                        && !indexs.Contains(mongoIndex.Name))
                     {
                         var keys = mongoIndex.Ascending ?
                                 Builders<T>.IndexKeys.Ascending(prop.Name) :
