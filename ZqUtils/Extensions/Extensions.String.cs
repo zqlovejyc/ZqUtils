@@ -631,7 +631,11 @@ namespace ZqUtils.Extensions
         /// <returns>T</returns>
         public static T ToObject<T>(this string @this)
         {
-            if (@this.IsJsonObjectString() || @this.IsJsonArrayString())
+            if (typeof(T) == typeof(string))
+            {
+                return @this.ToOrDefault<T>();
+            }
+            else if (@this.IsJsonObjectString() || @this.IsJsonArrayString())
             {
                 return JsonConvert.DeserializeObject<T>(@this);
             }
@@ -639,6 +643,17 @@ namespace ZqUtils.Extensions
             {
                 return @this.ToOrDefault<T>();
             }
+        }
+
+        /// <summary>
+        /// json字符串反序列化为指定类型对象
+        /// </summary>
+        /// <param name="this">json字符串</param>
+        /// <param name="type">要反序列化的类型</param>
+        /// <returns>object</returns>
+        public static object ToObject(this string @this, Type type)
+        {
+            return JsonConvert.DeserializeObject(@this, type);
         }
         #endregion
 
