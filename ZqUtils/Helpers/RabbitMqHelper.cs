@@ -957,6 +957,7 @@ namespace ZqUtils.Helpers
                 item.Value?.Dispose();
             }
             _conn?.Dispose();
+            ChannelDic?.Clear();
         }
         #endregion
     }
