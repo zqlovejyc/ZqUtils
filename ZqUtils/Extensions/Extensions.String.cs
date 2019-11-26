@@ -1386,7 +1386,7 @@ namespace ZqUtils.Extensions
         /// <param name="this">sql字符串</param>
         /// <param name="pattern">正则表达式</param>
         /// <returns></returns>
-        public static bool IsSqlInject(this string @this, string pattern = @"(?:')|(?:--)|(/\*(?:.|[\n\r])*?\*/)|(\b(select|update|union|and|or|delete|insert|trancate|char|into|substr|ascii|declare|exec|count|master|into|drop|execute)\b)")
+        public static bool IsSqlInject(this string @this, string pattern = @"(?:')|(?:--)|(/\*(?:.|[\n\r])*?\*/)|(\b(select|update|union|and|or|delete|insert|truncate|char|into|substr|ascii|declare|exec|count|master|into|drop|execute)\b)")
         {
             if (@this.IsNullOrEmpty())
                 return false;
@@ -1399,7 +1399,7 @@ namespace ZqUtils.Extensions
         /// <param name="this">sql字符串</param>
         /// <param name="pattern">正则表达式</param>
         /// <returns></returns>
-        public static string ReplaceSqlWithRegex(this string @this, string pattern = @"(?:')|(?:--)|(/\*(?:.|[\n\r])*?\*/)|(\b(select|update|union|and|or|delete|insert|trancate|char|into|substr|ascii|declare|exec|count|master|into|drop|execute)\b)")
+        public static string ReplaceSqlWithRegex(this string @this, string pattern = @"(?:')|(?:--)|(/\*(?:.|[\n\r])*?\*/)|(\b(select|update|union|and|or|delete|insert|truncate|char|into|substr|ascii|declare|exec|count|master|into|drop|execute)\b)")
         {
             return @this.ReplaceOfRegex("", pattern);
         }
