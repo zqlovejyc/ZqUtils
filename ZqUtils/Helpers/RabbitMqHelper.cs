@@ -57,6 +57,11 @@ namespace ZqUtils.Helpers
         /// 默认死信交换机，默认值：deadletter.default.router
         /// </summary>
         public string DefaultDeadLetterExchange { get; set; } = "deadletter.default.router";
+
+        /// <summary>
+        /// 静态单例
+        /// </summary>
+        public static RabbitMqHelper Instance => SingletonHelper<RabbitMqHelper>.GetInstance(new MqConfig());
         #endregion
 
         #region 构造函数
