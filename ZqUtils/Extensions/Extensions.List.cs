@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Data;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 /****************************
@@ -741,6 +742,179 @@ namespace ZqUtils.Extensions
         public static string StringJoin<T>(this IEnumerable<T> @this, char separator)
         {
             return string.Join(separator.ToString(), @this);
+        }
+        #endregion
+
+        #region TreeWhere
+        /// <summary>
+        /// 树形查询
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="this">数据源</param>
+        /// <param name="condition">查询条件</param>
+        /// <param name="primaryKey">实体主键</param>
+        /// <param name="down">是否向下查询，默认true</param>
+        /// <param name="parentId">树形父级字段，默认ParentId</param>
+        /// <param name="comparer">返回集合去重比较器，默认null</param>
+        /// <returns>返回要查询的所有树形节点集合</returns>
+        public static List<T> TreeWhere<T>(this List<T> @this, Predicate<T> condition, string primaryKey, bool down = true, string parentId = "ParentId", IEqualityComparer<T> comparer = null)
+            where T : class
+        {
+            var type = typeof(T);
+            var treeList = new List<T>();
+            var entities = @this.FindAll(condition);
+            if (entities?.Count > 0)
+            {
+                foreach (var entity in entities)
+                {
+                    treeList.Add(entity);
+                    var key = type.GetProperty(primaryKey).GetValue(entity, null)?.ToString();
+                    var pid = type.GetProperty(parentId).GetValue(entity, null)?.ToString();
+                    //向下查询
+                    if (down)
+                    {
+                        if (!key.IsNullOrEmpty() && !string.Equals(key, pid, StringComparison.OrdinalIgnoreCase))
+                        {
+                            while (true)
+                            {
+                                if (key.IsNullOrEmpty())
+                                    break;
+                                key = @this.TreeWhere(treeList, primaryKey, key, down, parentId);
+                            }
+                        }
+                    }
+                    //向上查询
+                    else
+                    {
+                        if (!pid.IsNullOrEmpty() && !string.Equals(key, pid, StringComparison.OrdinalIgnoreCase))
+                        {
+                            while (true)
+                            {
+                                if (pid.IsNullOrEmpty())
+                                    break;
+                                pid = @this.TreeWhere(treeList, primaryKey, pid, down, parentId);
+                            }
+                        }
+                    }
+                }
+            }
+            if (comparer == null)
+                return treeList.Distinct().ToList();
+            else
+                return treeList.Distinct(comparer).ToList();
+        }
+
+        /// <summary>
+        /// 递归树形查询
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="this">数据源</param>
+        /// <param name="treeList">树形节点集合</param>
+        /// <param name="primaryKey">实体主键</param>
+        /// <param name="id">主键或者父级主键值</param>
+        /// <param name="down">是否向下查询，默认true</param>
+        /// <param name="parentId">树形父级字段，默认ParentId</param>
+        /// <returns>返回递归是否结束标识，递归结束后返回空字符串</returns>
+        public static string TreeWhere<T>(this List<T> @this, List<T> treeList, string primaryKey, string id, bool down = true, string parentId = "ParentId")
+            where T : class
+        {
+            var type = typeof(T);
+            var parameter = Expression.Parameter(type, "t");
+            var condition = Expression.Equal(parameter.Property(down ? parentId : primaryKey), Expression.Constant(id)).ToLambda<Predicate<T>>(parameter).Compile();
+            var entities = @this.FindAll(condition);
+            if (entities?.Count > 0)
+            {
+                foreach (var entity in entities)
+                {
+                    treeList.Add(entity);
+                    var key = type.GetProperty(primaryKey).GetValue(entity, null)?.ToString();
+                    var pid = type.GetProperty(parentId).GetValue(entity, null)?.ToString();
+                    //向下查询
+                    if (down)
+                    {
+                        if (!key.IsNullOrEmpty() && !string.Equals(key, pid, StringComparison.OrdinalIgnoreCase))
+                        {
+                            id = @this.TreeWhere(treeList, primaryKey, key, down, parentId);
+                        }
+                        else
+                        {
+                            id = "";
+                        }
+                    }
+                    //向上查询
+                    else
+                    {
+                        if (!pid.IsNullOrEmpty() && !string.Equals(key, pid, StringComparison.OrdinalIgnoreCase))
+                        {
+                            id = @this.TreeWhere(treeList, primaryKey, pid, down, parentId);
+                        }
+                        else
+                        {
+                            id = "";
+                        }
+                    }
+                }
+            }
+            else
+            {
+                id = "";
+            }
+            return id;
+        }
+        #endregion
+
+        #region TreeToJson
+        /// <summary>
+        /// 树形集合数据转Json
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="this">数据源</param>
+        /// <param name="primaryKey">实体主键</param>
+        /// <param name="pid">父级字段值，默认0</param>
+        /// <param name="parentId">树形父级字段，默认ParentId</param>
+        /// <param name="childName">子集节点命名</param>
+        /// <returns>返回树形Json</returns>
+        public static string TreeToJson<T>(this List<T> @this, string primaryKey, string pid = "0", string parentId = "ParentId", string childName = "ChildNodes")
+            where T : class
+        {
+            return @this.TreeToDictionary(primaryKey, pid, parentId, childName).ToJson();
+        }
+        #endregion
+
+        #region TreeToDictionary
+        /// <summary>
+        /// 树形集合数据转Json
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="this">数据源</param>
+        /// <param name="primaryKey">实体主键</param>
+        /// <param name="pid">父级字段值，默认0</param>
+        /// <param name="parentId">树形父级字段，默认ParentId</param>
+        /// <param name="childName">子集节点命名</param>
+        /// <returns>返回树形Json</returns>
+        public static List<Dictionary<string, object>> TreeToDictionary<T>(this List<T> @this, string primaryKey, string pid = "0", string parentId = "ParentId", string childName = "ChildNodes")
+            where T : class
+        {
+            var type = typeof(T);
+            var parameter = Expression.Parameter(type, "t");
+            var condition = Expression.Equal(parameter.Property(parentId), Expression.Constant(pid)).ToLambda<Predicate<T>>(parameter).Compile();
+            var entities = @this.FindAll(condition);
+            var list = new List<Dictionary<string, object>>();
+            if (entities?.Count > 0)
+            {
+                var props = type.GetProperties(BindingFlags.GetProperty | BindingFlags.Public | BindingFlags.Instance);
+                foreach (var entity in entities)
+                {
+                    var dic = new Dictionary<string, object>();
+                    foreach (var p in props)
+                    {
+                        dic[p.Name] = p.GetValue(entity, null);
+                    }
+                    dic[childName] = @this.TreeToDictionary(primaryKey, dic[primaryKey].ToString(), parentId);
+                    list.Add(dic);
+                }
+            }
+            return list;
         }
         #endregion
     }

@@ -269,5 +269,58 @@ namespace ZqUtils.Extensions
             return (IOrderedQueryable<T>)result;
         }
         #endregion
+
+        #region Property
+        /// <summary>
+        /// Property
+        /// </summary>
+        /// <param name="expression"></param>
+        /// <param name="propertyName"></param>
+        /// <returns></returns>
+        public static Expression Property(this Expression expression, string propertyName)
+        {
+            return Expression.Property(expression, propertyName);
+        }
+        #endregion
+
+        #region AndAlso
+        /// <summary>
+        /// AndAlso
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <returns></returns>
+        public static Expression AndAlso(this Expression left, Expression right)
+        {
+            return Expression.AndAlso(left, right);
+        }
+        #endregion
+
+        #region Call
+        /// <summary>
+        /// Call
+        /// </summary>
+        /// <param name="instance"></param>
+        /// <param name="methodName"></param>
+        /// <param name="arguments"></param>
+        /// <returns></returns>
+        public static Expression Call(this Expression instance, string methodName, params Expression[] arguments)
+        {
+            return Expression.Call(instance, instance.Type.GetMethod(methodName), arguments);
+        }
+        #endregion
+
+        #region GreaterThan
+        /// <summary>
+        /// GreaterThan
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <returns></returns>
+        public static Expression GreaterThan(this Expression left, Expression right)
+        {
+            return Expression.GreaterThan(left, right);
+        }
+        #endregion
     }
 }
