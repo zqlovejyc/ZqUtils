@@ -44,7 +44,7 @@ namespace ZqUtils.Extensions
         /// <returns>Type</returns>
         public static Type GetCoreType(this Type @this)
         {
-            if (@this?.IsNullable() == true && @this.IsValueType)
+            if (@this?.IsNullable() == true)
             {
                 @this = Nullable.GetUnderlyingType(@this);
             }
@@ -498,7 +498,7 @@ namespace ZqUtils.Extensions
         /// <returns>bool</returns>
         public static bool IsNullable(this Type @this)
         {
-            return !@this.IsValueType || (@this.IsGenericType && @this.GetGenericTypeDefinition() == typeof(Nullable<>));
+            return @this.IsValueType && @this.IsGenericType && @this.GetGenericTypeDefinition() == typeof(Nullable<>);
         }
         #endregion
 
