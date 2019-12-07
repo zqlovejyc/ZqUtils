@@ -120,12 +120,27 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 获取管道
         /// </summary>
+        /// <param name="queue">队列名称</param>
         /// <returns></returns>
-        public IModel GetChannel() => _conn.CreateModel();
+        public IModel GetChannel(string queue = "default")
+        {
+            IModel channel = null;
+            if (!queue.IsNullOrEmpty())
+            {
+                channel = ChannelDic.GetOrAdd(queue, x =>
+                {
+                    channel = _conn.CreateModel();
+                    ChannelDic[x] = channel;
+                    return channel;
+                });
+            }
+            return channel ?? _conn.CreateModel();
+        }
 
         /// <summary>
-        /// 获取管道
+        /// 声明交换机和队列并建立绑定关系
         /// </summary>
+        /// <param name="channel">管道</param>
         /// <param name="exchange">交换机名称</param>
         /// <param name="queue">队列名称</param>
         /// <param name="routingKey">路由key</param>
@@ -134,7 +149,8 @@ namespace ZqUtils.Helpers
         /// <param name="queueArguments">队列参数</param>
         /// <param name="exchangeArguments">交换机参数</param>
         /// <returns></returns>
-        public IModel GetChannel(
+        public IModel DeclareBindExchangeAndQueue(
+            IModel channel,
             string exchange,
             string queue,
             string routingKey,
@@ -143,9 +159,14 @@ namespace ZqUtils.Helpers
             IDictionary<string, object> queueArguments = null,
             IDictionary<string, object> exchangeArguments = null)
         {
+            if (ChannelDic.Keys.Contains(queue) && !IsQueueExist(channel, queue))
+            {
+                ChannelDic.TryRemove(queue, out var model);
+                channel = null;
+            }
             return ChannelDic.GetOrAdd(queue, key =>
             {
-                var channel = GetChannel();
+                channel = channel ?? GetChannel();
                 //声明交换机
                 ExchangeDeclare(channel, exchange, exchangeType, durable, arguments: exchangeArguments);
                 //声明队列
@@ -156,29 +177,11 @@ namespace ZqUtils.Helpers
                 return channel;
             });
         }
-
-        /// <summary>
-        /// 获取管道
-        /// </summary>
-        /// <param name="queue">队列名称</param>
-        /// <param name="prefetchCount">预取数量</param>
-        /// <returns></returns>
-        public IModel GetChannel(string queue, ushort prefetchCount = 1)
-        {
-            return ChannelDic.GetOrAdd(queue, key =>
-            {
-                var channel = GetChannel();
-                //设置每次预取数量
-                channel.BasicQos(0, prefetchCount, false);
-                ChannelDic[queue] = channel;
-                return channel;
-            });
-        }
         #endregion
 
         #region 交换机
         /// <summary>
-        /// 声明交换机
+        /// 声明交换机，交换机可以重复声明，但是声明所使用的参数必须一致，否则会抛出异常。
         /// </summary>
         /// <param name="channel">管道</param>
         /// <param name="exchange">交换机名称</param>
@@ -207,7 +210,7 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
-        /// 声明交换机
+        /// 声明交换机，交换机可以重复声明，但是声明所使用的参数必须一致，否则会抛出异常。
         /// </summary>
         /// <param name="channel">管道</param>
         /// <param name="exchange">交换机名称</param>
@@ -233,6 +236,35 @@ namespace ZqUtils.Helpers
             IDictionary<string, object> arguments = null)
         {
             (channel ?? GetChannel()).ExchangeDeclareNoWait(exchange, exchangeType, durable, autoDelete, arguments);
+        }
+
+        /// <summary>
+        /// 被动声明交换机，用于判断交换机是否存在，若存在则无异常，若不存在则抛出异常
+        /// </summary>
+        /// <param name="channel">管道</param>
+        /// <param name="exchange">交换机名称</param>
+        public void ExchangeDeclarePassive(IModel channel, string exchange)
+        {
+            (channel ?? GetChannel()).ExchangeDeclarePassive(exchange);
+        }
+
+        /// <summary>
+        /// 判断交换机是否存在
+        /// </summary>
+        /// <param name="channel">管道</param>
+        /// <param name="exchange">交换机名称</param>
+        /// <returns></returns>
+        public bool IsExchangeExist(IModel channel, string exchange)
+        {
+            try
+            {
+                ExchangeDeclarePassive(channel, exchange);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -338,7 +370,7 @@ namespace ZqUtils.Helpers
 
         #region 队列
         /// <summary>
-        /// 声明队列
+        /// 声明队列，队列可以重复声明，但是声明所使用的参数必须一致，否则会抛出异常。
         /// </summary>
         /// <param name="channel">管道</param>
         /// <param name="queue">队列名称</param>
@@ -362,7 +394,7 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
-        /// 声明队列
+        /// 声明队列，队列可以重复声明，但是声明所使用的参数必须一致，否则会抛出异常。
         /// </summary>
         /// <param name="channel">管道</param>
         /// <param name="queue">队列名称</param>
@@ -383,6 +415,35 @@ namespace ZqUtils.Helpers
             IDictionary<string, object> arguments = null)
         {
             (channel ?? GetChannel()).QueueDeclareNoWait(queue, durable, exclusive, autoDelete, arguments);
+        }
+
+        /// <summary>
+        /// 被动声明队列，用于判断队列是否存在，若队列存在则无异常，若不存在则抛异常
+        /// </summary>
+        /// <param name="channel">管道</param>
+        /// <param name="queue">队列名称</param>
+        public void QueueDeclarePassive(IModel channel, string queue)
+        {
+            (channel ?? GetChannel()).QueueDeclarePassive(queue);
+        }
+
+        /// <summary>
+        /// 判断队列是否存在
+        /// </summary>
+        /// <param name="channel">管道</param>
+        /// <param name="queue">队列名称</param>
+        /// <returns></returns>
+        public bool IsQueueExist(IModel channel, string queue)
+        {
+            try
+            {
+                QueueDeclarePassive(channel, queue);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -636,6 +697,7 @@ namespace ZqUtils.Helpers
             {
                 arguments["x-queue-master-locator"] = attribute.MasterLocator;
             }
+
             //发送消息
             return Publish(attribute.Exchange, attribute.Queue, attribute.RoutingKey, body, attribute.ExchangeType, attribute.Durable, confirm, expiration, priority, arguments);
         }
@@ -668,7 +730,15 @@ namespace ZqUtils.Helpers
             IDictionary<string, object> queueArguments = null,
             IDictionary<string, object> exchangeArguments = null)
         {
-            var channel = GetChannel(exchange, queue, routingKey, exchangeType, durable, queueArguments, exchangeArguments);
+            //获取管道
+            var channel = GetChannel(queue);
+            //判断交换机、队列是否存在
+            if (!IsExchangeExist(channel, exchange) || !IsQueueExist(channel, queue))
+            {
+                //声明交换机、队列并建立路由绑定关系
+                channel = DeclareBindExchangeAndQueue(channel, exchange, queue, routingKey, exchangeType, durable, queueArguments, exchangeArguments);
+            }
+            //声明消息属性
             var props = channel.CreateBasicProperties();
             //持久化
             props.Persistent = durable;
@@ -725,7 +795,15 @@ namespace ZqUtils.Helpers
             IDictionary<string, object> queueArguments = null,
             IDictionary<string, object> exchangeArguments = null)
         {
-            var channel = GetChannel(exchange, queue, routingKey, exchangeType, durable, queueArguments, exchangeArguments);
+            //获取管道
+            var channel = GetChannel(queue);
+            //判断交换机、队列是否存在
+            if (!IsExchangeExist(channel, exchange) || !IsQueueExist(channel, queue))
+            {
+                //声明交换机、队列并建立路由绑定关系
+                channel = DeclareBindExchangeAndQueue(channel, exchange, queue, routingKey, exchangeType, durable, queueArguments, exchangeArguments);
+            }
+            //声明消息属性
             var props = channel.CreateBasicProperties();
             //持久化
             props.Persistent = durable;
@@ -804,13 +882,15 @@ namespace ZqUtils.Helpers
                 Exchange = exchange,
                 RetryCount = retryCount
             };
+
+            //发送死信消息
             return Publish(deadLetterExchange, deadLetterQueue, deadLetterRoutingKey, deadLetterBody.ToJson());
         }
         #endregion
 
         #region 订阅消息
         /// <summary>
-        /// 订阅消息
+        /// 订阅消息，确保交换机和队列已经声明过且建立绑定路由关系，否则抛异常
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="subscriber">消费处理委托</param>
@@ -821,30 +901,112 @@ namespace ZqUtils.Helpers
             if (attribute == null)
                 throw new ArgumentException("RabbitMqAttribute Is Null!");
 
-            Subscribe(attribute.Queue, subscriber, handler, attribute.RetryCount, attribute.PrefetchCount, attribute.DeadLetter);
+            //自定义参数
+            var arguments = new Dictionary<string, object>();
+            //设置队列消息过期时间，指整个队列的所有消息
+            if (attribute.MessageTTL > 0)
+            {
+                arguments["x-message-ttl"] = attribute.MessageTTL;
+            }
+            //设置队列过期时间
+            if (attribute.AutoExpire > 0)
+            {
+                arguments["x-expires"] = attribute.AutoExpire;
+            }
+            //设置队列最大长度
+            if (attribute.MaxLength > 0)
+            {
+                arguments["x-max-length"] = attribute.MaxLength;
+            }
+            //设置队列占用最大空间
+            if (attribute.MaxLengthBytes > 0)
+            {
+                arguments["x-max-length-bytes"] = attribute.MaxLengthBytes;
+            }
+            //设置队列溢出行为
+            if (attribute.OverflowBehaviour == "drop-head" || attribute.OverflowBehaviour == "reject-publish")
+            {
+                arguments["x-overflow"] = attribute.OverflowBehaviour;
+            }
+            //是否启用死信交换机
+            if (attribute.DeadLetter)
+            {
+                //设置死信交换机
+                arguments["x-dead-letter-exchange"] = DefaultDeadLetterExchange;
+                if (!string.IsNullOrEmpty(attribute.DeadLetterExchange))
+                {
+                    arguments["x-dead-letter-exchange"] = attribute.DeadLetterExchange;
+                }
+                //设置死信路由键
+                arguments["x-dead-letter-routing-key"] = $"{attribute.Queue.ToLower()}.deadletter";
+                if (!string.IsNullOrEmpty(attribute.DeadLetterRoutingKey))
+                {
+                    arguments["x-dead-letter-routing-key"] = attribute.DeadLetterRoutingKey;
+                }
+            }
+            //设置队列优先级
+            if (attribute.MaximumPriority > 0 && attribute.MaximumPriority <= 10)
+            {
+                arguments["x-max-priority"] = attribute.MaximumPriority;
+            }
+            //设置队列惰性模式
+            if (attribute.LazyMode == "default" || attribute.LazyMode == "lazy")
+            {
+                arguments["x-queue-mode"] = attribute.LazyMode;
+            }
+            //设置集群配置
+            if (!string.IsNullOrEmpty(attribute.MasterLocator))
+            {
+                arguments["x-queue-master-locator"] = attribute.MasterLocator;
+            }
+
+            //订阅消息
+            Subscribe(attribute.Exchange, attribute.Queue, attribute.RoutingKey, subscriber, handler, attribute.RetryCount, attribute.PrefetchCount, attribute.DeadLetter, attribute.ExchangeType, attribute.Durable, arguments);
         }
 
         /// <summary>
         /// 订阅消息
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="exchange">交换机名称</param>
         /// <param name="queue">队列名称</param>
+        /// <param name="routingKey">路由键</param>
         /// <param name="subscriber">消费处理委托</param>
         /// <param name="handler">异常处理委托</param>
         /// <param name="retryCount">重试次数</param>
         /// <param name="prefetchCount">预取数量</param>
         /// <param name="deadLetter">是否进入死信队列</param>
+        /// <param name="exchangeType">交换机类型</param>
+        /// <param name="durable">持久化</param>
+        /// <param name="queueArguments">队列参数</param>
+        /// <param name="exchangeArguments">交换机参数</param>
         public void Subscribe<T>(
+            string exchange,
             string queue,
+            string routingKey,
             Func<T, bool> subscriber,
             Action<string, int, Exception> handler,
             int retryCount = 5,
             ushort prefetchCount = 1,
-            bool deadLetter = true) where T : class
+            bool deadLetter = true,
+            string exchangeType = ExchangeType.Direct,
+            bool durable = true,
+            IDictionary<string, object> queueArguments = null,
+            IDictionary<string, object> exchangeArguments = null) where T : class
         {
-            //队列声明
-            var channel = GetChannel(queue, prefetchCount);
+            //获取管道
+            var channel = GetChannel(queue);
+            //判断交换机、队列是否存在
+            if (!IsExchangeExist(channel, exchange) || !IsQueueExist(channel, queue))
+            {
+                //声明交换机、队列并建立路由绑定关系
+                channel = DeclareBindExchangeAndQueue(channel, exchange, queue, routingKey, exchangeType, durable, queueArguments, exchangeArguments);
+            }
+            //设置每次预取数量
+            channel.BasicQos(0, prefetchCount, false);
+            //创建消费者
             var consumer = new EventingBasicConsumer(channel);
+            //接收消息事件
             consumer.Received += (model, ea) =>
             {
                 var body = ea.Body.DeserializeUtf8();
@@ -918,7 +1080,14 @@ namespace ZqUtils.Helpers
             string routingKey,
             Action<T> handler) where T : class
         {
-            var channel = GetChannel(exchange, queue, routingKey);
+            //获取管道
+            var channel = GetChannel(queue);
+            //判断交换机、队列是否存在
+            if (!IsExchangeExist(channel, exchange) || !IsQueueExist(channel, queue))
+            {
+                //声明交换机、队列并建立路由绑定关系
+                channel = DeclareBindExchangeAndQueue(channel, exchange, queue, routingKey);
+            }
 
             var result = channel.BasicGet(queue, false);
             if (result == null)
@@ -947,7 +1116,7 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public uint GetMessageCount(IModel channel, string queue)
         {
-            return (channel ?? GetChannel()).MessageCount(queue);
+            return (channel ?? GetChannel(queue)).MessageCount(queue);
         }
         #endregion
 
