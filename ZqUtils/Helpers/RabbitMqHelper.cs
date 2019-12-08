@@ -890,7 +890,7 @@ namespace ZqUtils.Helpers
 
         #region 订阅消息
         /// <summary>
-        /// 订阅消息，确保交换机和队列已经声明过且建立绑定路由关系，否则抛异常
+        /// 订阅消息
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="subscriber">消费处理委托</param>
