@@ -149,6 +149,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 确保管道是已打开状态
         /// </summary>
+        /// <param name="channel">管道</param>
         /// <returns></returns>
         public IModel EnsureOpened(IModel channel)
         {
