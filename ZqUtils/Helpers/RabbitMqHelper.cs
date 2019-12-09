@@ -147,6 +147,21 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
+        /// 如果交换机或者队列不存在则移除缓存中异常关闭的管道
+        /// </summary>
+        /// <param name="channel">管道</param>
+        /// <returns></returns>
+        public void RemoveIfNotExist(IModel channel)
+        {
+            var data = ChannelDic.Where(x => x.Value == channel)?.FirstOrDefault();
+            if (data != null && data.Value.Key != null)
+            {
+                //移除已关闭的管道
+                ChannelDic.TryRemove(data.Value.Key, out var model);
+            }
+        }
+
+        /// <summary>
         /// 确保管道是已打开状态
         /// </summary>
         /// <param name="channel">管道</param>
@@ -293,6 +308,7 @@ namespace ZqUtils.Helpers
             }
             catch
             {
+                RemoveIfNotExist(channel);
                 return false;
             }
         }
@@ -472,6 +488,7 @@ namespace ZqUtils.Helpers
             }
             catch
             {
+                RemoveIfNotExist(channel);
                 return false;
             }
         }
@@ -760,18 +777,13 @@ namespace ZqUtils.Helpers
             IDictionary<string, object> queueArguments = null,
             IDictionary<string, object> exchangeArguments = null)
         {
-            //声明管道
-            IModel channel = null;
+            //获取管道
+            var channel = GetChannel(queue);
             //判断交换机、队列是否存在
             if (!IsExchangeExist(channel, exchange) || !IsQueueExist(channel, queue))
             {
                 //声明交换机、队列并建立路由绑定关系
                 channel = DeclareBindExchangeAndQueue(channel, exchange, queue, routingKey, exchangeType, durable, queueArguments, exchangeArguments);
-            }
-            else
-            {
-                //获取管道
-                channel = GetChannel(queue);
             }
             //声明消息属性
             var props = channel.CreateBasicProperties();
@@ -830,18 +842,13 @@ namespace ZqUtils.Helpers
             IDictionary<string, object> queueArguments = null,
             IDictionary<string, object> exchangeArguments = null)
         {
-            //声明管道
-            IModel channel = null;
+            //获取管道
+            var channel = GetChannel(queue);
             //判断交换机、队列是否存在
             if (!IsExchangeExist(channel, exchange) || !IsQueueExist(channel, queue))
             {
                 //声明交换机、队列并建立路由绑定关系
                 channel = DeclareBindExchangeAndQueue(channel, exchange, queue, routingKey, exchangeType, durable, queueArguments, exchangeArguments);
-            }
-            else
-            {
-                //获取管道
-                channel = GetChannel(queue);
             }
             //声明消息属性
             var props = channel.CreateBasicProperties();
@@ -1034,18 +1041,13 @@ namespace ZqUtils.Helpers
             IDictionary<string, object> queueArguments = null,
             IDictionary<string, object> exchangeArguments = null) where T : class
         {
-            //声明管道
-            IModel channel = null;
+            //获取管道
+            var channel = GetChannel(queue);
             //判断交换机、队列是否存在
             if (!IsExchangeExist(channel, exchange) || !IsQueueExist(channel, queue))
             {
                 //声明交换机、队列并建立路由绑定关系
                 channel = DeclareBindExchangeAndQueue(channel, exchange, queue, routingKey, exchangeType, durable, queueArguments, exchangeArguments);
-            }
-            else
-            {
-                //获取管道
-                channel = GetChannel(queue);
             }
             //设置每次预取数量
             channel.BasicQos(0, prefetchCount, false);
@@ -1125,18 +1127,13 @@ namespace ZqUtils.Helpers
             string routingKey,
             Action<T> handler) where T : class
         {
-            //声明管道
-            IModel channel = null;
+            //获取管道
+            var channel = GetChannel(queue);
             //判断交换机、队列是否存在
             if (!IsExchangeExist(channel, exchange) || !IsQueueExist(channel, queue))
             {
                 //声明交换机、队列并建立路由绑定关系
                 channel = DeclareBindExchangeAndQueue(channel, exchange, queue, routingKey);
-            }
-            else
-            {
-                //获取管道
-                channel = GetChannel(queue);
             }
 
             var result = channel.BasicGet(queue, false);
