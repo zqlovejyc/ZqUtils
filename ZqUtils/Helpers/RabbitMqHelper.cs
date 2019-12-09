@@ -134,7 +134,41 @@ namespace ZqUtils.Helpers
                     return channel;
                 });
             }
-            return channel ?? _conn.CreateModel();
+            channel = channel ?? _conn.CreateModel();
+            if (channel.IsClosed)
+            {
+                if (ChannelDic.Keys.Contains(queue))
+                {
+                    ChannelDic.TryRemove(queue, out var model);
+                }
+                channel = GetChannel(queue);
+            }
+            return channel;
+        }
+
+        /// <summary>
+        /// 确保管道是已打开状态
+        /// </summary>
+        /// <returns></returns>
+        public IModel EnsureOpened(IModel channel)
+        {
+            channel = channel ?? GetChannel();
+            if (channel.IsClosed)
+            {
+                var data = ChannelDic.Where(x => x.Value == channel)?.FirstOrDefault();
+                if (data != null && data.Value.Key != null)
+                {
+                    //移除已关闭的管道
+                    ChannelDic.TryRemove(data.Value.Key, out var model);
+                    //重新获取管道
+                    channel = GetChannel(data.Value.Key);
+                }
+                else
+                {
+                    channel = GetChannel();
+                }
+            }
+            return channel;
         }
 
         /// <summary>
@@ -159,11 +193,6 @@ namespace ZqUtils.Helpers
             IDictionary<string, object> queueArguments = null,
             IDictionary<string, object> exchangeArguments = null)
         {
-            if (ChannelDic.Keys.Contains(queue) && !IsQueueExist(channel, queue))
-            {
-                ChannelDic.TryRemove(queue, out var model);
-                channel = null;
-            }
             return ChannelDic.GetOrAdd(queue, key =>
             {
                 channel = channel ?? GetChannel();
@@ -172,8 +201,8 @@ namespace ZqUtils.Helpers
                 //声明队列
                 QueueDeclare(channel, queue, durable, arguments: queueArguments);
                 //绑定队列
-                channel.QueueBind(queue, exchange, routingKey);
-                ChannelDic[queue] = channel;
+                QueueBind(channel, exchange, queue, routingKey);
+                ChannelDic[queue] = EnsureOpened(channel);
                 return channel;
             });
         }
@@ -206,7 +235,7 @@ namespace ZqUtils.Helpers
             bool autoDelete = false,
             IDictionary<string, object> arguments = null)
         {
-            (channel ?? GetChannel()).ExchangeDeclare(exchange, exchangeType, durable, autoDelete, arguments);
+            EnsureOpened(channel).ExchangeDeclare(exchange, exchangeType, durable, autoDelete, arguments);
         }
 
         /// <summary>
@@ -235,7 +264,7 @@ namespace ZqUtils.Helpers
             bool autoDelete = false,
             IDictionary<string, object> arguments = null)
         {
-            (channel ?? GetChannel()).ExchangeDeclareNoWait(exchange, exchangeType, durable, autoDelete, arguments);
+            EnsureOpened(channel).ExchangeDeclareNoWait(exchange, exchangeType, durable, autoDelete, arguments);
         }
 
         /// <summary>
@@ -245,7 +274,7 @@ namespace ZqUtils.Helpers
         /// <param name="exchange">交换机名称</param>
         public void ExchangeDeclarePassive(IModel channel, string exchange)
         {
-            (channel ?? GetChannel()).ExchangeDeclarePassive(exchange);
+            EnsureOpened(channel).ExchangeDeclarePassive(exchange);
         }
 
         /// <summary>
@@ -278,7 +307,7 @@ namespace ZqUtils.Helpers
             string exchange,
             bool ifUnused = false)
         {
-            (channel ?? GetChannel()).ExchangeDelete(exchange, ifUnused);
+            EnsureOpened(channel).ExchangeDelete(exchange, ifUnused);
         }
 
         /// <summary>
@@ -292,7 +321,7 @@ namespace ZqUtils.Helpers
             string exchange,
             bool ifUnused = false)
         {
-            (channel ?? GetChannel()).ExchangeDeleteNoWait(exchange, ifUnused);
+            EnsureOpened(channel).ExchangeDeleteNoWait(exchange, ifUnused);
         }
 
         /// <summary>
@@ -310,7 +339,7 @@ namespace ZqUtils.Helpers
             string routingKey,
             IDictionary<string, object> arguments = null)
         {
-            (channel ?? GetChannel()).ExchangeBind(destinationExchange, sourceExchange, routingKey, arguments);
+            EnsureOpened(channel).ExchangeBind(destinationExchange, sourceExchange, routingKey, arguments);
         }
 
         /// <summary>
@@ -328,7 +357,7 @@ namespace ZqUtils.Helpers
             string routingKey,
             IDictionary<string, object> arguments = null)
         {
-            (channel ?? GetChannel()).ExchangeBindNoWait(destinationExchange, sourceExchange, routingKey, arguments);
+            EnsureOpened(channel).ExchangeBindNoWait(destinationExchange, sourceExchange, routingKey, arguments);
         }
 
         /// <summary>
@@ -346,7 +375,7 @@ namespace ZqUtils.Helpers
             string routingKey,
             IDictionary<string, object> arguments = null)
         {
-            (channel ?? GetChannel()).ExchangeUnbind(destinationExchange, sourceExchange, routingKey, arguments);
+            EnsureOpened(channel).ExchangeUnbind(destinationExchange, sourceExchange, routingKey, arguments);
         }
 
         /// <summary>
@@ -364,7 +393,7 @@ namespace ZqUtils.Helpers
             string routingKey,
             IDictionary<string, object> arguments = null)
         {
-            (channel ?? GetChannel()).ExchangeUnbindNoWait(destinationExchange, sourceExchange, routingKey, arguments);
+            EnsureOpened(channel).ExchangeUnbindNoWait(destinationExchange, sourceExchange, routingKey, arguments);
         }
         #endregion
 
@@ -390,7 +419,7 @@ namespace ZqUtils.Helpers
             bool autoDelete = false,
             IDictionary<string, object> arguments = null)
         {
-            (channel ?? GetChannel()).QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
+            EnsureOpened(channel).QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
         }
 
         /// <summary>
@@ -414,7 +443,7 @@ namespace ZqUtils.Helpers
             bool autoDelete = false,
             IDictionary<string, object> arguments = null)
         {
-            (channel ?? GetChannel()).QueueDeclareNoWait(queue, durable, exclusive, autoDelete, arguments);
+            EnsureOpened(channel).QueueDeclareNoWait(queue, durable, exclusive, autoDelete, arguments);
         }
 
         /// <summary>
@@ -424,7 +453,7 @@ namespace ZqUtils.Helpers
         /// <param name="queue">队列名称</param>
         public void QueueDeclarePassive(IModel channel, string queue)
         {
-            (channel ?? GetChannel()).QueueDeclarePassive(queue);
+            EnsureOpened(channel).QueueDeclarePassive(queue);
         }
 
         /// <summary>
@@ -460,7 +489,7 @@ namespace ZqUtils.Helpers
             bool ifUnused = false,
             bool ifEmpty = false)
         {
-            return (channel ?? GetChannel()).QueueDelete(queue, ifUnused, ifEmpty);
+            return EnsureOpened(channel).QueueDelete(queue, ifUnused, ifEmpty);
         }
 
         /// <summary>
@@ -476,7 +505,7 @@ namespace ZqUtils.Helpers
             bool ifUnused = false,
             bool ifEmpty = false)
         {
-            (channel ?? GetChannel()).QueueDeleteNoWait(queue, ifUnused, ifEmpty);
+            EnsureOpened(channel).QueueDeleteNoWait(queue, ifUnused, ifEmpty);
         }
 
         /// <summary>
@@ -494,7 +523,7 @@ namespace ZqUtils.Helpers
             string routingKey,
             IDictionary<string, object> arguments = null)
         {
-            (channel ?? GetChannel()).QueueBind(queue, exchange, routingKey, arguments);
+            EnsureOpened(channel).QueueBind(queue, exchange, routingKey, arguments);
         }
 
         /// <summary>
@@ -512,7 +541,7 @@ namespace ZqUtils.Helpers
             string routingKey,
             IDictionary<string, object> arguments = null)
         {
-            (channel ?? GetChannel()).QueueBindNoWait(queue, exchange, routingKey, arguments);
+            EnsureOpened(channel).QueueBindNoWait(queue, exchange, routingKey, arguments);
         }
 
         /// <summary>
@@ -530,7 +559,7 @@ namespace ZqUtils.Helpers
             string routingKey,
             IDictionary<string, object> arguments = null)
         {
-            (channel ?? GetChannel()).QueueUnbind(queue, exchange, routingKey, arguments);
+            EnsureOpened(channel).QueueUnbind(queue, exchange, routingKey, arguments);
         }
 
         /// <summary>
@@ -540,7 +569,7 @@ namespace ZqUtils.Helpers
         /// <param name="queue">队列名称</param>
         public void QueuePurge(IModel channel, string queue)
         {
-            (channel ?? GetChannel()).QueuePurge(queue);
+            EnsureOpened(channel).QueuePurge(queue);
         }
         #endregion
 
@@ -730,13 +759,18 @@ namespace ZqUtils.Helpers
             IDictionary<string, object> queueArguments = null,
             IDictionary<string, object> exchangeArguments = null)
         {
-            //获取管道
-            var channel = GetChannel(queue);
+            //声明管道
+            IModel channel = null;
             //判断交换机、队列是否存在
             if (!IsExchangeExist(channel, exchange) || !IsQueueExist(channel, queue))
             {
                 //声明交换机、队列并建立路由绑定关系
                 channel = DeclareBindExchangeAndQueue(channel, exchange, queue, routingKey, exchangeType, durable, queueArguments, exchangeArguments);
+            }
+            else
+            {
+                //获取管道
+                channel = GetChannel(queue);
             }
             //声明消息属性
             var props = channel.CreateBasicProperties();
@@ -795,13 +829,18 @@ namespace ZqUtils.Helpers
             IDictionary<string, object> queueArguments = null,
             IDictionary<string, object> exchangeArguments = null)
         {
-            //获取管道
-            var channel = GetChannel(queue);
+            //声明管道
+            IModel channel = null;
             //判断交换机、队列是否存在
             if (!IsExchangeExist(channel, exchange) || !IsQueueExist(channel, queue))
             {
                 //声明交换机、队列并建立路由绑定关系
                 channel = DeclareBindExchangeAndQueue(channel, exchange, queue, routingKey, exchangeType, durable, queueArguments, exchangeArguments);
+            }
+            else
+            {
+                //获取管道
+                channel = GetChannel(queue);
             }
             //声明消息属性
             var props = channel.CreateBasicProperties();
@@ -994,13 +1033,18 @@ namespace ZqUtils.Helpers
             IDictionary<string, object> queueArguments = null,
             IDictionary<string, object> exchangeArguments = null) where T : class
         {
-            //获取管道
-            var channel = GetChannel(queue);
+            //声明管道
+            IModel channel = null;
             //判断交换机、队列是否存在
             if (!IsExchangeExist(channel, exchange) || !IsQueueExist(channel, queue))
             {
                 //声明交换机、队列并建立路由绑定关系
                 channel = DeclareBindExchangeAndQueue(channel, exchange, queue, routingKey, exchangeType, durable, queueArguments, exchangeArguments);
+            }
+            else
+            {
+                //获取管道
+                channel = GetChannel(queue);
             }
             //设置每次预取数量
             channel.BasicQos(0, prefetchCount, false);
@@ -1080,13 +1124,18 @@ namespace ZqUtils.Helpers
             string routingKey,
             Action<T> handler) where T : class
         {
-            //获取管道
-            var channel = GetChannel(queue);
+            //声明管道
+            IModel channel = null;
             //判断交换机、队列是否存在
             if (!IsExchangeExist(channel, exchange) || !IsQueueExist(channel, queue))
             {
                 //声明交换机、队列并建立路由绑定关系
                 channel = DeclareBindExchangeAndQueue(channel, exchange, queue, routingKey);
+            }
+            else
+            {
+                //获取管道
+                channel = GetChannel(queue);
             }
 
             var result = channel.BasicGet(queue, false);
