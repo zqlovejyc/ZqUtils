@@ -135,30 +135,7 @@ namespace ZqUtils.Helpers
                 });
             }
             channel = channel ?? _conn.CreateModel();
-            if (channel.IsClosed)
-            {
-                if (ChannelDic.Keys.Contains(queue))
-                {
-                    ChannelDic.TryRemove(queue, out var model);
-                }
-                channel = GetChannel(queue);
-            }
-            return channel;
-        }
-
-        /// <summary>
-        /// 如果交换机或者队列不存在则移除缓存中异常关闭的管道
-        /// </summary>
-        /// <param name="channel">管道</param>
-        /// <returns></returns>
-        public void RemoveIfNotExist(IModel channel)
-        {
-            var data = ChannelDic.Where(x => x.Value == channel)?.FirstOrDefault();
-            if (data != null && data.Value.Key != null)
-            {
-                //移除已关闭的管道
-                ChannelDic.TryRemove(data.Value.Key, out var model);
-            }
+            return EnsureOpened(channel);
         }
 
         /// <summary>
@@ -185,6 +162,21 @@ namespace ZqUtils.Helpers
                 }
             }
             return channel;
+        }
+
+        /// <summary>
+        /// 如果交换机或者队列不存在则移除缓存中异常关闭的管道
+        /// </summary>
+        /// <param name="channel"></param>
+        public void RemoveIfNotExist(IModel channel)
+        {
+            var data = ChannelDic.Where(x => x.Value == channel)?.FirstOrDefault();
+            if (data != null && data.Value.Key != null)
+            {
+                //移除已关闭的管道
+                ChannelDic.TryRemove(data.Value.Key, out var model);
+                channel = null;
+            }
         }
 
         /// <summary>
