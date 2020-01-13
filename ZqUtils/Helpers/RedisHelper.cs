@@ -2179,6 +2179,66 @@ namespace ZqUtils.Helpers
         #endregion
         #endregion
 
+        #region 分布式锁
+        #region 同步方法
+        /// <summary>
+        /// 获取redis分布式锁
+        /// </summary>
+        /// <param name="key">键</param>
+        /// <param name="value">值</param>
+        /// <param name="expiry">过期时间</param>
+        /// <param name="flags">标识</param>
+        /// <returns></returns>
+        public bool LockTake(string key, string value, TimeSpan expiry, CommandFlags flags = CommandFlags.None)
+        {
+            key = this.AddKeyPrefix(key);
+            return this.database.LockTake(key, value, expiry, flags);
+        }
+
+        /// <summary>
+        /// 释放redis分布式锁
+        /// </summary>
+        /// <param name="key">键</param>
+        /// <param name="value">值</param>
+        /// <param name="flags">标识</param>
+        /// <returns></returns>
+        public bool LockRelease(string key, string value, CommandFlags flags = CommandFlags.None)
+        {
+            key = this.AddKeyPrefix(key);
+            return this.database.LockRelease(key, value, flags);
+        }
+        #endregion
+
+        #region 异步方法
+        /// <summary>
+        /// 获取redis分布式锁
+        /// </summary>
+        /// <param name="key">键</param>
+        /// <param name="value">值</param>
+        /// <param name="expiry">过期时间</param>
+        /// <param name="flags">标识</param>
+        /// <returns></returns>
+        public async Task<bool> LockTakeAsync(string key, string value, TimeSpan expiry, CommandFlags flags = CommandFlags.None)
+        {
+            key = this.AddKeyPrefix(key);
+            return await this.database.LockTakeAsync(key, value, expiry, flags);
+        }
+
+        /// <summary>
+        /// 释放redis分布式锁
+        /// </summary>
+        /// <param name="key">键</param>
+        /// <param name="value">值</param>
+        /// <param name="flags">标识</param>
+        /// <returns></returns>
+        public async Task<bool> LockReleaseAsync(string key, string value, CommandFlags flags = CommandFlags.None)
+        {
+            key = this.AddKeyPrefix(key);
+            return await this.database.LockReleaseAsync(key, value, flags);
+        }
+        #endregion
+        #endregion
+
         #region  发布/订阅[当作消息代理中间件使用 一般使用更专业的消息队列来处理这种业务场景]
         /// <summary>
         /// 当作消息代理中间件使用
