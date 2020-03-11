@@ -355,6 +355,8 @@ namespace ZqUtils.Helpers
                             HttpContext.Current.Response.AddHeader("content-disposition", $"attachment;filename={HttpUtility.UrlEncode(fileName + ext, Encoding.UTF8)}");
                             HttpContext.Current.Response.ContentType = "application/ms-excel";
                             HttpContext.Current.Response.ContentEncoding = Encoding.GetEncoding("utf-8");
+                            //jquery.fileDownload插件必须添加以下Cookie设置，否则successCallback回调无效
+                            HttpContext.Current.Response.Cookies.Add(new HttpCookie("fileDownload", "true"));
                             HttpContext.Current.Response.BinaryWrite(package.GetAsByteArray());
                             HttpContext.Current.Response.Flush();
                             if (responseEnd) HttpContext.Current.Response.End();
@@ -426,6 +428,8 @@ namespace ZqUtils.Helpers
                             HttpContext.Current.Response.AddHeader("content-disposition", $"attachment;filename={HttpUtility.UrlEncode(fileName + ext, Encoding.UTF8)}");
                             HttpContext.Current.Response.ContentType = "application/ms-excel";
                             HttpContext.Current.Response.ContentEncoding = Encoding.GetEncoding("utf-8");
+                            //jquery.fileDownload插件必须添加以下Cookie设置，否则successCallback回调无效
+                            HttpContext.Current.Response.Cookies.Add(new HttpCookie("fileDownload", "true"));
                             HttpContext.Current.Response.BinaryWrite(package.GetAsByteArray());
                             HttpContext.Current.Response.Flush();
                             if (responseEnd) HttpContext.Current.Response.End();
@@ -485,6 +489,8 @@ namespace ZqUtils.Helpers
                         HttpContext.Current.Response.AddHeader("content-disposition", $"attachment;filename={HttpUtility.UrlEncode(fileName + ext, Encoding.UTF8)}");
                         HttpContext.Current.Response.ContentType = "application/ms-excel";
                         HttpContext.Current.Response.ContentEncoding = Encoding.GetEncoding("utf-8");
+                        //jquery.fileDownload插件必须添加以下Cookie设置，否则successCallback回调无效
+                        HttpContext.Current.Response.Cookies.Add(new HttpCookie("fileDownload", "true"));
                         HttpContext.Current.Response.BinaryWrite(package.GetAsByteArray());
                         HttpContext.Current.Response.Flush();
                         if (responseEnd) HttpContext.Current.Response.End();
@@ -559,6 +565,8 @@ namespace ZqUtils.Helpers
                             HttpContext.Current.Response.AddHeader("content-disposition", $"attachment;filename={HttpUtility.UrlEncode(fileName + ext, Encoding.UTF8)}");
                             HttpContext.Current.Response.ContentType = "application/ms-excel";
                             HttpContext.Current.Response.ContentEncoding = Encoding.GetEncoding("utf-8");
+                            //jquery.fileDownload插件必须添加以下Cookie设置，否则successCallback回调无效
+                            HttpContext.Current.Response.Cookies.Add(new HttpCookie("fileDownload", "true"));
                             HttpContext.Current.Response.BinaryWrite(package.GetAsByteArray());
                             HttpContext.Current.Response.Flush();
                             if (responseEnd) HttpContext.Current.Response.End();
@@ -630,6 +638,8 @@ namespace ZqUtils.Helpers
                             HttpContext.Current.Response.AddHeader("content-disposition", $"attachment;filename={HttpUtility.UrlEncode(fileName + ext, Encoding.UTF8)}");
                             HttpContext.Current.Response.ContentType = "application/ms-excel";
                             HttpContext.Current.Response.ContentEncoding = Encoding.GetEncoding("utf-8");
+                            //jquery.fileDownload插件必须添加以下Cookie设置，否则successCallback回调无效
+                            HttpContext.Current.Response.Cookies.Add(new HttpCookie("fileDownload", "true"));
                             HttpContext.Current.Response.BinaryWrite(package.GetAsByteArray());
                             HttpContext.Current.Response.Flush();
                             if (responseEnd) HttpContext.Current.Response.End();
@@ -702,6 +712,8 @@ namespace ZqUtils.Helpers
                             HttpContext.Current.Response.AddHeader("content-disposition", $"attachment;filename={HttpUtility.UrlEncode(fileName + ext, Encoding.UTF8)}");
                             HttpContext.Current.Response.ContentType = "application/ms-excel";
                             HttpContext.Current.Response.ContentEncoding = Encoding.GetEncoding("utf-8");
+                            //jquery.fileDownload插件必须添加以下Cookie设置，否则successCallback回调无效
+                            HttpContext.Current.Response.Cookies.Add(new HttpCookie("fileDownload", "true"));
                             HttpContext.Current.Response.BinaryWrite(package.GetAsByteArray());
                             HttpContext.Current.Response.Flush();
                             if (responseEnd) HttpContext.Current.Response.End();
