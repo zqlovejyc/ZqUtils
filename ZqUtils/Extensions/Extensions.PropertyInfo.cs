@@ -19,6 +19,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using System.ComponentModel;
 using Newtonsoft.Json;
 /****************************
 * [Author] 张强
@@ -51,6 +52,23 @@ namespace ZqUtils.Extensions
             catch (Exception ex)
             {
                 throw ex;
+            }
+            return result;
+        }
+        #endregion
+
+        #region GetDescription
+        /// <summary>
+        /// 获取DescriptionAttribute属性名称
+        /// </summary>
+        /// <param name="this"></param>
+        /// <returns></returns>
+        public static string GetDescription(this PropertyInfo @this)
+        {
+            var result = @this.Name;
+            if (@this?.GetCustomAttributes(typeof(DescriptionAttribute), false).FirstOrDefault() is DescriptionAttribute da)
+            {
+                result = da.Description;
             }
             return result;
         }
