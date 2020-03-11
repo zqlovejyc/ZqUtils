@@ -516,9 +516,9 @@ namespace ZqUtils.Helpers
         /// <param name="ext">扩展名(.xls|.xlsx)可选参数</param>
         /// <param name="responseEnd">是否输出结束，默认：是</param>
         /// <param name="action">sheet自定义处理委托</param>
-        public static void EPPlusExportExcel<T>(List<T> list, string fileName, string ext = ".xlsx", bool responseEnd = true, Action<ExcelWorksheet> action = null) where T : class, new()
+        public static void EPPlusExportExcel<T>(IEnumerable<T> list, string fileName, string ext = ".xlsx", bool responseEnd = true, Action<ExcelWorksheet> action = null) where T : class, new()
         {
-            if (list?.Count > 0)
+            if (list?.Count() > 0)
             {
                 try
                 {
@@ -594,9 +594,9 @@ namespace ZqUtils.Helpers
         /// <param name="ext">扩展名(.xls|.xlsx)可选参数</param>
         /// <param name="responseEnd">是否输出结束，默认：是</param>
         /// <param name="action">sheet自定义处理委托</param>
-        public static void EPPlusExportExcel<T>(List<T> list, string fileName, string[] columnName = null, string ext = ".xlsx", bool responseEnd = true, Action<ExcelWorksheet> action = null) where T : class, new()
+        public static void EPPlusExportExcel<T>(IEnumerable<T> list, string fileName, string[] columnName = null, string ext = ".xlsx", bool responseEnd = true, Action<ExcelWorksheet> action = null) where T : class, new()
         {
-            if (list?.Count > 0)
+            if (list?.Count() > 0)
             {
                 try
                 {
@@ -667,9 +667,9 @@ namespace ZqUtils.Helpers
         /// <param name="ext">扩展名(.xls|.xlsx)可选参数</param>
         /// <param name="responseEnd">是否输出结束，默认：是</param>
         /// <param name="action">sheet自定义处理委托</param>
-        public static void EPPlusExportExcel<T>(ExcelHeaderCell headerCell, List<T> list, string fileName, string ext = ".xlsx", bool responseEnd = true, Action<ExcelWorksheet> action = null) where T : class, new()
+        public static void EPPlusExportExcel<T>(ExcelHeaderCell headerCell, IEnumerable<T> list, string fileName, string ext = ".xlsx", bool responseEnd = true, Action<ExcelWorksheet> action = null) where T : class, new()
         {
-            if (list?.Count > 0)
+            if (list?.Count() > 0)
             {
                 try
                 {
@@ -890,9 +890,9 @@ namespace ZqUtils.Helpers
         /// <param name="list">源泛型集合</param>        
         /// <param name="savePath">保存路径</param>
         /// <param name="action">sheet自定义处理委托</param>
-        public static void EPPlusExportExcelToFile<T>(List<T> list, string savePath, Action<ExcelWorksheet> action = null) where T : class, new()
+        public static void EPPlusExportExcelToFile<T>(IEnumerable<T> list, string savePath, Action<ExcelWorksheet> action = null) where T : class, new()
         {
-            if (list?.Count > 0)
+            if (list?.Count() > 0)
             {
                 try
                 {
@@ -956,9 +956,9 @@ namespace ZqUtils.Helpers
         /// <param name="savePath">保存路径</param>
         /// <param name="columnName">表头数组</param>
         /// <param name="action">sheet自定义处理委托</param>
-        public static void EPPlusExportExcelToFile<T>(List<T> list, string savePath, string[] columnName = null, Action<ExcelWorksheet> action = null) where T : class, new()
+        public static void EPPlusExportExcelToFile<T>(IEnumerable<T> list, string savePath, string[] columnName = null, Action<ExcelWorksheet> action = null) where T : class, new()
         {
-            if (list?.Count > 0)
+            if (list?.Count() > 0)
             {
                 try
                 {
@@ -1017,9 +1017,9 @@ namespace ZqUtils.Helpers
         /// <param name="list">源泛型集合</param>        
         /// <param name="savePath">保存路径</param>
         /// <param name="action">sheet自定义处理委托</param>
-        public static void EPPlusExportExcelToFile<T>(ExcelHeaderCell headerCell, List<T> list, string savePath, Action<ExcelWorksheet> action = null) where T : class, new()
+        public static void EPPlusExportExcelToFile<T>(ExcelHeaderCell headerCell, IEnumerable<T> list, string savePath, Action<ExcelWorksheet> action = null) where T : class, new()
         {
-            if (list?.Count > 0)
+            if (list?.Count() > 0)
             {
                 try
                 {
