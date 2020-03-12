@@ -61,16 +61,9 @@ namespace ZqUtils.Extensions
         public static string GetJsonProperty(this PropertyInfo @this)
         {
             var result = @this.Name;
-            try
+            if (@this?.GetCustomAttributes(typeof(JsonPropertyAttribute), false).FirstOrDefault() is JsonPropertyAttribute jpa)
             {
-                if (@this?.GetCustomAttributes(typeof(JsonPropertyAttribute), false).FirstOrDefault() is JsonPropertyAttribute jpa)
-                {
-                    result = jpa.PropertyName;
-                }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
+                result = jpa.PropertyName;
             }
             return result;
         }
