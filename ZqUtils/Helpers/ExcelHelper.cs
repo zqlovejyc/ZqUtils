@@ -344,7 +344,7 @@ namespace ZqUtils.Helpers
                         package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
                         using (var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? "Sheet1" : table.TableName))
                         {
-                            sheet.Cells["A1"].LoadFromDataTable(table, true, TableStyles.Light10);
+                            sheet.Cells["A1"].LoadFromDataTable(table, true, TableStyles.Light1);
                             //单元格自动适应大小
                             sheet.Cells.AutoFitColumns();
                             //单独设置单元格
@@ -476,7 +476,7 @@ namespace ZqUtils.Helpers
                             if (table != null && table.Rows.Count > 0)
                             {
                                 var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? $"Sheet{i + 1}" : table.TableName);
-                                sheet.Cells["A1"].LoadFromDataTable(table, true, TableStyles.Light10);
+                                sheet.Cells["A1"].LoadFromDataTable(table, true, TableStyles.Light1);
                                 //单元格自动适应大小
                                 sheet.Cells.AutoFitColumns();
                                 //单独设置单元格
@@ -543,7 +543,7 @@ namespace ZqUtils.Helpers
                                 var attribute = x.GetAttribute<ExcelColumnAttribute>();
                                 return attribute == null || attribute.IsExport;
                             }).ToArray();
-                            sheet.Cells["A1"].LoadFromCollection(list, true, TableStyles.Light10, BindingFlags.Public | BindingFlags.Instance, memberInfos);
+                            sheet.Cells["A1"].LoadFromCollection(list, true, TableStyles.Light1, BindingFlags.Public | BindingFlags.Instance, memberInfos);
                             //单元格自动适应大小
                             sheet.Cells.AutoFitColumns();
                             //单独设置单元格
@@ -623,11 +623,11 @@ namespace ZqUtils.Helpers
                                 {
                                     sheet.Cells[1, i + 1].Value = columnName[i];
                                 }
-                                sheet.Cells["A2"].LoadFromCollection(list, false, TableStyles.Light10);
+                                sheet.Cells["A2"].LoadFromCollection(list, false, TableStyles.Light1);
                             }
                             else
                             {
-                                sheet.Cells["A1"].LoadFromCollection(list, true, TableStyles.Light10);
+                                sheet.Cells["A1"].LoadFromCollection(list, true, TableStyles.Light1);
                             }
                             //单元格自动适应大小
                             sheet.Cells.AutoFitColumns();
@@ -755,7 +755,7 @@ namespace ZqUtils.Helpers
                         package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
                         using (var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? "Sheet1" : table.TableName))
                         {
-                            sheet.Cells["A1"].LoadFromDataTable(table, true, TableStyles.Light10);
+                            sheet.Cells["A1"].LoadFromDataTable(table, true, TableStyles.Light1);
                             //单元格自动适应大小
                             sheet.Cells.AutoFitColumns();
                             //单独设置单元格
@@ -863,7 +863,7 @@ namespace ZqUtils.Helpers
                             if (table != null && table.Rows.Count > 0)
                             {
                                 var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? $"Sheet{i + 1}" : table.TableName);
-                                sheet.Cells["A1"].LoadFromDataTable(table, true, TableStyles.Light10);
+                                sheet.Cells["A1"].LoadFromDataTable(table, true, TableStyles.Light1);
                                 //单元格自动适应大小
                                 sheet.Cells.AutoFitColumns();
                                 //单独设置单元格
@@ -918,7 +918,7 @@ namespace ZqUtils.Helpers
                                 var attribute = x.GetAttribute<ExcelColumnAttribute>();
                                 return attribute == null || attribute.IsExport;
                             }).ToArray();
-                            sheet.Cells["A1"].LoadFromCollection(list, true, TableStyles.Light10, BindingFlags.Public | BindingFlags.Instance, memberInfos);
+                            sheet.Cells["A1"].LoadFromCollection(list, true, TableStyles.Light1, BindingFlags.Public | BindingFlags.Instance, memberInfos);
                             //单元格自动适应大小
                             sheet.Cells.AutoFitColumns();
                             //单独设置单元格
@@ -986,11 +986,11 @@ namespace ZqUtils.Helpers
                                 {
                                     sheet.Cells[1, i + 1].Value = columnName[i];
                                 }
-                                sheet.Cells["A2"].LoadFromCollection(list, false, TableStyles.Light10);
+                                sheet.Cells["A2"].LoadFromCollection(list, false, TableStyles.Light1);
                             }
                             else
                             {
-                                sheet.Cells["A1"].LoadFromCollection(list, true, TableStyles.Light10);
+                                sheet.Cells["A1"].LoadFromCollection(list, true, TableStyles.Light1);
                             }
                             //单元格自动适应大小
                             sheet.Cells.AutoFitColumns();
