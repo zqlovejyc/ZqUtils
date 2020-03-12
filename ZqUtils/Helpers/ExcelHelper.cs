@@ -167,7 +167,7 @@ namespace ZqUtils.Helpers
                                 foreach (var p in propertyInfoList)
                                 {
                                     //与属性名对应的单元格
-                                    var cell = worksheet.Cells[row, headers[p.GetDescription()]];
+                                    var cell = worksheet.Cells[row, headers[p.GetExcelColumn()]];
                                     if (cell.Value == null) continue;
                                     switch (p.PropertyType.GetCoreType().Name.ToLower())
                                     {
@@ -258,7 +258,7 @@ namespace ZqUtils.Helpers
                                 foreach (var p in propertyInfoList)
                                 {
                                     //与属性名对应的单元格
-                                    var cell = worksheet.Cells[row, headers[p.GetDescription()]];
+                                    var cell = worksheet.Cells[row, headers[p.GetExcelColumn()]];
                                     if (cell.Value == null) continue;
                                     switch (p.PropertyType.GetCoreType().Name.ToLower())
                                     {
@@ -540,8 +540,8 @@ namespace ZqUtils.Helpers
                             //获取导出列
                             var memberInfos = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(x =>
                             {
-                                var attribute = x.GetCustomAttributes(typeof(ExcelColumnAttribute), false).FirstOrDefault();
-                                return attribute == null || (attribute is ExcelColumnAttribute e && e.IsExport);
+                                var attribute = x.GetAttribute<ExcelColumnAttribute>();
+                                return attribute == null || attribute.IsExport;
                             }).ToArray();
                             sheet.Cells["A1"].LoadFromCollection(list, true, TableStyles.Light10, BindingFlags.Public | BindingFlags.Instance, memberInfos);
                             //单元格自动适应大小
@@ -554,7 +554,8 @@ namespace ZqUtils.Helpers
                             for (var col = colStart; col <= colEnd; col++)
                             {
                                 var prop = typeof(T).GetProperty(sheet.Cells[1, col].Value.ToString());
-                                if (prop?.GetCustomAttributes(false).FirstOrDefault() is ExcelColumnAttribute attribute)
+                                var attribute = prop.GetAttribute<ExcelColumnAttribute>();
+                                if (attribute != null)
                                 {
                                     sheet.Cells[1, col].Value = attribute.ColumnName;
                                 }
@@ -914,8 +915,8 @@ namespace ZqUtils.Helpers
                             //获取导出列
                             var memberInfos = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(x =>
                             {
-                                var attribute = x.GetCustomAttributes(typeof(ExcelColumnAttribute), false).FirstOrDefault();
-                                return attribute == null || (attribute is ExcelColumnAttribute e && e.IsExport);
+                                var attribute = x.GetAttribute<ExcelColumnAttribute>();
+                                return attribute == null || attribute.IsExport;
                             }).ToArray();
                             sheet.Cells["A1"].LoadFromCollection(list, true, TableStyles.Light10, BindingFlags.Public | BindingFlags.Instance, memberInfos);
                             //单元格自动适应大小
@@ -928,7 +929,8 @@ namespace ZqUtils.Helpers
                             for (var col = colStart; col <= colEnd; col++)
                             {
                                 var prop = typeof(T).GetProperty(sheet.Cells[1, col].Value.ToString());
-                                if (prop?.GetCustomAttributes(false).FirstOrDefault() is ExcelColumnAttribute attribute)
+                                var attribute = prop.GetAttribute<ExcelColumnAttribute>();
+                                if (attribute != null)
                                 {
                                     sheet.Cells[1, col].Value = attribute.ColumnName;
                                 }

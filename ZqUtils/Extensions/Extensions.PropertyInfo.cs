@@ -21,6 +21,7 @@ using System.Linq;
 using System.Reflection;
 using System.ComponentModel;
 using Newtonsoft.Json;
+using ZqUtils.Helpers;
 /****************************
 * [Author] 张强
 * [Date] 2018-08-20
@@ -33,6 +34,24 @@ namespace ZqUtils.Extensions
     /// </summary>
     public static partial class Extensions
     {
+        #region GetAttribute
+        /// <summary>
+        /// 泛型获取属性注解
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="this"></param>
+        /// <returns></returns>
+        public static T GetAttribute<T>(this PropertyInfo @this) where T : Attribute
+        {
+            T result = null;
+            if (@this?.GetCustomAttributes(typeof(T), false).FirstOrDefault() is T attribute)
+            {
+                result = attribute;
+            }
+            return result;
+        }
+        #endregion
+
         #region GetJsonProperty
         /// <summary>
         /// 获取JsonProperty属性名称
@@ -66,9 +85,26 @@ namespace ZqUtils.Extensions
         public static string GetDescription(this PropertyInfo @this)
         {
             var result = @this.Name;
-            if (@this?.GetCustomAttributes(typeof(DescriptionAttribute), false).FirstOrDefault() is DescriptionAttribute da)
+            if (@this?.GetCustomAttributes(typeof(DescriptionAttribute), false).FirstOrDefault() is DescriptionAttribute attribute)
             {
-                result = da.Description;
+                result = attribute.Description;
+            }
+            return result;
+        }
+        #endregion
+
+        #region GetExcelColumn
+        /// <summary>
+        /// 获取ExcelColumnAttribute属性列名称
+        /// </summary>
+        /// <param name="this"></param>
+        /// <returns></returns>
+        public static string GetExcelColumn(this PropertyInfo @this)
+        {
+            var result = @this.Name;
+            if (@this?.GetCustomAttributes(typeof(ExcelColumnAttribute), false).FirstOrDefault() is ExcelColumnAttribute attribute)
+            {
+                result = attribute.ColumnName;
             }
             return result;
         }
