@@ -538,17 +538,13 @@ namespace ZqUtils.Helpers
                         using (var sheet = package.Workbook.Worksheets.Add("Sheet1"))
                         {
                             //获取导出列
-                            var memberInfos = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(x =>
+                            var props = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(x =>
                             {
                                 var attribute = x.GetAttribute<ExcelColumnAttribute>();
                                 return attribute == null || attribute.IsExport;
                             }).ToArray();
-                            sheet.Cells["A1"].LoadFromCollection(list, true, TableStyles.Light1, BindingFlags.Public | BindingFlags.Instance, memberInfos);
-                            //单元格自动适应大小
-                            sheet.Cells.AutoFitColumns();
-                            //单独设置单元格
-                            action?.Invoke(sheet);
-                            //设置标题名称
+                            sheet.Cells["A1"].LoadFromCollection(list, true, TableStyles.Light1, BindingFlags.Public | BindingFlags.Instance, props);
+                            //设置Excel头部标题
                             var colStart = sheet.Dimension.Start.Column;//工作区开始列
                             var colEnd = sheet.Dimension.End.Column;//工作区结束列
                             for (var col = colStart; col <= colEnd; col++)
@@ -560,6 +556,10 @@ namespace ZqUtils.Helpers
                                     sheet.Cells[1, col].Value = attribute.ColumnName;
                                 }
                             }
+                            //单元格自动适应大小
+                            sheet.Cells.AutoFitColumns();
+                            //单独设置单元格
+                            action?.Invoke(sheet);
                             //写到客户端（下载）
                             HttpContext.Current.Response.Clear();
                             HttpContext.Current.Response.Charset = "utf-8";
@@ -616,18 +616,14 @@ namespace ZqUtils.Helpers
                         package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
                         using (var sheet = package.Workbook.Worksheets.Add("Sheet1"))
                         {
+                            sheet.Cells["A1"].LoadFromCollection(list, true, TableStyles.Light1);
                             //设置Excel头部标题
-                            if (columnName != null)
+                            if (columnName?.Length > 0)
                             {
                                 for (var i = 0; i < columnName.Length; i++)
                                 {
                                     sheet.Cells[1, i + 1].Value = columnName[i];
                                 }
-                                sheet.Cells["A2"].LoadFromCollection(list, false, TableStyles.Light1);
-                            }
-                            else
-                            {
-                                sheet.Cells["A1"].LoadFromCollection(list, true, TableStyles.Light1);
                             }
                             //单元格自动适应大小
                             sheet.Cells.AutoFitColumns();
@@ -913,17 +909,13 @@ namespace ZqUtils.Helpers
                         using (var sheet = package.Workbook.Worksheets.Add("Sheet1"))
                         {
                             //获取导出列
-                            var memberInfos = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(x =>
+                            var props = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(x =>
                             {
                                 var attribute = x.GetAttribute<ExcelColumnAttribute>();
                                 return attribute == null || attribute.IsExport;
                             }).ToArray();
-                            sheet.Cells["A1"].LoadFromCollection(list, true, TableStyles.Light1, BindingFlags.Public | BindingFlags.Instance, memberInfos);
-                            //单元格自动适应大小
-                            sheet.Cells.AutoFitColumns();
-                            //单独设置单元格
-                            action?.Invoke(sheet);
-                            //设置标题名称
+                            sheet.Cells["A1"].LoadFromCollection(list, true, TableStyles.Light1, BindingFlags.Public | BindingFlags.Instance, props);
+                            //设置Excel头部标题
                             var colStart = sheet.Dimension.Start.Column;//工作区开始列
                             var colEnd = sheet.Dimension.End.Column;//工作区结束列
                             for (var col = colStart; col <= colEnd; col++)
@@ -935,6 +927,10 @@ namespace ZqUtils.Helpers
                                     sheet.Cells[1, col].Value = attribute.ColumnName;
                                 }
                             }
+                            //单元格自动适应大小
+                            sheet.Cells.AutoFitColumns();
+                            //单独设置单元格
+                            action?.Invoke(sheet);
                             package.Save();
                         }
                     }
@@ -979,18 +975,14 @@ namespace ZqUtils.Helpers
                         package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
                         using (var sheet = package.Workbook.Worksheets.Add("Sheet1"))
                         {
+                            sheet.Cells["A1"].LoadFromCollection(list, true, TableStyles.Light1);
                             //设置Excel头部标题
-                            if (columnName != null)
+                            if (columnName?.Length > 0)
                             {
                                 for (var i = 0; i < columnName.Length; i++)
                                 {
                                     sheet.Cells[1, i + 1].Value = columnName[i];
                                 }
-                                sheet.Cells["A2"].LoadFromCollection(list, false, TableStyles.Light1);
-                            }
-                            else
-                            {
-                                sheet.Cells["A1"].LoadFromCollection(list, true, TableStyles.Light1);
                             }
                             //单元格自动适应大小
                             sheet.Cells.AutoFitColumns();
