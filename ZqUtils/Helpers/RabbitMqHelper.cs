@@ -54,7 +54,7 @@ namespace ZqUtils.Helpers
 
         #region 公有属性
         /// <summary>
-        /// 默认死信交换机，默认值：deadletter.default.router
+        /// 默认内置死信交换机，默认值：deadletter.default.router
         /// </summary>
         public string DefaultDeadLetterExchange { get; set; } = "deadletter.default.router";
 
