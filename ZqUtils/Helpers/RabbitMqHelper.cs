@@ -627,21 +627,15 @@ namespace ZqUtils.Helpers
             {
                 arguments["x-overflow"] = attribute.OverflowBehaviour;
             }
-            //是否启用死信交换机
-            if (attribute.DeadLetter)
+            //设置死信交换机
+            if (!attribute.DeadLetterExchange.IsNullOrEmpty())
             {
-                //设置死信交换机
-                arguments["x-dead-letter-exchange"] = DefaultDeadLetterExchange;
-                if (!attribute.DeadLetterExchange.IsNullOrEmpty())
-                {
-                    arguments["x-dead-letter-exchange"] = attribute.DeadLetterExchange;
-                }
-                //设置死信路由键
-                arguments["x-dead-letter-routing-key"] = $"{attribute.Queue.ToLower()}.deadletter";
-                if (!attribute.DeadLetterRoutingKey.IsNullOrEmpty())
-                {
-                    arguments["x-dead-letter-routing-key"] = attribute.DeadLetterRoutingKey;
-                }
+                arguments["x-dead-letter-exchange"] = attribute.DeadLetterExchange;
+            }
+            //设置死信路由键
+            if (!attribute.DeadLetterRoutingKey.IsNullOrEmpty())
+            {
+                arguments["x-dead-letter-routing-key"] = attribute.DeadLetterRoutingKey;
             }
             //设置队列优先级
             if (attribute.MaximumPriority > 0 && attribute.MaximumPriority <= 10)
@@ -705,21 +699,15 @@ namespace ZqUtils.Helpers
             {
                 arguments["x-overflow"] = attribute.OverflowBehaviour;
             }
-            //是否启用死信交换机
-            if (attribute.DeadLetter)
+            //设置死信交换机
+            if (!attribute.DeadLetterExchange.IsNullOrEmpty())
             {
-                //设置死信交换机
-                arguments["x-dead-letter-exchange"] = DefaultDeadLetterExchange;
-                if (!attribute.DeadLetterExchange.IsNullOrEmpty())
-                {
-                    arguments["x-dead-letter-exchange"] = attribute.DeadLetterExchange;
-                }
-                //设置死信路由键
-                arguments["x-dead-letter-routing-key"] = $"{attribute.Queue.ToLower()}.deadletter";
-                if (!attribute.DeadLetterRoutingKey.IsNullOrEmpty())
-                {
-                    arguments["x-dead-letter-routing-key"] = attribute.DeadLetterRoutingKey;
-                }
+                arguments["x-dead-letter-exchange"] = attribute.DeadLetterExchange;
+            }
+            //设置死信路由键
+            if (!attribute.DeadLetterRoutingKey.IsNullOrEmpty())
+            {
+                arguments["x-dead-letter-routing-key"] = attribute.DeadLetterRoutingKey;
             }
             //设置队列优先级
             if (attribute.MaximumPriority > 0 && attribute.MaximumPriority <= 10)
@@ -875,7 +863,7 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
-        /// 发布消息到死信队列
+        /// 发布消息到内置死信队列
         /// </summary>
         /// <param name="queue">队列名称</param>
         /// <param name="exchange">交换机名称</param>
@@ -884,7 +872,7 @@ namespace ZqUtils.Helpers
         /// <param name="retryCount">重试次数</param>
         /// <param name="exception">异常</param>
         /// <returns></returns>
-        private bool PublishToDead<T>(
+        private bool PublishToDead(
             string queue,
             string exchange,
             string routingKey,
@@ -892,24 +880,12 @@ namespace ZqUtils.Helpers
             int retryCount,
             Exception exception)
         {
-            //死信队列、交换机、路由键
+            //内置死信队列、交换机、路由键
             var deadLetterQueue = $"{queue.ToLower()}.{(exception != null ? "error" : "fail")}";
             var deadLetterExchange = DefaultDeadLetterExchange;
             var deadLetterRoutingKey = $"{queue.ToLower()}.deadletter";
-            var attribute = typeof(T).GetAttribute<RabbitMqAttribute>();
-            if (attribute != null)
-            {
-                if (!attribute.DeadLetterExchange.IsNullOrEmpty())
-                {
-                    deadLetterExchange = attribute.DeadLetterExchange;
-                }
-                if (!attribute.DeadLetterRoutingKey.IsNullOrEmpty())
-                {
-                    deadLetterRoutingKey = attribute.DeadLetterRoutingKey;
-                }
-            }
 
-            //死信队列内容
+            //内置死信队列内容
             var deadLetterBody = new DeadLetterQueue
             {
                 Body = body,
@@ -922,7 +898,7 @@ namespace ZqUtils.Helpers
                 RetryCount = retryCount
             };
 
-            //发送死信消息
+            //发送内置死信消息，注意此处与原生的死信消息无关
             return Publish(deadLetterExchange, deadLetterQueue, deadLetterRoutingKey, deadLetterBody.ToJson());
         }
         #endregion
@@ -967,21 +943,15 @@ namespace ZqUtils.Helpers
             {
                 arguments["x-overflow"] = attribute.OverflowBehaviour;
             }
-            //是否启用死信交换机
-            if (attribute.DeadLetter)
+            //设置死信交换机
+            if (!attribute.DeadLetterExchange.IsNullOrEmpty())
             {
-                //设置死信交换机
-                arguments["x-dead-letter-exchange"] = DefaultDeadLetterExchange;
-                if (!string.IsNullOrEmpty(attribute.DeadLetterExchange))
-                {
-                    arguments["x-dead-letter-exchange"] = attribute.DeadLetterExchange;
-                }
-                //设置死信路由键
-                arguments["x-dead-letter-routing-key"] = $"{attribute.Queue.ToLower()}.deadletter";
-                if (!string.IsNullOrEmpty(attribute.DeadLetterRoutingKey))
-                {
-                    arguments["x-dead-letter-routing-key"] = attribute.DeadLetterRoutingKey;
-                }
+                arguments["x-dead-letter-exchange"] = attribute.DeadLetterExchange;
+            }
+            //设置死信路由键
+            if (!attribute.DeadLetterRoutingKey.IsNullOrEmpty())
+            {
+                arguments["x-dead-letter-routing-key"] = attribute.DeadLetterRoutingKey;
             }
             //设置队列优先级
             if (attribute.MaximumPriority > 0 && attribute.MaximumPriority <= 10)
@@ -994,7 +964,7 @@ namespace ZqUtils.Helpers
                 arguments["x-queue-mode"] = attribute.LazyMode;
             }
             //设置集群配置
-            if (!string.IsNullOrEmpty(attribute.MasterLocator))
+            if (!attribute.MasterLocator.IsNullOrEmpty())
             {
                 arguments["x-queue-master-locator"] = attribute.MasterLocator;
             }
@@ -1014,7 +984,7 @@ namespace ZqUtils.Helpers
         /// <param name="handler">异常处理委托</param>
         /// <param name="retryCount">重试次数</param>
         /// <param name="prefetchCount">预取数量</param>
-        /// <param name="deadLetter">是否进入死信队列</param>
+        /// <param name="deadLetter">是否进入内置死信队列，此处与原生死信无关</param>
         /// <param name="exchangeType">交换机类型</param>
         /// <param name="durable">持久化</param>
         /// <param name="queueArguments">队列参数</param>
@@ -1078,11 +1048,11 @@ namespace ZqUtils.Helpers
                 {
                     channel.BasicNack(ea.DeliveryTag, false, false);
                 }
-                //是否进入死信队列
+                //是否进入内置死信队列
                 if (deadLetter && (!(result == true) || exception != null))
                 {
-                    //发送消息到死信队列
-                    PublishToDead<T>(queue, ea.Exchange, ea.RoutingKey, body, exception == null ? numberOfRetries : numberOfRetries - 1, exception);
+                    //发送消息到内置死信队列
+                    PublishToDead(queue, ea.Exchange, ea.RoutingKey, body, exception == null ? numberOfRetries : numberOfRetries - 1, exception);
                 }
             };
             //手动确认
@@ -1287,7 +1257,7 @@ namespace ZqUtils.Helpers
         public string OverflowBehaviour { get; set; }
 
         /// <summary>
-        /// 是否启用死信交换机，默认true
+        /// 是否启用系统内置死信队列处理逻辑，默认true；注意：此处与原生的死信无关
         /// </summary>
         public bool DeadLetter { get; set; } = true;
 
@@ -1318,7 +1288,7 @@ namespace ZqUtils.Helpers
     }
 
     /// <summary>
-    /// 死信队列实体
+    /// 内置死信队列实体
     /// </summary>
     public class DeadLetterQueue
     {
