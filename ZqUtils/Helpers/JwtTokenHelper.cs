@@ -35,7 +35,7 @@ namespace ZqUtils.Helpers
     public class JwtTokenHelper
     {
         /// <summary>
-        /// 创建JwtToken
+        /// 创建Token
         /// </summary>
         /// <param name="claims">声明集合</param>
         /// <param name="expires">过期时间，单位秒</param>
@@ -59,25 +59,30 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
-        /// 解析并校验Token
+        /// 解析Token
         /// </summary>
         /// <param name="token">JwtToken字符串</param>
-        /// <param name="secret">密钥</param>
+        /// <param name="secret">密钥，默认null</param>
+        /// <param name="validate">是否启用Token校验，默认不启用，principal返回null，若启用校验需要secret参数；</param>
         /// <returns></returns>
-        public static (JwtSecurityToken securityToken, ClaimsPrincipal principal) ReadAndValidateToken(string token, string secret)
+        public static (JwtSecurityToken securityToken, ClaimsPrincipal principal) ReadToken(string token, string secret = null, bool validate = false)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var securityToken = tokenHandler.ReadJwtToken(token);
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
-            var validationParameters = new TokenValidationParameters()
+            if (validate)
             {
-                ValidateIssuer = false,
-                ValidateAudience = false,
-                RequireExpirationTime = true,
-                IssuerSigningKey = key
-            };
-            var principal = tokenHandler.ValidateToken(token, validationParameters, out _);
-            return (securityToken, principal);
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+                var validationParameters = new TokenValidationParameters()
+                {
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    RequireExpirationTime = true,
+                    IssuerSigningKey = key
+                };
+                var principal = tokenHandler.ValidateToken(token, validationParameters, out _);
+                return (securityToken, principal);
+            }
+            return (securityToken, null);
         }
     }
 }
