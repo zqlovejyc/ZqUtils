@@ -219,6 +219,7 @@ namespace ZqUtils.Helpers
         /// <remarks>引用地址：https://www.jianshu.com/p/2129dbfd8c57 </remarks>
         public static string EncryptByDes(string encryptString, string encryptKey, string iv)
         {
+            var result = string.Empty;
             try
             {
                 //将字符转换为UTF-8编码的字节序列
@@ -235,12 +236,13 @@ namespace ZqUtils.Helpers
                 var cStream = new CryptoStream(mStream, dCSP.CreateEncryptor(rgbKey, rgbIV), CryptoStreamMode.Write);
                 cStream.Write(inputByteArray, 0, inputByteArray.Length);//写入内存流
                 cStream.FlushFinalBlock();//将缓冲区中的数据写入内存流，并清除缓冲区                
-                return Convert.ToBase64String(mStream.ToArray());
+                result = Convert.ToBase64String(mStream.ToArray());
             }
-            catch
+            catch (Exception ex)
             {
-                return encryptString;
+                LogHelper.Error(ex, "DES-CBC-PKCS7加密字符串");
             }
+            return result;
         }
 
         /// <summary>
@@ -253,6 +255,7 @@ namespace ZqUtils.Helpers
         /// <remarks>引用地址：：https://www.jianshu.com/p/2129dbfd8c57 </remarks>
         public static string DecryptByDes(string decryptString, string decryptKey, string iv)
         {
+            var result = string.Empty;
             try
             {
                 //将字符转换为UTF-8编码的字节序列
@@ -269,12 +272,13 @@ namespace ZqUtils.Helpers
                 var cStream = new CryptoStream(mStream, dCSP.CreateDecryptor(rgbKey, rgbIV), CryptoStreamMode.Write);
                 cStream.Write(inputByteArray, 0, inputByteArray.Length);
                 cStream.FlushFinalBlock();
-                return Encoding.UTF8.GetString(mStream.ToArray());
+                result = Encoding.UTF8.GetString(mStream.ToArray());
             }
-            catch
+            catch (Exception ex)
             {
-                return decryptString;
+                LogHelper.Error(ex, "DES-CBC-PKCS7解密字符串");
             }
+            return result;
         }
         #endregion
 
