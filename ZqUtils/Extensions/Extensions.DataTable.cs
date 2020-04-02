@@ -827,5 +827,29 @@ namespace ZqUtils.Extensions
             return @this.Rows[@this.Rows.Count - 1];
         }
         #endregion
+
+        #region Pagination
+        /// <summary>
+        /// 分页获取DataTable数据
+        /// </summary>
+        /// <param name="this">源DataTable</param>
+        /// <param name="pageIndex">当前页码</param>
+        /// <param name="pageSize">每页数量</param>
+        /// <returns></returns>
+        public static DataTable Pagination(this DataTable @this, int pageIndex, int pageSize)
+        {
+            var result = new DataTable();
+            if (@this?.Rows.Count > 0)
+            {
+                result = @this.Clone();
+                var rows = @this.AsEnumerable().Skip((pageIndex - 1) * pageSize).Take(pageSize);
+                foreach (var item in rows)
+                {
+                    result.ImportRow(item);
+                }
+            }
+            return result;
+        }
+        #endregion
     }
 }
