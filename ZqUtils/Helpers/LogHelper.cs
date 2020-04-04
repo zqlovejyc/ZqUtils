@@ -163,72 +163,57 @@ namespace ZqUtils.Helpers
         private static void Write()
         {
             //获取物理路径
-            var infoDir = (ConfigHelper.GetAppSettings<string>("logInfo") ?? @"Logs\Info").GetPhysicalPath();
-            var errorDir = (ConfigHelper.GetAppSettings<string>("logError") ?? @"Logs\Error").GetPhysicalPath();
+            var infoDir = (ConfigHelper.GetAppSettings<string>("logInfo") ?? @"logs\info").GetPhysicalPath();
+            var errorDir = (ConfigHelper.GetAppSettings<string>("logError") ?? @"logs\error").GetPhysicalPath();
+
             //根据当天日期创建日志文件
-            var fileName = $"{DateTime.Now.ToString("yyyy-MM-dd")}.log";
+            var fileName = $"{DateTime.Now:yyyy-MM-dd}.log";
             var infoPath = infoDir + fileName;
             var errorPath = errorDir + fileName;
+
             try
             {
                 //进入写锁
                 _lock.EnterWriteLock();
+
                 //判断目录是否存在，不存在则重新创建
-                if (!Directory.Exists(infoDir)) Directory.CreateDirectory(infoDir);
-                if (!Directory.Exists(errorDir)) Directory.CreateDirectory(errorDir);
+                if (!Directory.Exists(infoDir))
+                    Directory.CreateDirectory(infoDir);
+
+                if (!Directory.Exists(errorDir))
+                    Directory.CreateDirectory(errorDir);
+
                 //创建StreamWriter
                 StreamWriter swInfo = null;
                 StreamWriter swError = null;
+
                 if (_que?.ToList().Exists(o => o.Level == LogLevel.Info) == true)
-                {
                     swInfo = new StreamWriter(infoPath, true, Encoding.UTF8);
-                }
+
                 if (_que?.ToList().Exists(o => o.Level == LogLevel.Error) == true)
-                {
                     swError = new StreamWriter(errorPath, true, Encoding.UTF8);
-                }
+
                 //判断日志队列中是否有内容，从列队中获取内容，并删除列队中的内容
                 while (_que?.Count > 0 && _que.TryDequeue(out LogMessage logMessage))
                 {
                     var sf = logMessage.StackFrame;
+
                     //Info
                     if (swInfo != null && logMessage.Level == LogLevel.Info)
-                    {
-                        swInfo.WriteLine($"[级别：Info]");
-                        swInfo.WriteLine($"[时间：{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffff")}]");
-                        swInfo.WriteLine($"[类名：{sf?.GetMethod().DeclaringType.FullName}]");
-                        swInfo.WriteLine($"[方法：{sf?.GetMethod().Name}]");
-                        swInfo.WriteLine($"[行号：{sf?.GetFileLineNumber()}]");
-                        swInfo.WriteLine($"[内容：{logMessage.Message}]");
-                        swInfo.WriteLine("------------------------------------------------------------------------------------------");
-                        swInfo.WriteLine(string.Empty);
-                    }
+                        swInfo.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss.ffff} [Info] [{sf?.GetMethod().DeclaringType.FullName}] [{sf?.GetFileLineNumber()}] {sf?.GetMethod().Name} : {logMessage.Message}");
+
                     //Error
                     if (swError != null && logMessage.Level == LogLevel.Error)
-                    {
-                        swError.WriteLine($"[级别：Error]");
-                        swError.WriteLine($"[时间：{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffff")}]");
-                        swError.WriteLine($"[类名：{sf?.GetMethod().DeclaringType.FullName}]");
-                        swError.WriteLine($"[方法：{sf?.GetMethod().Name}]");
-                        swError.WriteLine($"[行号：{sf?.GetFileLineNumber()}]");
-                        if (!string.IsNullOrEmpty(logMessage.Message))
-                        {
-                            swError.WriteLine($"[内容：{logMessage.Message}]");
-                        }
-                        if (logMessage.Exception != null)
-                        {
-                            swError.WriteLine($"[异常：{logMessage.Exception.ToString()}]");
-                        }
-                        swError.WriteLine("------------------------------------------------------------------------------------------");
-                        swError.WriteLine(string.Empty);
-                    }
+                        swError.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss.ffff} [Error] [{sf?.GetMethod().DeclaringType.FullName}] [{sf?.GetFileLineNumber()}] {sf?.GetMethod().Name} : {logMessage.Message} {logMessage.Exception}");
                 }
+
                 //关闭并释放资源
                 if (swInfo != null)
                 {
                     swInfo.Close();
                     swInfo.Dispose();
                 }
+
                 if (swError != null)
                 {
                     swError.Close();
