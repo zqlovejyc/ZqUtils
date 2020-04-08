@@ -99,16 +99,6 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
-        /// Out Queue.
-        /// </summary>
-        /// <param name="entity">The init entity.</param>
-        /// <returns>The entity what will be deal.</returns>
-        private bool Dequeue(out T entity)
-        {
-            return this._innerQueue.TryDequeue(out entity);
-        }
-
-        /// <summary>
         /// Disposes current instance, end the deal thread and inner queue.
         /// </summary>
         public void Dispose()
@@ -130,6 +120,16 @@ namespace ZqUtils.Helpers
         #endregion
 
         #region Private Method
+        /// <summary>
+        /// Out Queue.
+        /// </summary>
+        /// <param name="entity">The init entity.</param>
+        /// <returns>The entity what will be deal.</returns>
+        private bool Dequeue(out T entity)
+        {
+            return this._innerQueue.TryDequeue(out entity);
+        }
+
         /// <summary>
         /// Deal entity in Queue.
         /// </summary>
