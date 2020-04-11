@@ -1200,7 +1200,7 @@ namespace ZqUtils.Helpers
         /// 构造函数
         /// </summary>
         /// <param name="columnName">自定义列名</param>
-        public ExcelColumnAttribute(string columnName)
+        public ExcelColumnAttribute(string columnName = null)
         {
             if (columnName != null)
                 this.ColumnName = columnName;
