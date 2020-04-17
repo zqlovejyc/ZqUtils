@@ -757,12 +757,18 @@ namespace ZqUtils.Extensions
         /// <param name="parentId">树形父级字段，默认ParentId</param>
         /// <param name="comparer">返回集合去重比较器，默认null</param>
         /// <returns>返回要查询的所有树形节点集合</returns>
-        public static List<T> TreeWhere<T>(this List<T> @this, Predicate<T> condition, string primaryKey, bool down = true, string parentId = "ParentId", IEqualityComparer<T> comparer = null)
+        public static IEnumerable<T> TreeWhere<T>(
+            this IEnumerable<T> @this,
+            Predicate<T> condition,
+            string primaryKey,
+            bool down = true,
+            string parentId = "ParentId",
+            IEqualityComparer<T> comparer = null)
             where T : class
         {
             var type = typeof(T);
             var treeList = new List<T>();
-            var entities = @this.FindAll(condition);
+            var entities = @this?.ToList().FindAll(condition);
             if (entities?.Count > 0)
             {
                 foreach (var entity in entities)
@@ -815,14 +821,20 @@ namespace ZqUtils.Extensions
         /// <param name="down">是否向下查询，默认true</param>
         /// <param name="parentId">树形父级字段，默认ParentId</param>
         /// <returns>返回递归是否结束标识，递归结束后返回空字符串</returns>
-        public static string TreeWhere<T>(this List<T> @this, List<T> treeList, string primaryKey, string id, bool down = true, string parentId = "ParentId")
+        public static string TreeWhere<T>(
+            this IEnumerable<T> @this,
+            List<T> treeList,
+            string primaryKey,
+            string id,
+            bool down = true,
+            string parentId = "ParentId")
             where T : class
         {
             var type = typeof(T);
             var parameter = Expression.Parameter(type, "t");
             var condition = Expression.Equal(parameter.Property(down ? parentId : primaryKey), Expression.Constant(id)).ToLambda<Predicate<T>>(parameter).Compile();
-            var entities = @this.FindAll(condition);
-            if (entities?.Count > 0)
+            var entities = @this?.ToList().FindAll(condition);
+            if (entities?.Count > 0 && treeList?.Count > 0)
             {
                 foreach (var entity in entities)
                 {
@@ -874,7 +886,12 @@ namespace ZqUtils.Extensions
         /// <param name="parentId">树形父级字段，默认ParentId</param>
         /// <param name="childName">子集节点命名</param>
         /// <returns>返回树形Json</returns>
-        public static string TreeToJson<T>(this List<T> @this, string primaryKey, string pid = "0", string parentId = "ParentId", string childName = "ChildNodes")
+        public static string TreeToJson<T>(
+            this IEnumerable<T> @this,
+            string primaryKey,
+            string pid = "0",
+            string parentId = "ParentId",
+            string childName = "ChildNodes")
             where T : class
         {
             return @this.TreeToDictionary(primaryKey, pid, parentId, childName).ToJson();
@@ -892,13 +909,18 @@ namespace ZqUtils.Extensions
         /// <param name="parentId">树形父级字段，默认ParentId</param>
         /// <param name="childName">子集节点命名</param>
         /// <returns>返回树形Json</returns>
-        public static List<Dictionary<string, object>> TreeToDictionary<T>(this List<T> @this, string primaryKey, string pid = "0", string parentId = "ParentId", string childName = "ChildNodes")
+        public static IEnumerable<Dictionary<string, object>> TreeToDictionary<T>(
+            this IEnumerable<T> @this,
+            string primaryKey,
+            string pid = "0",
+            string parentId = "ParentId",
+            string childName = "ChildNodes")
             where T : class
         {
             var type = typeof(T);
             var parameter = Expression.Parameter(type, "t");
             var condition = Expression.Equal(parameter.Property(parentId), Expression.Constant(pid)).ToLambda<Predicate<T>>(parameter).Compile();
-            var entities = @this.FindAll(condition);
+            var entities = @this?.ToList().FindAll(condition);
             var list = new List<Dictionary<string, object>>();
             if (entities?.Count > 0)
             {
@@ -910,7 +932,7 @@ namespace ZqUtils.Extensions
                     {
                         dic[p.Name] = p.GetValue(entity, null);
                     }
-                    dic[childName] = @this.TreeToDictionary(primaryKey, dic[primaryKey].ToString(), parentId);
+                    dic[childName] = @this.TreeToDictionary(primaryKey, dic[primaryKey].ToString(), parentId, childName);
                     list.Add(dic);
                 }
             }
