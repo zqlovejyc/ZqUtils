@@ -17,11 +17,11 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
+using System.Text;
 using System.Net;
 using System.Net.Mail;
-using System.Text;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using OpenPop.Mime;
 using OpenPop.Mime.Header;
 using OpenPop.Pop3;
@@ -67,36 +67,29 @@ namespace ZqUtils.Helpers
         public static List<MailAttachment> FetchAllAttachments(string host, int port, bool useSsl, string userName, string password, bool isDelete = false)
         {
             var attachments = new List<MailAttachment>();
-            try
+            using (var client = new Pop3Client())
             {
-                using (var client = new Pop3Client())
+                client.Connect(host, port, useSsl);
+                client.Authenticate(userName, password);
+                //获取邮件数量                
+                var messageCount = client.GetMessageCount();
+                for (var i = messageCount; i > 0; i--)
                 {
-                    client.Connect(host, port, useSsl);
-                    client.Authenticate(userName, password);
-                    //获取邮件数量                
-                    var messageCount = client.GetMessageCount();
-                    for (var i = messageCount; i > 0; i--)
+                    var message = client.GetMessage(i);
+                    if (isDelete) client.DeleteMessage(i);
+                    var messageParts = message.FindAllAttachments();
+                    if (messageParts.Count > 0)
                     {
-                        var message = client.GetMessage(i);
-                        if (isDelete) client.DeleteMessage(i);
-                        var messageParts = message.FindAllAttachments();
-                        if (messageParts.Count > 0)
+                        messageParts.ForEach(o =>
                         {
-                            messageParts.ForEach(o =>
+                            attachments.Add(new MailAttachment
                             {
-                                attachments.Add(new MailAttachment
-                                {
-                                    Header = message.Headers,
-                                    Part = o
-                                });
+                                Header = message.Headers,
+                                Part = o
                             });
-                        }
+                        });
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "获取邮件的所有附件");
             }
             return attachments;
         }

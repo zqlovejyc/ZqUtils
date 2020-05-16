@@ -17,11 +17,11 @@
 #endregion
 
 using System;
-using System.Collections;
 using System.IO;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Drawing.Drawing2D;
+using System.Collections;
 /****************************
 * [Author] 张强
 * [Date] 2016-09-27
@@ -46,73 +46,63 @@ namespace ZqUtils.Helpers
         /// <returns>bool</returns>
         public static bool Thumbnail(string originalImagePath, string thumbnailPath, int width, int height, string mode)
         {
-            var res = false;
-            try
+            using (var originalImage = Image.FromFile(originalImagePath))
             {
-                using (var originalImage = Image.FromFile(originalImagePath))
+                var towidth = width;
+                var toheight = height;
+                var x = 0;
+                var y = 0;
+                var ow = originalImage.Width;
+                var oh = originalImage.Height;
+                switch (mode)
                 {
-                    var towidth = width;
-                    var toheight = height;
-                    var x = 0;
-                    var y = 0;
-                    var ow = originalImage.Width;
-                    var oh = originalImage.Height;
-                    switch (mode)
-                    {
-                        case "HW":  //指定高宽缩放（可能变形）                
-                            break;
-                        case "W":   //指定宽，高按比例                    
-                            toheight = originalImage.Height * width / originalImage.Width;
-                            break;
-                        case "H":   //指定高，宽按比例
-                            towidth = originalImage.Width * height / originalImage.Height;
-                            break;
-                        case "Cut": //指定高宽裁减（不变形）                
-                            if ((double)originalImage.Width / originalImage.Height > towidth / (double)toheight)
-                            {
-                                oh = originalImage.Height;
-                                ow = originalImage.Height * towidth / toheight;
-                                y = 0;
-                                x = (originalImage.Width - ow) / 2;
-                            }
-                            else
-                            {
-                                ow = originalImage.Width;
-                                oh = originalImage.Width * height / towidth;
-                                x = 0;
-                                y = (originalImage.Height - oh) / 2;
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                    //新建一个bmp图片
-                    using (var bitmap = new Bitmap(towidth, toheight))
-                    {
-                        //新建一个画板
-                        using (var g = Graphics.FromImage(bitmap))
+                    case "HW":  //指定高宽缩放（可能变形）                
+                        break;
+                    case "W":   //指定宽，高按比例                    
+                        toheight = originalImage.Height * width / originalImage.Width;
+                        break;
+                    case "H":   //指定高，宽按比例
+                        towidth = originalImage.Width * height / originalImage.Height;
+                        break;
+                    case "Cut": //指定高宽裁减（不变形）                
+                        if ((double)originalImage.Width / originalImage.Height > towidth / (double)toheight)
                         {
-                            //设置高质量插值法
-                            g.InterpolationMode = InterpolationMode.High;
-                            //设置高质量,低速度呈现平滑程度
-                            g.SmoothingMode = SmoothingMode.HighQuality;
-                            //清空画布并以透明背景色填充
-                            g.Clear(Color.Transparent);
-                            //在指定位置并且按指定大小绘制原图片的指定部分
-                            g.DrawImage(originalImage, new Rectangle(0, 0, towidth, toheight), new Rectangle(x, y, ow, oh), GraphicsUnit.Pixel);
-                            //以jpg格式保存缩略图
-                            bitmap.Save(thumbnailPath, ImageFormat.Jpeg);
-                            res = true;
+                            oh = originalImage.Height;
+                            ow = originalImage.Height * towidth / toheight;
+                            y = 0;
+                            x = (originalImage.Width - ow) / 2;
                         }
+                        else
+                        {
+                            ow = originalImage.Width;
+                            oh = originalImage.Width * height / towidth;
+                            x = 0;
+                            y = (originalImage.Height - oh) / 2;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                //新建一个bmp图片
+                using (var bitmap = new Bitmap(towidth, toheight))
+                {
+                    //新建一个画板
+                    using (var g = Graphics.FromImage(bitmap))
+                    {
+                        //设置高质量插值法
+                        g.InterpolationMode = InterpolationMode.High;
+                        //设置高质量,低速度呈现平滑程度
+                        g.SmoothingMode = SmoothingMode.HighQuality;
+                        //清空画布并以透明背景色填充
+                        g.Clear(Color.Transparent);
+                        //在指定位置并且按指定大小绘制原图片的指定部分
+                        g.DrawImage(originalImage, new Rectangle(0, 0, towidth, toheight), new Rectangle(x, y, ow, oh), GraphicsUnit.Pixel);
+                        //以jpg格式保存缩略图
+                        bitmap.Save(thumbnailPath, ImageFormat.Jpeg);
+                        return true;
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "生成缩略图");
-                res = false;
-            }
-            return res;
         }
         #endregion
 
@@ -413,21 +403,13 @@ namespace ZqUtils.Helpers
         /// <returns>返回拉伸图片后的图片</returns>
         public static Bitmap Resize(Bitmap bmp, int newW, int newH)
         {
-            try
+            var bap = new Bitmap(newW, newH);
+            using (var g = Graphics.FromImage(bmp))
             {
-                var bap = new Bitmap(newW, newH);
-                using (var g = Graphics.FromImage(bap))
-                {
-                    g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                    g.DrawImage(bap, new Rectangle(0, 0, newW, newH), new Rectangle(0, 0, bap.Width, bap.Height), GraphicsUnit.Pixel);
-                }
-                return bap;
+                g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                g.DrawImage(bap, new Rectangle(0, 0, newW, newH), new Rectangle(0, 0, bap.Width, bap.Height), GraphicsUnit.Pixel);
             }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "拉伸图片");
-                return null;
-            }
+            return bap;
         }
         #endregion
 
@@ -518,80 +500,70 @@ namespace ZqUtils.Helpers
         /// <returns>是否缩放成功</returns>
         public static bool Zoom(string oldFile, string newFile, int destHeight, int destWidth, int q = 100)
         {
-            var res = false;
-            try
+            using (var sourImage = Image.FromFile(oldFile))
             {
-                using (var sourImage = Image.FromFile(oldFile))
+                int width = 0,
+                    height = 0,
+                    sourWidth = sourImage.Width,
+                    sourHeight = sourImage.Height;
+                if (sourHeight > destHeight || sourWidth > destWidth)
                 {
-                    int width = 0,
-                        height = 0,
-                        sourWidth = sourImage.Width,
-                        sourHeight = sourImage.Height;
-                    if (sourHeight > destHeight || sourWidth > destWidth)
+                    if ((sourWidth * destHeight) > (sourHeight * destWidth))
                     {
-                        if ((sourWidth * destHeight) > (sourHeight * destWidth))
-                        {
-                            width = destWidth;
-                            height = (destWidth * sourHeight) / sourWidth;
-                        }
-                        else
-                        {
-                            height = destHeight;
-                            width = (sourWidth * destHeight) / sourHeight;
-                        }
+                        width = destWidth;
+                        height = (destWidth * sourHeight) / sourWidth;
                     }
                     else
                     {
-                        width = sourWidth;
-                        height = sourHeight;
-                    }
-                    using (var destBitmap = new Bitmap(destWidth, destHeight))
-                    {
-                        using (var g = Graphics.FromImage(destBitmap))
-                        {
-                            g.Clear(Color.Transparent);
-                            //设置画布的描绘质量           
-                            g.CompositingQuality = CompositingQuality.HighQuality;
-                            g.SmoothingMode = SmoothingMode.HighQuality;
-                            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                            g.DrawImage(sourImage, new Rectangle((destWidth - width) / 2, (destHeight - height) / 2, width, height), 0, 0, sourImage.Width, sourImage.Height, GraphicsUnit.Pixel);
-                        }
-                        //设置压缩质量       
-                        var encoderParams = new EncoderParameters();
-                        var quality = new long[1];
-                        quality[0] = q;
-                        var encoderParam = new EncoderParameter(Encoder.Quality, quality);
-                        encoderParams.Param[0] = encoderParam;
-                        ImageCodecInfo ici = null;
-                        var arrayICI = ImageCodecInfo.GetImageEncoders();
-                        var fd = Path.GetExtension(oldFile).ToLower().Contains("png") ? "PNG" : "JPEG";
-                        for (int i = 0; i < arrayICI.Length; i++)
-                        {
-                            if (arrayICI[i].FormatDescription.Equals(fd))
-                            {
-                                ici = arrayICI[i];
-                                break;
-                            }
-                        }
-                        //保存缩放后的图片
-                        if (ici != null)
-                        {
-                            destBitmap.Save(newFile, ici, encoderParams);
-                        }
-                        else
-                        {
-                            destBitmap.Save(newFile);
-                        }
-                        res = true;
+                        height = destHeight;
+                        width = (sourWidth * destHeight) / sourHeight;
                     }
                 }
+                else
+                {
+                    width = sourWidth;
+                    height = sourHeight;
+                }
+                using (var destBitmap = new Bitmap(destWidth, destHeight))
+                {
+                    using (var g = Graphics.FromImage(destBitmap))
+                    {
+                        g.Clear(Color.Transparent);
+                        //设置画布的描绘质量           
+                        g.CompositingQuality = CompositingQuality.HighQuality;
+                        g.SmoothingMode = SmoothingMode.HighQuality;
+                        g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                        g.DrawImage(sourImage, new Rectangle((destWidth - width) / 2, (destHeight - height) / 2, width, height), 0, 0, sourImage.Width, sourImage.Height, GraphicsUnit.Pixel);
+                    }
+                    //设置压缩质量       
+                    var encoderParams = new EncoderParameters();
+                    var quality = new long[1];
+                    quality[0] = q;
+                    var encoderParam = new EncoderParameter(Encoder.Quality, quality);
+                    encoderParams.Param[0] = encoderParam;
+                    ImageCodecInfo ici = null;
+                    var arrayICI = ImageCodecInfo.GetImageEncoders();
+                    var fd = Path.GetExtension(oldFile).ToLower().Contains("png") ? "PNG" : "JPEG";
+                    for (int i = 0; i < arrayICI.Length; i++)
+                    {
+                        if (arrayICI[i].FormatDescription.Equals(fd))
+                        {
+                            ici = arrayICI[i];
+                            break;
+                        }
+                    }
+                    //保存缩放后的图片
+                    if (ici != null)
+                    {
+                        destBitmap.Save(newFile, ici, encoderParams);
+                    }
+                    else
+                    {
+                        destBitmap.Save(newFile);
+                    }
+                    return true;
+                }
             }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "等比例缩放图片到指定尺寸");
-                res = false;
-            }
-            return res;
         }
         #endregion
 

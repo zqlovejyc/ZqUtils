@@ -16,7 +16,6 @@
  */
 #endregion
 
-using System;
 using System.IO;
 using System.IO.Compression;
 /****************************
@@ -39,24 +38,14 @@ namespace ZqUtils.Helpers
         /// <returns>压缩后的字节数组</returns>
         public static byte[] GZipCompress(byte[] arr)
         {
-            byte[] res = null;
-            try
+            using (var stream = new MemoryStream())
             {
-                using (var stream = new MemoryStream())
+                using (var gZipStream = new GZipStream(stream, CompressionMode.Compress))
                 {
-                    using (var gZipStream = new GZipStream(stream, CompressionMode.Compress))
-                    {
-                        gZipStream.Write(arr, 0, arr.Length);
-                    }
-                    res = stream.ToArray();
+                    gZipStream.Write(arr, 0, arr.Length);
                 }
+                return stream.ToArray();
             }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "gzip压缩字节数组");
-                res = null;
-            }
-            return res;
         }
 
         /// <summary>
@@ -66,27 +55,17 @@ namespace ZqUtils.Helpers
         /// <returns>解压缩后的字节数组</returns>
         public static byte[] GZipDecompress(byte[] arr)
         {
-            byte[] res = null;
-            try
+            using (var ms = new MemoryStream())
             {
-                using (var ms = new MemoryStream())
+                using (var stream = new MemoryStream(arr))
                 {
-                    using (var stream = new MemoryStream(arr))
+                    using (var gZipStream = new GZipStream(stream, CompressionMode.Decompress))
                     {
-                        using (var gZipStream = new GZipStream(stream, CompressionMode.Decompress))
-                        {
-                            gZipStream.CopyTo(ms, 10240);
-                            res = ms.ToArray();
-                        }
+                        gZipStream.CopyTo(ms, 10240);
+                        return ms.ToArray();
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "gzip解压字节数组");
-                res = null;
-            }
-            return res;
         }
 
         /// <summary>
@@ -96,23 +75,13 @@ namespace ZqUtils.Helpers
         /// <returns>压缩后的字节流</returns>
         public static Stream GZipCompress(Stream sourceStream)
         {
-            Stream res = null;
-            try
+            using (sourceStream)
             {
-                using (sourceStream)
-                {
-                    var bytesArr = new byte[sourceStream.Length];
-                    sourceStream.Read(bytesArr, 0, bytesArr.Length);
-                    var gZipArr = GZipCompress(bytesArr);
-                    res = new MemoryStream(gZipArr);
-                }
+                var bytesArr = new byte[sourceStream.Length];
+                sourceStream.Read(bytesArr, 0, bytesArr.Length);
+                var gZipArr = GZipCompress(bytesArr);
+                return new MemoryStream(gZipArr);
             }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "gzip压缩字节流");
-                res = null;
-            }
-            return res;
         }
 
         /// <summary>
@@ -122,23 +91,13 @@ namespace ZqUtils.Helpers
         /// <returns>解压缩后的字节流</returns>
         public static Stream GZipDecompress(Stream sourceStream)
         {
-            Stream res = null;
-            try
+            using (sourceStream)
             {
-                using (sourceStream)
-                {
-                    var bytesArr = new byte[sourceStream.Length];
-                    sourceStream.Read(bytesArr, 0, bytesArr.Length);
-                    var gZipArr = GZipDecompress(bytesArr);
-                    res = new MemoryStream(gZipArr);
-                }
+                var bytesArr = new byte[sourceStream.Length];
+                sourceStream.Read(bytesArr, 0, bytesArr.Length);
+                var gZipArr = GZipDecompress(bytesArr);
+                return new MemoryStream(gZipArr);
             }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "gzip解压字节流");
-                res = null;
-            }
-            return res;
         }
         #endregion
 
@@ -150,24 +109,14 @@ namespace ZqUtils.Helpers
         /// <returns>压缩后的字节数组</returns>
         public static byte[] DeflateCompress(byte[] arr)
         {
-            byte[] res = null;
-            try
+            using (var stream = new MemoryStream())
             {
-                using (var stream = new MemoryStream())
+                using (var gZipStream = new DeflateStream(stream, CompressionMode.Compress))
                 {
-                    using (var gZipStream = new DeflateStream(stream, CompressionMode.Compress))
-                    {
-                        gZipStream.Write(arr, 0, arr.Length);
-                    }
-                    res = stream.ToArray();
+                    gZipStream.Write(arr, 0, arr.Length);
                 }
+                return stream.ToArray();
             }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "deflate压缩字节数组");
-                res = null;
-            }
-            return res;
         }
 
         /// <summary>
@@ -177,27 +126,17 @@ namespace ZqUtils.Helpers
         /// <returns>解压缩后的字节数组</returns>
         public static byte[] DeflateDecompress(byte[] arr)
         {
-            byte[] res = null;
-            try
+            using (var ms = new MemoryStream())
             {
-                using (var ms = new MemoryStream())
+                using (var stream = new MemoryStream(arr))
                 {
-                    using (var stream = new MemoryStream(arr))
+                    using (var gZipStream = new DeflateStream(stream, CompressionMode.Decompress))
                     {
-                        using (var gZipStream = new DeflateStream(stream, CompressionMode.Decompress))
-                        {
-                            gZipStream.CopyTo(ms, 10240);
-                            res = ms.ToArray();
-                        }
+                        gZipStream.CopyTo(ms, 10240);
+                        return ms.ToArray();
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "deflate解压字节数组");
-                res = null;
-            }
-            return res;
         }
 
         /// <summary>
@@ -207,23 +146,13 @@ namespace ZqUtils.Helpers
         /// <returns>压缩后的字节流</returns>
         public static Stream DeflateCompress(Stream sourceStream)
         {
-            Stream res = null;
-            try
+            using (sourceStream)
             {
-                using (sourceStream)
-                {
-                    var bytesArr = new byte[sourceStream.Length];
-                    sourceStream.Read(bytesArr, 0, bytesArr.Length);
-                    var gZipArr = DeflateCompress(bytesArr);
-                    res = new MemoryStream(gZipArr);
-                }
+                var bytesArr = new byte[sourceStream.Length];
+                sourceStream.Read(bytesArr, 0, bytesArr.Length);
+                var gZipArr = DeflateCompress(bytesArr);
+                return new MemoryStream(gZipArr);
             }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "deflate压缩字节流");
-                res = null;
-            }
-            return res;
         }
 
         /// <summary>
@@ -233,23 +162,13 @@ namespace ZqUtils.Helpers
         /// <returns>解压缩后的字节流</returns>
         public static Stream DeflateDecompress(Stream sourceStream)
         {
-            Stream res = null;
-            try
+            using (sourceStream)
             {
-                using (sourceStream)
-                {
-                    var bytesArr = new byte[sourceStream.Length];
-                    sourceStream.Read(bytesArr, 0, bytesArr.Length);
-                    var gZipArr = DeflateDecompress(bytesArr);
-                    res = new MemoryStream(gZipArr);
-                }
+                var bytesArr = new byte[sourceStream.Length];
+                sourceStream.Read(bytesArr, 0, bytesArr.Length);
+                var gZipArr = DeflateDecompress(bytesArr);
+                return new MemoryStream(gZipArr);
             }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "deflate解压字节流");
-                res = null;
-            }
-            return res;
         }
         #endregion
     }

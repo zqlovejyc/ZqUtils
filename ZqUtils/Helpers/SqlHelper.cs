@@ -2407,51 +2407,39 @@ namespace ZqUtils.Helpers
         /// <returns>bool</returns>
         public static bool SqlBulkCopy(DataTable dt, string connectionString, string tableName, int batchSize, int timeout = 1800, Dictionary<string, string> columnMappings = null)
         {
-            var result = true;
-            try
+            if (dt?.Rows.Count > 0)
             {
-                if (dt?.Rows.Count > 0)
+                using (var bulkCopy = new SqlBulkCopy(connectionString))
                 {
-                    using (var bulkCopy = new SqlBulkCopy(connectionString))
+                    //每一批次中的行数
+                    bulkCopy.BatchSize = batchSize;
+                    //超时之前操作完成所允许的秒数
+                    bulkCopy.BulkCopyTimeout = timeout;
+                    //将DataTable表名作为待导入库中的目标表名
+                    bulkCopy.DestinationTableName = tableName;
+                    //将数据集合和目标服务器库表中的字段对应 
+                    if (columnMappings == null || columnMappings.Count == 0)
                     {
-                        //每一批次中的行数
-                        bulkCopy.BatchSize = batchSize;
-                        //超时之前操作完成所允许的秒数
-                        bulkCopy.BulkCopyTimeout = timeout;
-                        //将DataTable表名作为待导入库中的目标表名
-                        bulkCopy.DestinationTableName = tableName;
-                        //将数据集合和目标服务器库表中的字段对应 
-                        if (columnMappings == null || columnMappings.Count == 0)
+                        for (var i = 0; i < dt.Columns.Count; i++)
                         {
-                            for (var i = 0; i < dt.Columns.Count; i++)
-                            {
-                                //列映射定义数据源中的列和目标表中的列之间的关系
-                                bulkCopy.ColumnMappings.Add(dt.Columns[i].ColumnName, dt.Columns[i].ColumnName);
-                            }
+                            //列映射定义数据源中的列和目标表中的列之间的关系
+                            bulkCopy.ColumnMappings.Add(dt.Columns[i].ColumnName, dt.Columns[i].ColumnName);
                         }
-                        else
-                        {
-                            foreach (var item in columnMappings)
-                            {
-                                //列映射定义数据源中的列和目标表中的列之间的关系
-                                bulkCopy.ColumnMappings.Add(item.Key, item.Value);
-                            }
-                        }
-                        //将DataTable数据上传到数据表中
-                        bulkCopy.WriteToServer(dt);
                     }
-                }
-                else
-                {
-                    result = false;
+                    else
+                    {
+                        foreach (var item in columnMappings)
+                        {
+                            //列映射定义数据源中的列和目标表中的列之间的关系
+                            bulkCopy.ColumnMappings.Add(item.Key, item.Value);
+                        }
+                    }
+                    //将DataTable数据上传到数据表中
+                    bulkCopy.WriteToServer(dt);
+                    return true;
                 }
             }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "SqlBulkInsert");
-                result = false;
-            }
-            return result;
+            return false;
         }
 
         /// <summary>
@@ -2466,51 +2454,39 @@ namespace ZqUtils.Helpers
         /// <returns>bool</returns>
         public static bool SqlBulkCopy(IDataReader reader, string connectionString, string tableName, int batchSize, int timeout = 1800, Dictionary<string, string> columnMappings = null)
         {
-            var result = true;
-            try
+            if (reader?.IsClosed == false)
             {
-                if (reader?.IsClosed == false)
+                using (var bulkCopy = new SqlBulkCopy(connectionString))
                 {
-                    using (var bulkCopy = new SqlBulkCopy(connectionString))
+                    //每一批次中的行数
+                    bulkCopy.BatchSize = batchSize;
+                    //超时之前操作完成所允许的秒数
+                    bulkCopy.BulkCopyTimeout = timeout;
+                    //将DataTable表名作为待导入库中的目标表名
+                    bulkCopy.DestinationTableName = tableName;
+                    //将数据集合和目标服务器库表中的字段对应 
+                    if (columnMappings == null || columnMappings.Count == 0)
                     {
-                        //每一批次中的行数
-                        bulkCopy.BatchSize = batchSize;
-                        //超时之前操作完成所允许的秒数
-                        bulkCopy.BulkCopyTimeout = timeout;
-                        //将DataTable表名作为待导入库中的目标表名
-                        bulkCopy.DestinationTableName = tableName;
-                        //将数据集合和目标服务器库表中的字段对应 
-                        if (columnMappings == null || columnMappings.Count == 0)
+                        for (var i = 0; i < reader.FieldCount; i++)
                         {
-                            for (var i = 0; i < reader.FieldCount; i++)
-                            {
-                                //列映射定义数据源中的列和目标表中的列之间的关系
-                                bulkCopy.ColumnMappings.Add(reader.GetName(i), reader.GetName(i));
-                            }
+                            //列映射定义数据源中的列和目标表中的列之间的关系
+                            bulkCopy.ColumnMappings.Add(reader.GetName(i), reader.GetName(i));
                         }
-                        else
-                        {
-                            foreach (var item in columnMappings)
-                            {
-                                //列映射定义数据源中的列和目标表中的列之间的关系
-                                bulkCopy.ColumnMappings.Add(item.Key, item.Value);
-                            }
-                        }
-                        //将IDataReader数据上传到数据表中
-                        bulkCopy.WriteToServer(reader);
                     }
-                }
-                else
-                {
-                    result = false;
+                    else
+                    {
+                        foreach (var item in columnMappings)
+                        {
+                            //列映射定义数据源中的列和目标表中的列之间的关系
+                            bulkCopy.ColumnMappings.Add(item.Key, item.Value);
+                        }
+                    }
+                    //将IDataReader数据上传到数据表中
+                    bulkCopy.WriteToServer(reader);
+                    return true;
                 }
             }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "SqlBulkInsert");
-                result = false;
-            }
-            return result;
+            return false;
         }
 
         /// <summary>
@@ -2525,24 +2501,12 @@ namespace ZqUtils.Helpers
         /// <returns>bool</returns>
         public static bool SqlBulkCopy<T>(List<T> list, string connectionString, string tableName, int batchSize, int timeout = 1800, Dictionary<string, string> columnMappings = null)
         {
-            var result = true;
-            try
+            if (list?.Count > 0)
             {
-                if (list?.Count > 0)
-                {
-                    SqlBulkCopy(list.ToDataTable(), connectionString, tableName, batchSize, timeout, columnMappings);
-                }
-                else
-                {
-                    result = false;
-                }
+                SqlBulkCopy(list.ToDataTable(), connectionString, tableName, batchSize, timeout, columnMappings);
+                return true;
             }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "SqlBulkInsert");
-                result = false;
-            }
-            return result;
+            return false;
         }
         #endregion
     }

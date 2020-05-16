@@ -58,16 +58,11 @@ namespace ZqUtils.WeChat.Helpers
         /// </summary>
         /// <param name="wxName">微信名称</param>
         /// <param name="f_WxConfig">获取WxConfig泛型委托</param>
-        public WeChatHelper(string wxName, Func<string, WxConfig> f_WxConfig)
+        public WeChatHelper(
+            string wxName,
+            Func<string, WxConfig> f_WxConfig)
         {
-            try
-            {
-                wxConfig = f_WxConfig(wxName);
-            }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "含参构造函数");
-            }
+            wxConfig = f_WxConfig(wxName);
         }
 
         /// <summary>
@@ -75,16 +70,11 @@ namespace ZqUtils.WeChat.Helpers
         /// </summary>
         /// <param name="appIdOrName">微信appid/微信名称</param>
         /// <param name="f_AccessToken">获取AccessToken泛型委托</param>
-        public WeChatHelper(string appIdOrName, Func<string, string> f_AccessToken)
+        public WeChatHelper(
+            string appIdOrName,
+            Func<string, string> f_AccessToken)
         {
-            try
-            {
-                accessToken = f_AccessToken(appIdOrName);
-            }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "含参构造函数");
-            }
+            accessToken = f_AccessToken(appIdOrName);
         }
 
         /// <summary>
@@ -93,7 +83,10 @@ namespace ZqUtils.WeChat.Helpers
         /// <param name="accessToken">访问令牌</param>
         /// <param name="jsApiTicket">微信jssdk配置请求票据</param>
         /// <param name="wxConfig">微信配置对象</param>
-        public WeChatHelper(string accessToken, string jsApiTicket, WxConfig wxConfig)
+        public WeChatHelper(
+            string accessToken,
+            string jsApiTicket,
+            WxConfig wxConfig)
         {
             this.accessToken = accessToken;
             this.jsApiTicket = jsApiTicket;
@@ -106,17 +99,13 @@ namespace ZqUtils.WeChat.Helpers
         /// <param name="appIdOrName">微信appid/微信名称</param>
         /// <param name="f_WxConfig">获取WxConfig泛型委托</param>
         /// <param name="f_AccessToken">获取AccessToken泛型委托</param>
-        public WeChatHelper(string appIdOrName, Func<string, WxConfig> f_WxConfig, Func<string, string> f_AccessToken)
+        public WeChatHelper(
+            string appIdOrName,
+            Func<string, WxConfig> f_WxConfig,
+            Func<string, string> f_AccessToken)
         {
-            try
-            {
-                wxConfig = f_WxConfig(appIdOrName);
-                accessToken = f_AccessToken(appIdOrName);
-            }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "含参构造函数");
-            }
+            wxConfig = f_WxConfig(appIdOrName);
+            accessToken = f_AccessToken(appIdOrName);
         }
 
         /// <summary>
@@ -126,18 +115,15 @@ namespace ZqUtils.WeChat.Helpers
         /// <param name="f_WxConfig">获取WxConfig泛型委托</param>
         /// <param name="f_AccessToken">获取AccessToken泛型委托</param>
         /// <param name="f_JsApiTicket">获取JsApiTicket泛型委托</param>
-        public WeChatHelper(string wxName, Func<string, WxConfig> f_WxConfig, Func<string, string> f_AccessToken, Func<string, string> f_JsApiTicket)
+        public WeChatHelper(
+            string wxName,
+            Func<string, WxConfig> f_WxConfig,
+            Func<string, string> f_AccessToken,
+            Func<string, string> f_JsApiTicket)
         {
-            try
-            {
-                wxConfig = f_WxConfig(wxName);
-                accessToken = f_AccessToken(wxConfig.AppId);
-                jsApiTicket = f_JsApiTicket(wxConfig.AppId);
-            }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "含参构造函数");
-            }
+            wxConfig = f_WxConfig(wxName);
+            accessToken = f_AccessToken(wxConfig.AppId);
+            jsApiTicket = f_JsApiTicket(wxConfig.AppId);
         }
 
         /// <summary>
@@ -148,20 +134,18 @@ namespace ZqUtils.WeChat.Helpers
         /// <param name="f_AccessToken">获取AccessToken泛型委托</param>
         /// <param name="f_JsApiTicket">获取JsApiTicket泛型委托</param>
         /// <param name="IsAppIdUnique">是否微信appId唯一，参数值必须置为false，否则抛出异常</param>
-        public WeChatHelper(string wxName, Func<string, WxConfig> f_WxConfig, Func<string, string> f_AccessToken, Func<string, string> f_JsApiTicket, bool IsAppIdUnique)
+        public WeChatHelper(
+            string wxName,
+            Func<string, WxConfig> f_WxConfig,
+            Func<string, string> f_AccessToken,
+            Func<string, string> f_JsApiTicket,
+            bool IsAppIdUnique)
         {
             if (!IsAppIdUnique)
             {
-                try
-                {
-                    wxConfig = f_WxConfig(wxName);
-                    accessToken = f_AccessToken(wxName);
-                    jsApiTicket = f_JsApiTicket(wxName);
-                }
-                catch (Exception ex)
-                {
-                    LogHelper.Error(ex, "含参构造函数");
-                }
+                wxConfig = f_WxConfig(wxName);
+                accessToken = f_AccessToken(wxName);
+                jsApiTicket = f_JsApiTicket(wxName);
             }
             else
             {
@@ -178,22 +162,14 @@ namespace ZqUtils.WeChat.Helpers
         /// <returns>string</returns>
         public string GetAccessToken()
         {
-            var accessToken = string.Empty;
-            try
+            var url = $"https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={wxConfig.AppId}&secret={wxConfig.AppSecret}";
+            var res = HttpHelper.Get(url);
+            if (!string.IsNullOrEmpty(res))
             {
-                var url = $"https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={wxConfig.AppId}&secret={wxConfig.AppSecret}";
-                var res = HttpHelper.Get(url);
-                if (!string.IsNullOrEmpty(res))
-                {
-                    var obj = res.ToObject<AccessToken>();
-                    accessToken = obj?.Access_Token;
-                }
+                var obj = res.ToObject<AccessToken>();
+                return obj?.Access_Token;
             }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "访问官网获取公众号令牌 Access_Token");
-            }
-            return accessToken;
+            return string.Empty;
         }
         #endregion
 
@@ -204,22 +180,14 @@ namespace ZqUtils.WeChat.Helpers
         /// <returns>string</returns>
         public string GetJsApiTicket()
         {
-            var ticket = string.Empty;
-            try
+            var url = $"https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token={accessToken}&type=jsapi";
+            var res = HttpHelper.Get(url);
+            if (!string.IsNullOrEmpty(res))
             {
-                var url = $"https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token={accessToken}&type=jsapi";
-                var res = HttpHelper.Get(url);
-                if (!string.IsNullOrEmpty(res))
-                {
-                    var obj = res.ToObject<JsApiTicket>();
-                    ticket = obj?.Ticket;
-                }
+                var obj = res.ToObject<JsApiTicket>();
+                return obj?.Ticket;
             }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "通过访问官网获取jsapi_ticket");
-            }
-            return ticket;
+            return string.Empty;
         }
         #endregion
 
@@ -308,7 +276,7 @@ namespace ZqUtils.WeChat.Helpers
             }
             else
             {
-                LogHelper.Info($"扫码原生支付模式一中的二维码链接转成短链接失败，返回信息：{dicXml.ToJson()}");
+                throw new Exception($"扫码原生支付模式一中的二维码链接转成短链接失败，返回信息：{dicXml.ToJson()}");
             }
             return result;
         }
@@ -420,7 +388,7 @@ namespace ZqUtils.WeChat.Helpers
             }
             else
             {
-                LogHelper.Info($"获取预支付订单号失败，返回信息：{responseXml}");
+                throw new Exception($"获取预支付订单号失败，返回信息：{responseXml}");
             }
             return prepay_id;
         }
@@ -538,41 +506,32 @@ namespace ZqUtils.WeChat.Helpers
         /// <returns>Dictionary</returns>
         public string QueryOrder(string transactionId, string outTradeNo = "")
         {
-            var result = string.Empty;
-            try
+            var url = "https://api.mch.weixin.qq.com/pay/orderquery";
+            var nonceStr = Guid.NewGuid().BuildNonceStr();
+            var dic = new Dictionary<string, string>
             {
-                var url = "https://api.mch.weixin.qq.com/pay/orderquery";
-                var nonceStr = Guid.NewGuid().BuildNonceStr();
-                var dic = new Dictionary<string, string>
-                {
-                    ["appid"] = wxConfig.AppId,
-                    ["mch_id"] = wxConfig.Mch_Id,
-                    ["nonce_str"] = nonceStr
-                };
-                //微信订单号
-                if (outTradeNo.IsNull())
-                {
-                    dic.Add("transaction_id", transactionId);
-                }
-                //商户订单号
-                else
-                {
-                    dic.Add("out_trade_no", outTradeNo);
-                }
-                //ASCII排序
-                var asciiSort = dic.ToUrl();
-                //微信支付签名
-                var sign = CryptHelper.MD5($"{asciiSort}&key={wxConfig.AppKey}").ToUpper();
-                dic.Add("sign", sign);
-                //请求微信，查询订单信息
-                var responseXml = HttpHelper.Post(url, dic.ToXml());
-                result = XmlHelper.XmlToDictionary(responseXml).ToJson();
-            }
-            catch (Exception ex)
+                ["appid"] = wxConfig.AppId,
+                ["mch_id"] = wxConfig.Mch_Id,
+                ["nonce_str"] = nonceStr
+            };
+            //微信订单号
+            if (outTradeNo.IsNull())
             {
-                LogHelper.Error(ex, "查询订单");
+                dic.Add("transaction_id", transactionId);
             }
-            return result;
+            //商户订单号
+            else
+            {
+                dic.Add("out_trade_no", outTradeNo);
+            }
+            //ASCII排序
+            var asciiSort = dic.ToUrl();
+            //微信支付签名
+            var sign = CryptHelper.MD5($"{asciiSort}&key={wxConfig.AppKey}").ToUpper();
+            dic.Add("sign", sign);
+            //请求微信，查询订单信息
+            var responseXml = HttpHelper.Post(url, dic.ToXml());
+            return XmlHelper.XmlToDictionary(responseXml).ToJson();
         }
 
         /// <summary>
@@ -582,7 +541,6 @@ namespace ZqUtils.WeChat.Helpers
         /// <returns>bool</returns>
         public bool CloseOrder(string tradeNo)
         {
-            var result = false;
             var url = "https://api.mch.weixin.qq.com/pay/orderquery";
             var dic = new Dictionary<string, string>
             {
@@ -610,13 +568,12 @@ namespace ZqUtils.WeChat.Helpers
                 && CheckMD5Sign(dicXml)
             )
             {
-                result = true;
+                return true;
             }
             else
             {
-                LogHelper.Info($"关闭订单失败，返回信息：{dicXml.ToJson()}");
+                throw new Exception($"关闭订单失败，返回信息：{ dicXml.ToJson() }");
             }
-            return result;
         }
 
         /// <summary>
@@ -627,7 +584,6 @@ namespace ZqUtils.WeChat.Helpers
         /// <returns>bool</returns>
         public bool CheckOrder(string transactionId, string outTradeNo = "")
         {
-            var result = false;
             var url = "https://api.mch.weixin.qq.com/pay/orderquery";
             var nonceStr = Guid.NewGuid().BuildNonceStr();
             var dic = new Dictionary<string, string>
@@ -665,13 +621,12 @@ namespace ZqUtils.WeChat.Helpers
                 && CheckMD5Sign(dicXml)
             )
             {
-                result = true;
+                return true;
             }
             else
             {
-                LogHelper.Info($"订单核实失败，返回信息：{dicXml.ToJson()}");
+                throw new Exception($"订单核实失败，返回信息：{dicXml.ToJson()}");
             }
-            return result;
         }
 
         /// <summary>
@@ -962,22 +917,14 @@ namespace ZqUtils.WeChat.Helpers
         /// <returns>string</returns>
         public string GetOpenId(string code)
         {
-            var openId = string.Empty;
-            try
+            var url = $"https://api.weixin.qq.com/sns/oauth2/access_token?appid={wxConfig.AppId}&secret={wxConfig.AppSecret}&code={code}&grant_type=authorization_code";
+            var res = HttpHelper.Post(url, string.Empty);
+            if (!string.IsNullOrEmpty(res))
             {
-                var url = $"https://api.weixin.qq.com/sns/oauth2/access_token?appid={wxConfig.AppId}&secret={wxConfig.AppSecret}&code={code}&grant_type=authorization_code";
-                var res = HttpHelper.Post(url, string.Empty);
-                if (!string.IsNullOrEmpty(res))
-                {
-                    var obj = res.ToObject<OAuthModel>();
-                    openId = obj?.OpenId;
-                }
+                var obj = res.ToObject<OAuthModel>();
+                return obj?.OpenId;
             }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "获取公众号对应的openId");
-            }
-            return openId;
+            return string.Empty;
         }
 
         /// <summary>
@@ -1000,26 +947,20 @@ namespace ZqUtils.WeChat.Helpers
         public WxUserInfo GetUserInfoByAuthorize(string code, Action<OAuthModel> fnOAuthModel = null)
         {
             var user = new WxUserInfo();
-            try
+            var url = $"https://api.weixin.qq.com/sns/oauth2/access_token?appid={wxConfig.AppId}&secret={wxConfig.AppSecret}&code={code}&grant_type=authorization_code";
+            var res = HttpHelper.Post(url, string.Empty);
+            if (!string.IsNullOrEmpty(res))
             {
-                var url = $"https://api.weixin.qq.com/sns/oauth2/access_token?appid={wxConfig.AppId}&secret={wxConfig.AppSecret}&code={code}&grant_type=authorization_code";
-                var res = HttpHelper.Post(url, string.Empty);
-                if (!string.IsNullOrEmpty(res))
+                var obj = res.ToObject<OAuthModel>();
+                if (obj != null)
                 {
-                    var obj = res.ToObject<OAuthModel>();
-                    if (obj != null)
-                    {
-                        fnOAuthModel?.Invoke(obj);
-                        //根据临时access_token和openid获取用户信息
-                        var link = $"https://api.weixin.qq.com/sns/userinfo?access_token={obj.Access_Token}&openid={obj.OpenId}&lang=zh_CN";
-                        var r = HttpHelper.Post(link, string.Empty);
-                        if (!string.IsNullOrEmpty(r)) user = r.ToObject<WxUserInfo>();
-                    }
+                    fnOAuthModel?.Invoke(obj);
+                    //根据临时access_token和openid获取用户信息
+                    var link = $"https://api.weixin.qq.com/sns/userinfo?access_token={obj.Access_Token}&openid={obj.OpenId}&lang=zh_CN";
+                    var r = HttpHelper.Post(link, string.Empty);
+                    if (!string.IsNullOrEmpty(r))
+                        user = r.ToObject<WxUserInfo>();
                 }
-            }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "须用户授权同意，获取用户信息");
             }
             return user;
         }
@@ -1033,22 +974,16 @@ namespace ZqUtils.WeChat.Helpers
         public WxUserInfo GetUserInfoByRefreshToken(string refreshToken, Action<OAuthModel> fnOAuthModel = null)
         {
             var user = new WxUserInfo();
-            try
+            var url = $"https://api.weixin.qq.com/sns/oauth2/refresh_token?appid={wxConfig.AppId}&grant_type=refresh_token&refresh_token={refreshToken}";
+            var obj = HttpHelper.Post(url, string.Empty).ToObject<OAuthModel>();
+            if (obj != null)
             {
-                var url = $"https://api.weixin.qq.com/sns/oauth2/refresh_token?appid={wxConfig.AppId}&grant_type=refresh_token&refresh_token={refreshToken}";
-                var obj = HttpHelper.Post(url, string.Empty).ToObject<OAuthModel>();
-                if (obj != null)
-                {
-                    fnOAuthModel?.Invoke(obj);
-                    //根据临时access_token和openid获取用户信息
-                    var link = $"https://api.weixin.qq.com/sns/userinfo?access_token={obj.Access_Token}&openid={obj.OpenId}&lang=zh_CN";
-                    var res = HttpHelper.Post(link, string.Empty);
-                    if (!string.IsNullOrEmpty(res)) user = res.ToObject<WxUserInfo>();
-                }
-            }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "通过refresh_token获取用户信息");
+                fnOAuthModel?.Invoke(obj);
+                //根据临时access_token和openid获取用户信息
+                var link = $"https://api.weixin.qq.com/sns/userinfo?access_token={obj.Access_Token}&openid={obj.OpenId}&lang=zh_CN";
+                var res = HttpHelper.Post(link, string.Empty);
+                if (!string.IsNullOrEmpty(res))
+                    user = res.ToObject<WxUserInfo>();
             }
             return user;
         }
@@ -1195,19 +1130,13 @@ namespace ZqUtils.WeChat.Helpers
         /// <returns>string</returns>
         public string GetTemplateId(string templateNo)
         {
-            var result = string.Empty;
             var wxUrl = $"https://api.weixin.qq.com/cgi-bin/template/api_add_template?access_token={accessToken}";
             var response = HttpHelper.Post(wxUrl, $"{{\"template_id_short\":\"{templateNo}\"}}");
             var jo = response.ToJObject();
             if (jo != null && jo.Value<string>("errmsg").Contains("ok"))
-            {
-                result = jo.Value<string>("template_id");
-            }
-            else
-            {
-                LogHelper.Info($"获取微信模板Id失败，返回信息：{response}");
-            }
-            return result;
+                return jo.Value<string>("template_id");
+
+            throw new Exception($"获取微信模板Id失败，返回信息：{response}");
         }
 
         /// <summary>
@@ -1665,7 +1594,6 @@ namespace ZqUtils.WeChat.Helpers
         /// <returns>string</returns>
         public string GetDecryptCode(string encryptCode)
         {
-            var code = string.Empty;
             var decryptUrl = $"https://api.weixin.qq.com/card/code/decrypt?access_token={accessToken}";
             var response = HttpHelper.Post(decryptUrl, $"{{\"encrypt_code\":\"{encryptCode}\"}}");
             var jo = response.ToJObject();
@@ -1674,14 +1602,12 @@ namespace ZqUtils.WeChat.Helpers
                 var errmsg = jo.Value<string>("errmsg");
                 if (errmsg.Equals("ok"))
                 {
-                    code = jo.Value<string>("code");
+                    return jo.Value<string>("code");
                 }
-                else
-                {
-                    LogHelper.Info($"获取卡券原生code失败，返回信息：{response}");
-                }
+
+                throw new Exception($"获取卡券原生code失败，返回信息：{response}");
             }
-            return code;
+            return string.Empty;
         }
 
         /// <summary>
@@ -1939,22 +1865,14 @@ namespace ZqUtils.WeChat.Helpers
         /// <returns>string</returns>
         public string GetQyAccessToken()
         {
-            var accessToken = string.Empty;
-            try
+            var url = $"https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=wxConfig.appid&corpsecret={wxConfig.AppSecret}";
+            var res = HttpHelper.Get(url);
+            if (!string.IsNullOrEmpty(res))
             {
-                var url = $"https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=wxConfig.appid&corpsecret={wxConfig.AppSecret}";
-                var res = HttpHelper.Get(url);
-                if (!string.IsNullOrEmpty(res))
-                {
-                    var obj = res.ToObject<AccessToken>();
-                    accessToken = obj?.Access_Token;
-                }
+                var obj = res.ToObject<AccessToken>();
+                return obj?.Access_Token;
             }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "企业号令牌 Access_Token");
-            }
-            return accessToken;
+            return string.Empty;
         }
         #endregion
 
@@ -1965,22 +1883,14 @@ namespace ZqUtils.WeChat.Helpers
         /// <returns>string</returns>
         public string GetQyJsApiTicket()
         {
-            var ticket = string.Empty;
-            try
+            var url = $"https://qyapi.weixin.qq.com/cgi-bin/get_jsapi_ticket?access_token={accessToken}";
+            var res = HttpHelper.Get(url);
+            if (!string.IsNullOrEmpty(res))
             {
-                var url = $"https://qyapi.weixin.qq.com/cgi-bin/get_jsapi_ticket?access_token={accessToken}";
-                var res = HttpHelper.Get(url);
-                if (!string.IsNullOrEmpty(res))
-                {
-                    var obj = res.ToObject<JsApiTicket>();
-                    ticket = obj?.Ticket;
-                }
+                var obj = res.ToObject<JsApiTicket>();
+                return obj?.Ticket;
             }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "企业号jsapi_ticket");
-            }
-            return ticket;
+            return string.Empty;
         }
         #endregion
 

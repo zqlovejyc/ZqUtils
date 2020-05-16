@@ -16,19 +16,18 @@
  */
 #endregion
 
+using Dapper;
 using System;
-using System.Linq;
-using System.Text;
-using System.Collections.Generic;
 using System.Collections;
-using System.Dynamic;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Data.Common;
 using System.Data.SqlClient;
+using System.Dynamic;
+using System.Linq;
 using System.Reflection;
-using System.Collections.Concurrent;
-using ZqUtils.Helpers;
-using Dapper;
+using System.Text;
 /****************************
 * [Author] 张强
 * [Date] 2015-10-26
@@ -71,28 +70,19 @@ namespace ZqUtils.Extensions
         /// <returns>string</returns>
         public static string ToUrl<T, S>(this IDictionary<T, S> @this, string seed = "", bool isAsciiSort = true, bool isRemoveNull = true)
         {
-            var result = string.Empty;
-            try
+            //移除所有空值参数
+            if (isRemoveNull)
             {
-                //移除所有空值参数
-                if (isRemoveNull)
-                {
-                    @this = @this.Where(o => o.Value?.ToString().IsNullOrEmpty() == false).ToDictionary(o => o.Key, o => o.Value);
-                }
-                //对参数键值对进行ASCII升序排序
-                if (isAsciiSort)
-                {
-                    //C#默认的不是ASCII排序，正确的ASCII排序规则：数字、大写字母、小写字母的顺序
-                    @this = @this.OrderBy(o => o.Key, new OrdinalComparer()).ToDictionary(o => o.Key, o => o.Value);
-                }
-                //拼接url
-                result = @this.Aggregate(seed, _ => $"{_.Key}={_.Value?.ToString()}&", "&");
+                @this = @this.Where(o => o.Value?.ToString().IsNullOrEmpty() == false).ToDictionary(o => o.Key, o => o.Value);
             }
-            catch (Exception ex)
+            //对参数键值对进行ASCII升序排序
+            if (isAsciiSort)
             {
-                LogHelper.Error(ex, "字典型数据转换为URL参数字符串");
+                //C#默认的不是ASCII排序，正确的ASCII排序规则：数字、大写字母、小写字母的顺序
+                @this = @this.OrderBy(o => o.Key, new OrdinalComparer()).ToDictionary(o => o.Key, o => o.Value);
             }
-            return result;
+            //拼接url
+            return @this.Aggregate(seed, _ => $"{_.Key}={_.Value?.ToString()}&", "&");
         }
         #endregion
 

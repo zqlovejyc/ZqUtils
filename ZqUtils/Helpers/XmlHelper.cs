@@ -46,27 +46,20 @@ namespace ZqUtils.Helpers
         public static Dictionary<string, string> XmlToDictionary(string xml, string rootNode = "xml")
         {
             var dic = new Dictionary<string, string>();
-            try
+            if (!xml.IsNull())
             {
-                if (!xml.IsNull())
+                var xmlDoc = new XmlDocument
                 {
-                    var xmlDoc = new XmlDocument
-                    {
-                        //修复XML外部实体注入漏洞(XML External Entity Injection，简称 XXE)
-                        XmlResolver = null
-                    };
-                    xmlDoc.LoadXml(xml);
-                    var root = xmlDoc.SelectSingleNode(rootNode);
-                    var xnl = root.ChildNodes;
-                    foreach (XmlNode xnf in xnl)
-                    {
-                        dic.Add(xnf.Name, xnf.InnerText);
-                    }
+                    //修复XML外部实体注入漏洞(XML External Entity Injection，简称 XXE)
+                    XmlResolver = null
+                };
+                xmlDoc.LoadXml(xml);
+                var root = xmlDoc.SelectSingleNode(rootNode);
+                var xnl = root.ChildNodes;
+                foreach (XmlNode xnf in xnl)
+                {
+                    dic.Add(xnf.Name, xnf.InnerText);
                 }
-            }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "xml字符串转换为Dictionary");
             }
             return dic;
         }
@@ -80,27 +73,20 @@ namespace ZqUtils.Helpers
         public static Dictionary<string, string> XmlToDictionary(Stream stream, string rootNode = "xml")
         {
             var dic = new Dictionary<string, string>();
-            try
+            if (stream?.Length > 0)
             {
-                if (stream?.Length > 0)
+                var xmlDoc = new XmlDocument
                 {
-                    var xmlDoc = new XmlDocument
-                    {
-                        //修复XML外部实体注入漏洞(XML External Entity Injection，简称 XXE)
-                        XmlResolver = null
-                    };
-                    xmlDoc.Load(stream);
-                    var root = xmlDoc.SelectSingleNode(rootNode);
-                    var xnl = root.ChildNodes;
-                    foreach (XmlNode xnf in xnl)
-                    {
-                        dic.Add(xnf.Name, xnf.InnerText);
-                    }
+                    //修复XML外部实体注入漏洞(XML External Entity Injection，简称 XXE)
+                    XmlResolver = null
+                };
+                xmlDoc.Load(stream);
+                var root = xmlDoc.SelectSingleNode(rootNode);
+                var xnl = root.ChildNodes;
+                foreach (XmlNode xnf in xnl)
+                {
+                    dic.Add(xnf.Name, xnf.InnerText);
                 }
-            }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "stream转换为Dictionary");
             }
             return dic;
         }
@@ -114,25 +100,17 @@ namespace ZqUtils.Helpers
         /// <returns>JSON字符串</returns>
         public static string XmlToJson(string xml)
         {
-            try
-            {
-                if (xml.IsNullOrEmpty())
-                    return null;
+            if (xml.IsNullOrEmpty())
+                return null;
 
-                var doc = new XmlDocument()
-                {
-                    //修复XML外部实体注入漏洞(XML External Entity Injection，简称 XXE)
-                    XmlResolver = null
-                };
-                doc.LoadXml(xml);
-
-                return JsonConvert.SerializeXmlNode(doc);
-            }
-            catch (Exception ex)
+            var doc = new XmlDocument()
             {
-                LogHelper.Error(ex, "xml字符串转换为json异常");
-            }
-            return null;
+                //修复XML外部实体注入漏洞(XML External Entity Injection，简称 XXE)
+                XmlResolver = null
+            };
+            doc.LoadXml(xml);
+
+            return JsonConvert.SerializeXmlNode(doc);
         }
         #endregion
 

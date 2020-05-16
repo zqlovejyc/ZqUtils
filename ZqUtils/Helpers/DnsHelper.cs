@@ -86,45 +86,40 @@ namespace ZqUtils.Helpers
         /// <returns>string</returns>
         public static string GetClientIp()
         {
-            var ip = string.Empty;
-            try
+            string[] temp;
+            var isErr = false;
+            var request = HttpContext.Current.Request;
+            string ip;
+            if (request.ServerVariables["HTTP_X_ForWARDED_For"] == null)
             {
-                string[] temp;
-                var isErr = false;
-                var request = HttpContext.Current.Request;
-                if (request.ServerVariables["HTTP_X_ForWARDED_For"] == null)
+                ip = request.ServerVariables["REMOTE_ADDR"].ToString();
+            }
+            else
+            {
+                ip = request.ServerVariables["HTTP_X_ForWARDED_For"].ToString();
+            }
+            if (ip.Length > 15)
+            {
+                isErr = true;
+            }
+            else
+            {
+                temp = ip.Split('.');
+                if (temp.Length == 4)
                 {
-                    ip = request.ServerVariables["REMOTE_ADDR"].ToString();
+                    for (int i = 0; i < temp.Length; i++)
+                    {
+                        if (temp[i].Length > 3)
+                            isErr = true;
+                    }
                 }
                 else
-                {
-                    ip = request.ServerVariables["HTTP_X_ForWARDED_For"].ToString();
-                }
-                if (ip.Length > 15)
                 {
                     isErr = true;
                 }
-                else
-                {
-                    temp = ip.Split('.');
-                    if (temp.Length == 4)
-                    {
-                        for (int i = 0; i < temp.Length; i++)
-                        {
-                            if (temp[i].Length > 3) isErr = true;
-                        }
-                    }
-                    else
-                    {
-                        isErr = true;
-                    }
-                }
-                if (isErr) ip = "1.1.1.1";
             }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "获取客户端IP");
-            }
+            if (isErr)
+                ip = "1.1.1.1";
             return ip;
         }
         #endregion
@@ -136,22 +131,14 @@ namespace ZqUtils.Helpers
         /// <returns>Dictionary</returns>
         public static Dictionary<string, string> GetClientInfo()
         {
-            try
+            var request = HttpContext.Current.Request;
+            //C#6.0字典初始化器
+            return new Dictionary<string, string>
             {
-                var request = HttpContext.Current.Request;
-                //C#6.0字典初始化器
-                return new Dictionary<string, string>
-                {
-                    ["userAgent"] = request.UserAgent,
-                    ["userHostName"] = request.UserHostName,
-                    ["userHostAddress"] = request.UserHostAddress
-                };
-            }
-            catch (Exception ex)
-            {
-                LogHelper.Error(ex, "获取客户端信息");
-                return null;
-            }
+                ["userAgent"] = request.UserAgent,
+                ["userHostName"] = request.UserHostName,
+                ["userHostAddress"] = request.UserHostAddress
+            };
         }
         #endregion
     }
