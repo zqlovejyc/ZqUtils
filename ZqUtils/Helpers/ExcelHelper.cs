@@ -469,13 +469,31 @@ namespace ZqUtils.Helpers
                             {
                                 sheet.Cells[1, col].Value = attribute.ColumnName;
 
-                                //日期格式化
-                                if (!attribute.Format.IsNullOrEmpty())
-                                    sheet.Cells[2, col, sheet.Dimension.End.Row, col].Style.Numberformat.Format = attribute.Format;
-
-                                //填充公式
+                                //公式
                                 if (!attribute.Formula.IsNullOrEmpty())
                                     sheet.Cells[2, col, sheet.Dimension.End.Row, col].Formula = attribute.Formula;
+
+                                //格式化
+                                if (!attribute.Format.IsNullOrEmpty())
+                                {
+                                    var format = attribute.Format.Split('@');
+                                    //日期
+                                    if (format[0] == "date")
+                                    {
+                                        sheet.Cells[2, col, sheet.Dimension.End.Row, col].Style.Numberformat.Format = format[1];
+                                    }
+                                    //字典
+                                    else if (format[0] == "dic")
+                                    {
+                                        var dic = format[1].Split(',').ToDictionary(k => k.Split(':')[0], v => v.Split(':')[1]);
+                                        for (int i = 2; i <= sheet.Dimension.End.Row; i++)
+                                        {
+                                            var v = sheet.Cells[i, col].Value?.ToString();
+                                            if (v != null && dic.Keys.Contains(v))
+                                                sheet.Cells[i, col].Value = dic[v];
+                                        }
+                                    }
+                                }
                             }
                         }
                         //单元格自动适应大小
@@ -983,13 +1001,31 @@ namespace ZqUtils.Helpers
                             {
                                 sheet.Cells[1, col].Value = attribute.ColumnName;
 
-                                //日期格式化
-                                if (!attribute.Format.IsNullOrEmpty())
-                                    sheet.Cells[2, col, sheet.Dimension.End.Row, col].Style.Numberformat.Format = attribute.Format;
-
-                                //填充公式
+                                //公式
                                 if (!attribute.Formula.IsNullOrEmpty())
                                     sheet.Cells[2, col, sheet.Dimension.End.Row, col].Formula = attribute.Formula;
+
+                                //格式化
+                                if (!attribute.Format.IsNullOrEmpty())
+                                {
+                                    var format = attribute.Format.Split('@');
+                                    //日期
+                                    if (format[0] == "date")
+                                    {
+                                        sheet.Cells[2, col, sheet.Dimension.End.Row, col].Style.Numberformat.Format = format[1];
+                                    }
+                                    //字典
+                                    else if (format[0] == "dic")
+                                    {
+                                        var dic = format[1].Split(',').ToDictionary(k => k.Split(':')[0], v => v.Split(':')[1]);
+                                        for (int i = 2; i <= sheet.Dimension.End.Row; i++)
+                                        {
+                                            var v = sheet.Cells[i, col].Value?.ToString();
+                                            if (v != null && dic.Keys.Contains(v))
+                                                sheet.Cells[i, col].Value = dic[v];
+                                        }
+                                    }
+                                }
                             }
                         }
                         //单元格自动适应大小
@@ -1230,7 +1266,7 @@ namespace ZqUtils.Helpers
     }
 
     /// <summary>
-    /// Excel导出属性
+    /// Excel导出列特性
     /// </summary>
     public class ExcelColumnAttribute : Attribute
     {
@@ -1255,7 +1291,7 @@ namespace ZqUtils.Helpers
         public bool IsExport { get; set; } = true;
 
         /// <summary>
-        /// 日期格式化
+        /// 格式化，暂支持 日期：date@yyyy-MM-dd HH:mm:ss；字典：dic@0:失败,1:成功
         /// </summary>
         public string Format { get; set; }
 
