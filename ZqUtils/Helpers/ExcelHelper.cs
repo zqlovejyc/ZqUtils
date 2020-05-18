@@ -463,7 +463,8 @@ namespace ZqUtils.Helpers
                         var colEnd = sheet.Dimension.End.Column;//工作区结束列
                         for (var col = colStart; col <= colEnd; col++)
                         {
-                            var prop = typeof(T).GetProperty(sheet.Cells[1, col].Value.ToString());
+                            //修复Epplus自动转换实体字段中的下划线为空格导致无法获取PropertyInfo问题
+                            var prop = typeof(T).GetProperty(sheet.Cells[1, col].Value.ToString().Replace(" ", "_"));
                             var attribute = prop.GetAttribute<ExcelColumnAttribute>();
                             if (attribute != null)
                             {
@@ -995,7 +996,8 @@ namespace ZqUtils.Helpers
                         var colEnd = sheet.Dimension.End.Column;//工作区结束列
                         for (var col = colStart; col <= colEnd; col++)
                         {
-                            var prop = typeof(T).GetProperty(sheet.Cells[1, col].Value.ToString());
+                            //修复Epplus自动转换实体字段中的下划线为空格导致无法获取PropertyInfo问题
+                            var prop = typeof(T).GetProperty(sheet.Cells[1, col].Value.ToString().Replace(" ", "_"));
                             var attribute = prop.GetAttribute<ExcelColumnAttribute>();
                             if (attribute != null)
                             {
