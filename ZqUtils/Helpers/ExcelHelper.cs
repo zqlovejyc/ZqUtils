@@ -300,17 +300,6 @@ namespace ZqUtils.Helpers
             {
                 using (var package = new ExcelPackage())
                 {
-                    //配置文件属性
-                    package.Workbook.Properties.Category = "类别";
-                    package.Workbook.Properties.Author = "作者";
-                    package.Workbook.Properties.Comments = "备注";
-                    package.Workbook.Properties.Company = "公司名称";
-                    package.Workbook.Properties.Keywords = "关键字";
-                    package.Workbook.Properties.Manager = "张强";
-                    package.Workbook.Properties.Status = "内容状态";
-                    package.Workbook.Properties.Subject = "主题";
-                    package.Workbook.Properties.Title = "标题";
-                    package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
                     using (var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? "Sheet1" : table.TableName))
                     {
                         sheet.Cells["A1"].LoadFromDataTable(table, true, TableStyles.Light1);
@@ -341,17 +330,6 @@ namespace ZqUtils.Helpers
             {
                 using (var package = new ExcelPackage())
                 {
-                    //配置文件属性
-                    package.Workbook.Properties.Category = "类别";
-                    package.Workbook.Properties.Author = "作者";
-                    package.Workbook.Properties.Comments = "备注";
-                    package.Workbook.Properties.Company = "公司名称";
-                    package.Workbook.Properties.Keywords = "关键字";
-                    package.Workbook.Properties.Manager = "张强";
-                    package.Workbook.Properties.Status = "内容状态";
-                    package.Workbook.Properties.Subject = "主题";
-                    package.Workbook.Properties.Title = "标题";
-                    package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
                     using (var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? "Sheet1" : table.TableName))
                     {
                         //设置边框样式
@@ -393,17 +371,6 @@ namespace ZqUtils.Helpers
             {
                 using (var package = new ExcelPackage())
                 {
-                    //配置文件属性
-                    package.Workbook.Properties.Category = "类别";
-                    package.Workbook.Properties.Author = "作者";
-                    package.Workbook.Properties.Comments = "备注";
-                    package.Workbook.Properties.Company = "公司名称";
-                    package.Workbook.Properties.Keywords = "关键字";
-                    package.Workbook.Properties.Manager = "张强";
-                    package.Workbook.Properties.Status = "内容状态";
-                    package.Workbook.Properties.Subject = "主题";
-                    package.Workbook.Properties.Title = "标题";
-                    package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
                     for (var i = 0; i < dataSet.Tables.Count; i++)
                     {
                         var table = dataSet.Tables[i];
@@ -438,17 +405,6 @@ namespace ZqUtils.Helpers
             {
                 using (var package = new ExcelPackage())
                 {
-                    //配置文件属性
-                    package.Workbook.Properties.Category = "类别";
-                    package.Workbook.Properties.Author = "作者";
-                    package.Workbook.Properties.Comments = "备注";
-                    package.Workbook.Properties.Company = "公司名称";
-                    package.Workbook.Properties.Keywords = "关键字";
-                    package.Workbook.Properties.Manager = "张强";
-                    package.Workbook.Properties.Status = "内容状态";
-                    package.Workbook.Properties.Subject = "主题";
-                    package.Workbook.Properties.Title = "标题";
-                    package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
                     using (var sheet = package.Workbook.Worksheets.Add("Sheet1"))
                     {
                         //获取导出列
@@ -523,17 +479,6 @@ namespace ZqUtils.Helpers
             {
                 using (var package = new ExcelPackage())
                 {
-                    //配置文件属性
-                    package.Workbook.Properties.Category = "类别";
-                    package.Workbook.Properties.Author = "作者";
-                    package.Workbook.Properties.Comments = "备注";
-                    package.Workbook.Properties.Company = "公司名称";
-                    package.Workbook.Properties.Keywords = "关键字";
-                    package.Workbook.Properties.Manager = "张强";
-                    package.Workbook.Properties.Status = "内容状态";
-                    package.Workbook.Properties.Subject = "主题";
-                    package.Workbook.Properties.Title = "标题";
-                    package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
                     using (var sheet = package.Workbook.Worksheets.Add("Sheet1"))
                     {
                         sheet.Cells["A1"].LoadFromCollection(list, true, TableStyles.Light1);
@@ -571,17 +516,6 @@ namespace ZqUtils.Helpers
             {
                 using (var package = new ExcelPackage())
                 {
-                    //配置文件属性
-                    package.Workbook.Properties.Category = "类别";
-                    package.Workbook.Properties.Author = "作者";
-                    package.Workbook.Properties.Comments = "备注";
-                    package.Workbook.Properties.Company = "公司名称";
-                    package.Workbook.Properties.Keywords = "关键字";
-                    package.Workbook.Properties.Manager = "张强";
-                    package.Workbook.Properties.Status = "内容状态";
-                    package.Workbook.Properties.Subject = "主题";
-                    package.Workbook.Properties.Title = "标题";
-                    package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
                     using (var sheet = package.Workbook.Worksheets.Add("Sheet1"))
                     {
                         //设置边框样式
@@ -843,17 +777,6 @@ namespace ZqUtils.Helpers
             {
                 using (var package = new ExcelPackage(new FileInfo(savePath)))
                 {
-                    //配置文件属性
-                    package.Workbook.Properties.Category = "类别";
-                    package.Workbook.Properties.Author = "作者";
-                    package.Workbook.Properties.Comments = "备注";
-                    package.Workbook.Properties.Company = "公司名称";
-                    package.Workbook.Properties.Keywords = "关键字";
-                    package.Workbook.Properties.Manager = "张强";
-                    package.Workbook.Properties.Status = "内容状态";
-                    package.Workbook.Properties.Subject = "主题";
-                    package.Workbook.Properties.Title = "标题";
-                    package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
                     using (var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? "Sheet1" : table.TableName))
                     {
                         sheet.Cells["A1"].LoadFromDataTable(table, true, TableStyles.Light1);
@@ -880,17 +803,6 @@ namespace ZqUtils.Helpers
             {
                 using (var package = new ExcelPackage(new FileInfo(savePath)))
                 {
-                    //配置文件属性
-                    package.Workbook.Properties.Category = "类别";
-                    package.Workbook.Properties.Author = "作者";
-                    package.Workbook.Properties.Comments = "备注";
-                    package.Workbook.Properties.Company = "公司名称";
-                    package.Workbook.Properties.Keywords = "关键字";
-                    package.Workbook.Properties.Manager = "张强";
-                    package.Workbook.Properties.Status = "内容状态";
-                    package.Workbook.Properties.Subject = "主题";
-                    package.Workbook.Properties.Title = "标题";
-                    package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
                     using (var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? "Sheet1" : table.TableName))
                     {
                         //设置边框样式
@@ -929,17 +841,6 @@ namespace ZqUtils.Helpers
             {
                 using (var package = new ExcelPackage(new FileInfo(savePath)))
                 {
-                    //配置文件属性
-                    package.Workbook.Properties.Category = "类别";
-                    package.Workbook.Properties.Author = "作者";
-                    package.Workbook.Properties.Comments = "备注";
-                    package.Workbook.Properties.Company = "公司名称";
-                    package.Workbook.Properties.Keywords = "关键字";
-                    package.Workbook.Properties.Manager = "张强";
-                    package.Workbook.Properties.Status = "内容状态";
-                    package.Workbook.Properties.Subject = "主题";
-                    package.Workbook.Properties.Title = "标题";
-                    package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
                     for (var i = 0; i < dataSet.Tables.Count; i++)
                     {
                         var table = dataSet.Tables[i];
@@ -971,17 +872,6 @@ namespace ZqUtils.Helpers
             {
                 using (var package = new ExcelPackage(new FileInfo(savePath)))
                 {
-                    //配置文件属性
-                    package.Workbook.Properties.Category = "类别";
-                    package.Workbook.Properties.Author = "作者";
-                    package.Workbook.Properties.Comments = "备注";
-                    package.Workbook.Properties.Company = "公司名称";
-                    package.Workbook.Properties.Keywords = "关键字";
-                    package.Workbook.Properties.Manager = "张强";
-                    package.Workbook.Properties.Status = "内容状态";
-                    package.Workbook.Properties.Subject = "主题";
-                    package.Workbook.Properties.Title = "标题";
-                    package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
                     using (var sheet = package.Workbook.Worksheets.Add("Sheet1"))
                     {
                         //获取导出列
@@ -1054,17 +944,6 @@ namespace ZqUtils.Helpers
             {
                 using (var package = new ExcelPackage(new FileInfo(savePath)))
                 {
-                    //配置文件属性
-                    package.Workbook.Properties.Category = "类别";
-                    package.Workbook.Properties.Author = "作者";
-                    package.Workbook.Properties.Comments = "备注";
-                    package.Workbook.Properties.Company = "公司名称";
-                    package.Workbook.Properties.Keywords = "关键字";
-                    package.Workbook.Properties.Manager = "张强";
-                    package.Workbook.Properties.Status = "内容状态";
-                    package.Workbook.Properties.Subject = "主题";
-                    package.Workbook.Properties.Title = "标题";
-                    package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
                     using (var sheet = package.Workbook.Worksheets.Add("Sheet1"))
                     {
                         sheet.Cells["A1"].LoadFromCollection(list, true, TableStyles.Light1);
@@ -1100,17 +979,6 @@ namespace ZqUtils.Helpers
             {
                 using (var package = new ExcelPackage(new FileInfo(savePath)))
                 {
-                    //配置文件属性
-                    package.Workbook.Properties.Category = "类别";
-                    package.Workbook.Properties.Author = "作者";
-                    package.Workbook.Properties.Comments = "备注";
-                    package.Workbook.Properties.Company = "公司名称";
-                    package.Workbook.Properties.Keywords = "关键字";
-                    package.Workbook.Properties.Manager = "张强";
-                    package.Workbook.Properties.Status = "内容状态";
-                    package.Workbook.Properties.Subject = "主题";
-                    package.Workbook.Properties.Title = "标题";
-                    package.Workbook.Properties.LastModifiedBy = "最后一次保存者";
                     using (var sheet = package.Workbook.Worksheets.Add("Sheet1"))
                     {
                         //设置边框样式
