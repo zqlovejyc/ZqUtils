@@ -54,10 +54,10 @@ namespace ZqUtils.Extensions
             {
                 int remainder = (int)(currentNumber % radix);
                 charArray[index--] = Digits[remainder];
-                currentNumber = currentNumber / radix;
+                currentNumber /= radix;
             }
 
-            string result = new String(charArray, index + 1, BitsInLong - index - 1);
+            string result = new string(charArray, index + 1, BitsInLong - index - 1);
             if (@this < 0)
             {
                 result = "-" + result;
