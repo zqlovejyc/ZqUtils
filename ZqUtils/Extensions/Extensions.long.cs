@@ -46,18 +46,18 @@ namespace ZqUtils.Extensions
             if (@this == 0)
                 return "0";
 
-            int index = BitsInLong - 1;
-            long currentNumber = Math.Abs(@this);
-            char[] charArray = new char[BitsInLong];
+            var index = BitsInLong - 1;
+            var currentNumber = Math.Abs(@this);
+            var charArray = new char[BitsInLong];
 
             while (currentNumber != 0)
             {
-                int remainder = (int)(currentNumber % radix);
+                var remainder = (int)(currentNumber % radix);
                 charArray[index--] = Digits[remainder];
                 currentNumber /= radix;
             }
 
-            string result = new string(charArray, index + 1, BitsInLong - index - 1);
+            var result = new string(charArray, index + 1, BitsInLong - index - 1);
             if (@this < 0)
             {
                 result = "-" + result;
