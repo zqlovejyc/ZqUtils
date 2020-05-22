@@ -98,14 +98,14 @@ namespace ZqUtils.Extensions
         }
         #endregion
 
-        #region 10进制转换2-36进制
+        #region 进制转换
         /// <summary>
         /// 10进制转换到2-36进制
         /// </summary>
         /// <param name="this">10进制数字</param>
         /// <param name="radix">进制，范围2-36</param>
         /// <returns></returns>
-        public static string ToBase(this int @this, int radix)
+        public static string ToBase(this long @this, int radix)
         {
             const int BitsInLong = 64;
             const string Digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -122,7 +122,7 @@ namespace ZqUtils.Extensions
 
             while (currentNumber != 0)
             {
-                var remainder = currentNumber % radix;
+                var remainder = (int)(currentNumber % radix);
                 charArray[index--] = Digits[remainder];
                 currentNumber /= radix;
             }
@@ -134,6 +134,49 @@ namespace ZqUtils.Extensions
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// byte转16进制
+        /// </summary>
+        /// <param name="this"></param>
+        /// <returns></returns>
+        public static string ToHex(this byte @this) => Convert.ToString(@this, 16);
+
+        /// <summary>
+        /// 2进制转16进制
+        /// </summary>
+        /// <param name="this"></param>
+        /// <returns></returns>
+        public static string ToHex(this string @this) => Convert.ToString(Convert.ToInt64(@this, 2), 16);
+
+        /// <summary>
+        /// 16进制转2进制
+        /// </summary>
+        /// <param name="this"></param>
+        /// <returns></returns>
+        public static string ToBinary(this string @this) => Convert.ToString(Convert.ToInt64(@this, 16), 2);
+
+        /// <summary>
+        /// 2进制/16进制转8进制
+        /// </summary>
+        /// <param name="this"></param>
+        /// <param name="fromBase">2或者16，表示2进制或者16进制；</param>
+        /// <returns></returns>
+        public static string ToOctal(this string @this, int fromBase) => Convert.ToString(Convert.ToInt64(@this, fromBase), 8);
+
+        /// <summary>
+        /// 2进制/16进制转10进制
+        /// </summary>
+        /// <param name="this"></param>
+        /// <param name="fromBase">2或者16，表示2进制或者16进制；</param>
+        /// <returns></returns>
+        public static string ToDecimalism(this string @this, int fromBase)
+        {
+            if (fromBase == 16)
+                return Convert.ToInt32(@this, 16).ToString();
+            else
+                return Convert.ToString(Convert.ToInt64(@this, 2), 10);
         }
         #endregion
     }
