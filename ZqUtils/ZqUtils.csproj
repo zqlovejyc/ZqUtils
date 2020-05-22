@@ -140,7 +140,6 @@
     <Compile Include="Extensions\Extensions.Enum.cs" />
     <Compile Include="Extensions\Extensions.Exception.cs" />
     <Compile Include="Extensions\Extensions.IDbConnection.cs" />
-    <Compile Include="Extensions\Extensions.long.cs" />
     <Compile Include="Extensions\Extensions.MemberInfo.cs" />
     <Compile Include="Extensions\Extensions.SqlBulkCopy.cs" />
     <Compile Include="Extensions\Extensions.SqlCommand.cs" />
@@ -234,26 +233,6 @@
     <Compile Include="Extensions\Extensions.DataSet.cs" />
     <Compile Include="Extensions\Extensions.List.cs" />
     <None Include="app.config" />
-    <None Include="Nuget\Zq.Utils.1.0.3.0.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.3.1.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.3.2.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.3.3.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.3.4.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.3.5.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.3.6.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.3.7.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.3.8.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.3.9.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.4.0.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.4.1.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.4.2.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.4.3.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.4.4.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.4.5.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.4.6.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.4.7.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.4.8.nupkg" />
-    <None Include="Nuget\Zq.Utils.1.0.4.9.nupkg" />
     <None Include="Nuget\Zq.Utils.1.0.5.0.nupkg" />
     <None Include="Nuget\Zq.Utils.1.0.5.1.nupkg" />
     <None Include="Nuget\Zq.Utils.1.0.5.2.nupkg" />
@@ -270,6 +249,7 @@
     <None Include="Nuget\Zq.Utils.1.0.6.3.nupkg" />
     <None Include="Nuget\Zq.Utils.1.0.6.4.nupkg" />
     <None Include="Nuget\Zq.Utils.1.0.6.5.nupkg" />
+    <None Include="Nuget\Zq.Utils.1.0.6.6.nupkg" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>

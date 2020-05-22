@@ -32,7 +32,7 @@ namespace ZqUtils.Extensions
     /// </summary>
     public static partial class Extensions
     {
-        #region BuildRandomString
+        #region 随机字符串
         /// <summary>
         /// 创建随机字符串
         /// </summary>
@@ -95,6 +95,45 @@ namespace ZqUtils.Extensions
 
                 return result.ToString();
             }
+        }
+        #endregion
+
+        #region 10进制转换2-36进制
+        /// <summary>
+        /// 10进制转换到2-36进制
+        /// </summary>
+        /// <param name="this">10进制数字</param>
+        /// <param name="radix">进制，范围2-36</param>
+        /// <returns></returns>
+        public static string ToBase(this int @this, int radix)
+        {
+            const int BitsInLong = 64;
+            const string Digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+            if (radix < 2 || radix > Digits.Length)
+                throw new ArgumentException("The radix must be >= 2 and <= " + Digits.Length.ToString());
+
+            if (@this == 0)
+                return "0";
+
+            var index = BitsInLong - 1;
+            var currentNumber = Math.Abs(@this);
+            var charArray = new char[BitsInLong];
+
+            while (currentNumber != 0)
+            {
+                var remainder = currentNumber % radix;
+                charArray[index--] = Digits[remainder];
+                currentNumber /= radix;
+            }
+
+            var result = new string(charArray, index + 1, BitsInLong - index - 1);
+            if (@this < 0)
+            {
+                result = "-" + result;
+            }
+
+            return result;
         }
         #endregion
     }
