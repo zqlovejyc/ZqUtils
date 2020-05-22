@@ -140,6 +140,7 @@
     <Compile Include="Extensions\Extensions.Enum.cs" />
     <Compile Include="Extensions\Extensions.Exception.cs" />
     <Compile Include="Extensions\Extensions.IDbConnection.cs" />
+    <Compile Include="Extensions\Extensions.long.cs" />
     <Compile Include="Extensions\Extensions.MemberInfo.cs" />
     <Compile Include="Extensions\Extensions.SqlBulkCopy.cs" />
     <Compile Include="Extensions\Extensions.SqlCommand.cs" />
