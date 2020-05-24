@@ -16,18 +16,11 @@
  */
 #endregion
 
+using NLog;
 using System;
-using System.IO;
-using System.Text;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using System.Collections.Concurrent;
-using ZqUtils.Extensions;
 /****************************
 * [Author] 张强
-* [Date] 2015-10-26
+* [Date] 2020-05-24
 * [Describe] 日志工具类
 * **************************/
 namespace ZqUtils.Helpers
@@ -37,233 +30,151 @@ namespace ZqUtils.Helpers
     /// </summary>
     public class LogHelper
     {
-        #region 私有变量
         /// <summary>
-        /// 线程安全队列
+        /// Logger
         /// </summary>
-        private static readonly ConcurrentQueue<LogMessage> _que;
+        private static readonly Logger logger;
 
         /// <summary>
-        /// 信号
-        /// </summary>
-        private static readonly ManualResetEvent _mre;
-
-        /// <summary>
-        /// 日志写锁
-        /// </summary>
-        private static readonly ReaderWriterLockSlim _lock;
-        #endregion
-
-        #region 构造函数
-        /// <summary>
-        /// 构造函数
+        /// Constructor
         /// </summary>
         static LogHelper()
         {
-            _que = new ConcurrentQueue<LogMessage>();
-            _mre = new ManualResetEvent(false);
-            _lock = new ReaderWriterLockSlim();
-            Task.Run(() => Initialize());
+            var nlog = @"XmlConfig/NLog.config".GetFullPath();
+            LogManager.LogFactory.LoadConfiguration(nlog);
+            logger = LogManager.GetCurrentClassLogger();
         }
-        #endregion
 
-        #region 信息日志
         /// <summary>
-        /// 信息日志
+        /// Debug
         /// </summary>
-        /// <param name="message">日志内容</param>
-        /// <param name="args">字符串格式化参数</param>
+        /// <param name="message"></param>
+        /// <param name="args"></param>
+        public static void Debug(string message, params object[] args)
+        {
+            logger.Debug(message, args);
+        }
+
+        /// <summary>
+        /// Debug
+        /// </summary>
+        /// <param name="ex"></param>
+        /// <param name="message"></param>
+        public static void Debug(Exception ex, string message)
+        {
+            logger.Debug(ex, message);
+        }
+
+        /// <summary>
+        /// Info
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="args"></param>
         public static void Info(string message, params object[] args)
         {
-            var sf = new StackTrace(true).GetFrame(1);
-            var logMessage = new LogMessage
-            {
-                Level = LogLevel.Info,
-                Message = string.Format((message?.Replace("{", "{{").Replace("}", "}}") ?? "").ReplaceOfRegex("{$1}", @"{{(\d+)}}"), args),
-                StackFrame = sf
-            };
-            _que.Enqueue(logMessage);
-            _mre.Set();
+            logger.Info(message, args);
         }
-        #endregion
 
-        #region 错误日志
         /// <summary>
-        /// 错误日志
+        /// Info
         /// </summary>
-        /// <param name="message">自定义信息</param>
-        /// <param name="args">字符串格式化参数</param>
+        /// <param name="ex"></param>
+        /// <param name="message"></param>
+        public static void Info(Exception ex, string message)
+        {
+            logger.Info(ex, message);
+        }
+
+        /// <summary>
+        /// Warn
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="args"></param>
+        public static void Warn(string message, params object[] args)
+        {
+            logger.Warn(message, args);
+        }
+
+        /// <summary>
+        /// Warn
+        /// </summary>
+        /// <param name="ex"></param>
+        /// <param name="message"></param>
+        public static void Warn(Exception ex, string message)
+        {
+            logger.Warn(ex, message);
+        }
+
+        /// <summary>
+        /// Trace
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="args"></param>
+        public static void Trace(string message, params object[] args)
+        {
+            logger.Trace(message, args);
+        }
+
+        /// <summary>
+        /// Trace
+        /// </summary>
+        /// <param name="ex"></param>
+        /// <param name="message"></param>
+        public static void Trace(Exception ex, string message)
+        {
+            logger.Trace(ex, message);
+        }
+
+        /// <summary>
+        /// Error
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="args"></param>
         public static void Error(string message, params object[] args)
         {
-            var sf = new StackTrace(true).GetFrame(1);
-            var logMessage = new LogMessage
-            {
-                Level = LogLevel.Error,
-                Message = string.Format((message?.Replace("{", "{{").Replace("}", "}}") ?? "").ReplaceOfRegex("{$1}", @"{{(\d+)}}"), args),
-                StackFrame = sf
-            };
-            _que.Enqueue(logMessage);
-            _mre.Set();
+            logger.Error(message, args);
         }
 
         /// <summary>
-        /// 错误日志
+        /// Error
         /// </summary>
-        /// <param name="ex">错误Exception</param>
-        /// <param name="message">自定义信息</param>
-        /// <param name="args">字符串格式化参数</param>
-        public static void Error(Exception ex, string message = "", params object[] args)
+        /// <param name="ex"></param>
+        /// <param name="message"></param>
+        public static void Error(Exception ex, string message)
         {
-            StackFrame sf = null;
-            if (ex != null)
-            {
-                var frames = new StackTrace(ex, true).GetFrames();
-                sf = frames?[frames.Length - 1];
-            }
+            logger.Error(ex, message);
+        }
+
+        /// <summary>
+        /// Fatal
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="args"></param>
+        public static void Fatal(string message, params object[] args)
+        {
+            logger.Fatal(message, args);
+        }
+
+        /// <summary>
+        /// Fatal
+        /// </summary>
+        /// <param name="ex"></param>
+        /// <param name="message"></param>
+        public static void Fatal(Exception ex, string message)
+        {
+            logger.Fatal(ex, message);
+        }
+
+        /// <summary>
+        /// Flush any pending log messages (in case of asynchronous targets).
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Maximum time to allow for the flush. Any messages after that time will be discarded.</param>
+        public static void Flush(int? timeoutMilliseconds = null)
+        {
+            if (timeoutMilliseconds != null)
+                LogManager.Flush(timeoutMilliseconds.Value);
             else
-            {
-                sf = new StackTrace(true).GetFrame(1);
-            }
-            var logMessage = new LogMessage
-            {
-                Level = LogLevel.Error,
-                Exception = ex,
-                Message = string.Format((message?.Replace("{", "{{").Replace("}", "}}") ?? "").ReplaceOfRegex("{$1}", @"{{(\d+)}}"), args),
-                StackFrame = sf
-            };
-            _que.Enqueue(logMessage);
-            _mre.Set();
+                LogManager.Flush();
         }
-        #endregion
-
-        #region 私有方法/实体
-        #region 日志初始化
-        /// <summary>
-        /// 日志初始化
-        /// </summary>
-        private static void Initialize()
-        {
-            while (true)
-            {
-                //等待信号通知
-                _mre.WaitOne();
-                //写入日志
-                Write();
-                //重新设置信号
-                _mre.Reset();
-                Thread.Sleep(1);
-            }
-        }
-        #endregion
-
-        #region 写入日志
-        /// <summary>
-        /// 写入日志
-        /// </summary>
-        private static void Write()
-        {
-            //获取物理路径
-            var infoDir = (ConfigHelper.GetAppSettings<string>("logInfo") ?? @"logs\info").GetPhysicalPath();
-            var errorDir = (ConfigHelper.GetAppSettings<string>("logError") ?? @"logs\error").GetPhysicalPath();
-
-            //根据当天日期创建日志文件
-            var fileName = $"{DateTime.Now:yyyy-MM-dd}.log";
-            var infoPath = infoDir + fileName;
-            var errorPath = errorDir + fileName;
-
-            try
-            {
-                //进入写锁
-                _lock.EnterWriteLock();
-
-                //判断目录是否存在，不存在则重新创建
-                if (!Directory.Exists(infoDir))
-                    Directory.CreateDirectory(infoDir);
-
-                if (!Directory.Exists(errorDir))
-                    Directory.CreateDirectory(errorDir);
-
-                //创建StreamWriter
-                StreamWriter swInfo = null;
-                StreamWriter swError = null;
-
-                if (_que?.ToList().Exists(o => o.Level == LogLevel.Info) == true)
-                    swInfo = new StreamWriter(infoPath, true, Encoding.UTF8);
-
-                if (_que?.ToList().Exists(o => o.Level == LogLevel.Error) == true)
-                    swError = new StreamWriter(errorPath, true, Encoding.UTF8);
-
-                //判断日志队列中是否有内容，从列队中获取内容，并删除列队中的内容
-                while (_que?.Count > 0 && _que.TryDequeue(out LogMessage logMessage))
-                {
-                    var sf = logMessage.StackFrame;
-
-                    //Info
-                    if (swInfo != null && logMessage.Level == LogLevel.Info)
-                        swInfo.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss.ffff} [Info] [{sf?.GetMethod().DeclaringType.FullName}] [{sf?.GetFileLineNumber()}] {sf?.GetMethod().Name} : {logMessage.Message}");
-
-                    //Error
-                    if (swError != null && logMessage.Level == LogLevel.Error)
-                        swError.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss.ffff} [Error] [{sf?.GetMethod().DeclaringType.FullName}] [{sf?.GetFileLineNumber()}] {sf?.GetMethod().Name} : {logMessage.Message} {logMessage.Exception}");
-                }
-
-                //关闭并释放资源
-                if (swInfo != null)
-                {
-                    swInfo.Close();
-                    swInfo.Dispose();
-                }
-
-                if (swError != null)
-                {
-                    swError.Close();
-                    swError.Dispose();
-                }
-            }
-            finally
-            {
-                //退出写锁
-                _lock.ExitWriteLock();
-            }
-        }
-        #endregion
-
-        #region 日志实体
-        /// <summary>
-        /// 日志级别
-        /// </summary>
-        private enum LogLevel
-        {
-            Info,
-            Error
-        }
-
-        /// <summary>
-        /// 消息实体
-        /// </summary>
-        private class LogMessage
-        {
-            /// <summary>
-            /// 日志级别
-            /// </summary>
-            public LogLevel Level { get; set; }
-
-            /// <summary>
-            /// 消息内容
-            /// </summary>
-            public string Message { get; set; }
-
-            /// <summary>
-            /// 异常对象
-            /// </summary>
-            public Exception Exception { get; set; }
-
-            /// <summary>
-            /// 堆栈帧信息
-            /// </summary>
-            public StackFrame StackFrame { get; set; }
-        }
-        #endregion
-        #endregion
     }
 }
