@@ -81,9 +81,11 @@ namespace ZqUtils.Helpers
                 default:
                     break;
             }
-            if (dir.IsNullOrEmpty()) return Path.GetFullPath(path);
+            if (dir.IsNullOrEmpty()) 
+                return Path.GetFullPath(path);
             // 处理网络路径
-            if (path.StartsWith(@"\\")) return Path.GetFullPath(path);
+            if (path.StartsWith(@"\\")) 
+                return Path.GetFullPath(path);
             // 考虑兼容Linux
             if (!Runtime.Mono)
             {
@@ -121,7 +123,9 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public static string GetFullPath(this string path)
         {
-            if (string.IsNullOrEmpty(path)) return path;
+            if (string.IsNullOrEmpty(path)) 
+                return path;
+
             return GetPath(path, 1);
         }
 
@@ -135,7 +139,9 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public static string GetBasePath(this string path)
         {
-            if (string.IsNullOrEmpty(path)) return path;
+            if (string.IsNullOrEmpty(path))
+                return path;
+
             return GetPath(path, 2);
         }
 
@@ -166,7 +172,9 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public static string GetCurrentPath(this string path)
         {
-            if (string.IsNullOrEmpty(path)) return path;
+            if (string.IsNullOrEmpty(path)) 
+                return path;
+
             return GetPath(path, 3);
         }
 #endif
@@ -183,16 +191,19 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public static string EnsureDirectory(this string path, bool isfile = true)
         {
-            if (string.IsNullOrEmpty(path)) return path;
+            if (string.IsNullOrEmpty(path)) 
+                return path;
             path = path.GetFullPath();
-            if (File.Exists(path) || Directory.Exists(path)) return path;
+            if (File.Exists(path) || Directory.Exists(path))
+                return path;
             var dir = path;
             // 斜杠结尾的路径一定是目录，无视第二参数
             if (dir[dir.Length - 1] == Path.DirectorySeparatorChar)
                 dir = Path.GetDirectoryName(path);
             else if (isfile)
                 dir = Path.GetDirectoryName(path);
-            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
+            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir)) 
+                Directory.CreateDirectory(dir);
             return path;
         }
 
@@ -204,11 +215,14 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public static string CombinePath(this string path, params string[] ps)
         {
-            if (ps == null || ps.Length < 1) return path;
-            if (path == null) path = string.Empty;
+            if (ps == null || ps.Length < 1) 
+                return path;
+            if (path == null) 
+                path = string.Empty;
             foreach (var item in ps)
             {
-                if (!item.IsNullOrEmpty()) path = Path.Combine(path, item);
+                if (!item.IsNullOrEmpty()) 
+                    path = Path.Combine(path, item);
             }
             return path;
         }
@@ -234,7 +248,8 @@ namespace ZqUtils.Helpers
             using (var fs = file.OpenRead())
             {
                 fs.Position = offset;
-                if (count <= 0) count = (int)(fs.Length - offset);
+                if (count <= 0) 
+                    count = (int)(fs.Length - offset);
                 return fs.ReadBytes(count);
             }
         }
@@ -269,7 +284,8 @@ namespace ZqUtils.Helpers
         {
             using (var fs = file.OpenRead())
             {
-                if (encoding == null) encoding = fs.Detect() ?? Encoding.UTF8;
+                if (encoding == null)
+                    encoding = fs.Detect() ?? Encoding.UTF8;
                 using (var reader = new StreamReader(fs, encoding))
                 {
                     return reader.ReadToEnd();
@@ -288,7 +304,8 @@ namespace ZqUtils.Helpers
         {
             using (var fs = file.OpenWrite())
             {
-                if (encoding == null) encoding = fs.Detect() ?? Encoding.UTF8;
+                if (encoding == null)
+                    encoding = fs.Detect() ?? Encoding.UTF8;
                 using (var writer = new StreamWriter(fs, encoding))
                 {
                     writer.Write(text);
@@ -306,7 +323,8 @@ namespace ZqUtils.Helpers
         public static bool CopyToIfNewer(this FileInfo fi, string destFileName)
         {
             // 源文件必须存在
-            if (fi == null || !fi.Exists) return false;
+            if (fi == null || !fi.Exists) 
+                return false;
             var dest = destFileName.AsFile();
             // 目标文件必须存在且源文件较新
             if (dest.Exists && fi.LastWriteTime > dest.LastWriteTime)
@@ -335,8 +353,10 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public static IEnumerable<FileInfo> GetAllFiles(this DirectoryInfo di, string exts = null, bool allSub = false)
         {
-            if (di == null || !di.Exists) yield break;
-            if (string.IsNullOrEmpty(exts)) exts = "*";
+            if (di == null || !di.Exists)
+                yield break;
+            if (string.IsNullOrEmpty(exts))
+                exts = "*";
             var opt = allSub ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
             foreach (var pattern in exts.Split(";", "|", ","))
             {
@@ -358,7 +378,8 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public static string[] CopyTo(this DirectoryInfo di, string destDirName, string exts = null, bool allSub = false, Action<string> callback = null)
         {
-            if (!di.Exists) return new string[0];
+            if (!di.Exists) 
+                return new string[0];
             var list = new List<string>();
             // 来源目录根，用于截断
             var root = di.FullName.EnsureEnd(Path.DirectorySeparatorChar.ToString());
@@ -385,7 +406,8 @@ namespace ZqUtils.Helpers
         public static string[] CopyToIfNewer(this DirectoryInfo di, string destDirName, string exts = null, bool allSub = false, Action<string> callback = null)
         {
             var dest = destDirName.AsDirectory();
-            if (!dest.Exists) return new string[0];
+            if (!dest.Exists) 
+                return new string[0];
             var list = new List<string>();
             // 目标目录根，用于截断
             var root = dest.FullName.EnsureEnd(Path.DirectorySeparatorChar.ToString());
@@ -420,7 +442,8 @@ namespace ZqUtils.Helpers
             foreach (var item in source)
             {
                 // 跳过当前目录
-                if (item.GetFullPath().EqualIgnoreCase(cur)) continue;
+                if (item.GetFullPath().EqualIgnoreCase(cur))
+                    continue;
                 Console.WriteLine("复制 {0} => {1}", item, cur);
                 try
                 {
@@ -430,11 +453,12 @@ namespace ZqUtils.Helpers
                         Console.WriteLine("\t{1}\t{0}", name, item.CombinePath(name).AsFile().LastWriteTime.ToDateTimeString());
                         Console.ResetColor();
                     });
-                    if (rs != null && rs.Length > 0) list.AddRange(rs);
+                    if (rs != null && rs.Length > 0)
+                        list.AddRange(rs);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    throw ex;
+                    throw;
                 }
             }
             return list.ToArray();
