@@ -145,22 +145,6 @@ namespace ZqUtils.Helpers
             return GetPath(path, 2);
         }
 
-        /// <summary>
-        /// 获取物理路径
-        /// </summary>
-        /// <param name="path">相对路径</param>
-        /// <returns>物理绝对路径</returns>
-        public static string GetPhysicalPath(this string path)
-        {
-            var physicalPath = BaseDirectory;
-            if (!string.IsNullOrEmpty(path))
-            {
-                path = path.Replace("~", "").Replace("/", @"\").TrimStart('\\').TrimEnd('\\');
-                physicalPath = Path.Combine(physicalPath, path.Substring("\\").Contains(".") ? path : path + @"\");
-            }
-            return physicalPath;
-        }
-
 #if !__CORE__
         /// <summary>
         /// 获取文件或目录基于当前目录的全路径，过滤相对目录
