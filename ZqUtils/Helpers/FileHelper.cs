@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using ICSharpCode.SharpZipLib.Zip;
 using ZqUtils.Extensions;
+using System.Reflection;
 /****************************
 * [Author] 张强
 * [Date] 2015-10-26
@@ -73,6 +74,35 @@ namespace ZqUtils.Helpers
         /// 日志写锁
         /// </summary>
         private static readonly ReaderWriterLockSlim logWriteLock = new ReaderWriterLockSlim();
+        #endregion
+
+        #region 创建文件
+        /// <summary>
+        /// 读取嵌入资源创建指定文件
+        /// </summary>
+        /// <param name="assembly">程序集</param>
+        /// <param name="manifestResourcePath">嵌入资源路径</param>
+        /// <param name="filePath">文件路径</param>
+        public static void CreateFileFromManifestResource(Assembly assembly, string manifestResourcePath, string filePath)
+        {
+            //读取嵌入资源
+            using (var stream = assembly.GetManifestResourceStream(manifestResourcePath))
+            {
+                if (!File.Exists(filePath))
+                {
+                    using (var fs = File.Create(filePath))
+                    {
+                        var buffer = new byte[2048];
+                        var count = 0;
+                        //每次读取2kb数据，然后写入文件
+                        while ((count = stream.Read(buffer, 0, buffer.Length)) != 0)
+                        {
+                            fs.Write(buffer, 0, count);
+                        }
+                    }
+                }
+            }
+        }
         #endregion
 
         #region 获取文件
@@ -789,7 +819,9 @@ namespace ZqUtils.Helpers
             if (!path.IsNull() && !File.Exists(path))
             {
                 var directory = Path.GetDirectoryName(path);
-                if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
+                if (!Directory.Exists(directory)) 
+                    Directory.CreateDirectory(directory);
+
                 File.Create(path).Close();
             }
         }

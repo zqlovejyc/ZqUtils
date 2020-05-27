@@ -18,6 +18,8 @@
 
 using NLog;
 using System;
+using System.IO;
+using System.Reflection;
 /****************************
 * [Author] 张强
 * [Date] 2020-05-24
@@ -41,6 +43,18 @@ namespace ZqUtils.Helpers
         static LogHelper()
         {
             var nlog = @"XmlConfig/NLog.config".GetFullPath();
+
+            if (!File.Exists(nlog))
+            {
+                //校验文件夹是否存在，不存在则创建XmlConfig文件夹
+                "XmlConfig".GetFullPath().CreateIfNotExists();
+
+                var assembly = Assembly.Load("ZqUtils");
+                var manifestResource = "ZqUtils.XmlConfig.NLog.config";
+
+                FileHelper.CreateFileFromManifestResource(assembly, manifestResource, nlog);
+            }
+
             LogManager.LogFactory.LoadConfiguration(nlog);
             logger = LogManager.GetCurrentClassLogger();
         }

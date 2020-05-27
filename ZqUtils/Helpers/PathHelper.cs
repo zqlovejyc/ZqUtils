@@ -322,6 +322,30 @@ namespace ZqUtils.Helpers
 
         #region 目录扩展
         /// <summary>
+        /// 创建目录或者文件，当不存在时创建
+        /// </summary>
+        /// <param name="fullPath">全路径</param>
+        /// <param name="isFile">是否文件，默认目录</param>
+        /// <returns></returns>
+        public static string CreateIfNotExists(this string fullPath, bool isFile = false)
+        {
+            if (!fullPath.IsNullOrEmpty())
+            {
+                if (!isFile)
+                {
+                    if (!Directory.Exists(fullPath))
+                        Directory.CreateDirectory(fullPath);
+                }
+                else
+                {
+                    FileHelper.IsExist(fullPath);
+                }
+            }
+
+            return fullPath;
+        }
+
+        /// <summary>
         /// 路径作为目录信息
         /// </summary>
         /// <param name="dir"></param>
