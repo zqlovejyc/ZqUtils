@@ -85,10 +85,10 @@ namespace ZqUtils.Helpers
         /// <param name="filePath">文件路径</param>
         public static void CreateFileFromManifestResource(Assembly assembly, string manifestResourcePath, string filePath)
         {
-            //读取嵌入资源
-            using (var stream = assembly.GetManifestResourceStream(manifestResourcePath))
+            if (!File.Exists(filePath))
             {
-                if (!File.Exists(filePath))
+                //读取嵌入资源
+                using (var stream = assembly.GetManifestResourceStream(manifestResourcePath))
                 {
                     using (var fs = File.Create(filePath))
                     {
