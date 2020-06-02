@@ -53,7 +53,7 @@ namespace ZqUtils.Helpers
             var list = new List<DataTable>();
             using (var package = new ExcelPackage(new FileInfo(fullPath)))
             {
-                for (var sheetIndex = 1; sheetIndex <= package.Workbook.Worksheets.Count; sheetIndex++)
+                for (var sheetIndex = 0; sheetIndex < package.Workbook.Worksheets.Count; sheetIndex++)
                 {
                     var table = new DataTable();
                     using (var sheet = package.Workbook.Worksheets[sheetIndex])
@@ -90,7 +90,7 @@ namespace ZqUtils.Helpers
             var list = new List<DataTable>();
             using (var package = new ExcelPackage(fileStream))
             {
-                for (var sheetIndex = 1; sheetIndex <= package.Workbook.Worksheets.Count; sheetIndex++)
+                for (var sheetIndex = 0; sheetIndex < package.Workbook.Worksheets.Count; sheetIndex++)
                 {
                     var table = new DataTable();
                     using (var sheet = package.Workbook.Worksheets[sheetIndex])
@@ -130,7 +130,7 @@ namespace ZqUtils.Helpers
             var file = new FileInfo(fullPath);
             using (var package = new ExcelPackage(file))
             {
-                for (var sheetIndex = 1; sheetIndex <= package.Workbook.Worksheets.Count; sheetIndex++)
+                for (var sheetIndex = 0; sheetIndex < package.Workbook.Worksheets.Count; sheetIndex++)
                 {
                     var list = new List<T>();
                     using (var worksheet = package.Workbook.Worksheets[sheetIndex])
@@ -214,7 +214,7 @@ namespace ZqUtils.Helpers
             var headers = new Dictionary<string, int>();
             using (var package = new ExcelPackage(fileStream))
             {
-                for (var sheetIndex = 1; sheetIndex <= package.Workbook.Worksheets.Count; sheetIndex++)
+                for (var sheetIndex = 0; sheetIndex < package.Workbook.Worksheets.Count; sheetIndex++)
                 {
                     var list = new List<T>();
                     using (var worksheet = package.Workbook.Worksheets[sheetIndex])
