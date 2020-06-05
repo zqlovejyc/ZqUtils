@@ -27,6 +27,7 @@ using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
+using ZqUtils.Extensions;
 /****************************
 * [Author] 张强
 * [Date] 2018-10-29
@@ -112,7 +113,10 @@ namespace ZqUtils.Helpers
         /// <param name="databaseName">数据库</param>
         /// <param name="connectionString">链接字符串</param>
         /// <param name="isMongoClientSettings">是否为MongoClientSettings连接字符串，默认：false</param>
-        public MongodbHelper(string databaseName, string connectionString, bool isMongoClientSettings = false)
+        public MongodbHelper(
+            string databaseName,
+            string connectionString,
+            bool isMongoClientSettings = false)
         {
             this.databaseName = databaseName;
             this.connectionString = connectionString;
@@ -134,7 +138,12 @@ namespace ZqUtils.Helpers
         /// <param name="propertyValue">属性值</param>
         /// <param name="item">更新子项</param>
         /// <param name="parent">父级字段</param>
-        public static void BuildUpdateDefinition<T>(List<UpdateDefinition<T>> fieldList, PropertyInfo property, object propertyValue, T item, string parent)
+        public static void BuildUpdateDefinition<T>(
+            List<UpdateDefinition<T>> fieldList,
+            PropertyInfo property,
+            object propertyValue,
+            T item,
+            string parent)
         {
             #region 复杂类型
             if (property.PropertyType.IsClass && property.PropertyType != typeof(string) && propertyValue != null)
@@ -285,7 +294,11 @@ namespace ZqUtils.Helpers
         /// <param name="parent">父级字段</param>
         /// <param name="isExists">是否存在</param>
         /// <returns>返回字段名称</returns>
-        public static string GetField(PropertyInfo property, object entity, string parent, ref bool isExists)
+        public static string GetField(
+            PropertyInfo property,
+            object entity,
+            string parent,
+            ref bool isExists)
         {
             foreach (var prop in property.PropertyType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
             {
@@ -389,7 +402,10 @@ namespace ZqUtils.Helpers
         /// <param name="property">属性</param>
         /// <param name="collection">mongo集合</param>
         /// <param name="parent">父级字段</param>
-        public void CreateIndex<T>(PropertyInfo property, IMongoCollection<T> collection, string parent)
+        public void CreateIndex<T>(
+            PropertyInfo property,
+            IMongoCollection<T> collection,
+            string parent)
         {
             var props = property.PropertyType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
             if (props?.Length > 0)
@@ -429,7 +445,8 @@ namespace ZqUtils.Helpers
         /// <param name="collectionName">表名</param>
         public void CreateIndex<T>(string collectionName = null)
         {
-            var collection = this.database.GetCollection<T>(collectionName ?? typeof(T).Name);
+            var attribute = this.GetMongoDbAttribute<T>(collectionName);
+            var collection = this.database.GetCollection<T>(attribute.CollectionName);
             var props = typeof(T).GetProperties(BindingFlags.Instance | BindingFlags.Public);
             if (props?.Length > 0)
             {
@@ -471,7 +488,8 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public bool ExistIndex<T>(string indexName, string collectionName = null)
         {
-            var collection = this.database.GetCollection<T>(collectionName ?? typeof(T).Name);
+            var attribute = this.GetMongoDbAttribute<T>(collectionName);
+            var collection = this.database.GetCollection<T>(attribute.CollectionName);
             var indexes = collection.Indexes.List();
             var indexNames = indexes.ToList().Select(i => i.GetValue("name").AsString);
             return indexNames.Contains(indexName);
@@ -501,7 +519,8 @@ namespace ZqUtils.Helpers
         /// <param name="collectionName">表名</param>
         public void DropIndex<T>(string indexName, string collectionName = null)
         {
-            var collection = this.database.GetCollection<T>(collectionName ?? typeof(T).Name);
+            var attribute = this.GetMongoDbAttribute<T>(collectionName);
+            var collection = this.database.GetCollection<T>(attribute.CollectionName);
             collection.Indexes.DropOne(indexName);
         }
         #endregion
@@ -517,7 +536,10 @@ namespace ZqUtils.Helpers
         /// <param name="collection">mongo集合</param>
         /// <param name="parent">父级字段</param>
         /// <returns></returns>
-        public async Task CreateIndexAsync<T>(PropertyInfo property, IMongoCollection<T> collection, string parent)
+        public async Task CreateIndexAsync<T>(
+            PropertyInfo property,
+            IMongoCollection<T> collection,
+            string parent)
         {
             var props = property.PropertyType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
             if (props?.Length > 0)
@@ -557,7 +579,8 @@ namespace ZqUtils.Helpers
         /// <param name="collectionName">表名</param>
         public async Task CreateIndexAsync<T>(string collectionName = null)
         {
-            var collection = this.database.GetCollection<T>(collectionName ?? typeof(T).Name);
+            var attribute = this.GetMongoDbAttribute<T>(collectionName);
+            var collection = this.database.GetCollection<T>(attribute.CollectionName);
             var props = typeof(T).GetProperties(BindingFlags.Instance | BindingFlags.Public);
             if (props?.Length > 0)
             {
@@ -599,7 +622,8 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public async Task<bool> ExistIndexAsync<T>(string indexName, string collectionName = null)
         {
-            var collection = this.database.GetCollection<T>(collectionName ?? typeof(T).Name);
+            var attribute = this.GetMongoDbAttribute<T>(collectionName);
+            var collection = this.database.GetCollection<T>(attribute.CollectionName);
             var indexes = await collection.Indexes.ListAsync();
             var indexNames = (await indexes.ToListAsync()).Select(i => i.GetValue("name").AsString);
             return indexNames.Contains(indexName);
@@ -629,11 +653,27 @@ namespace ZqUtils.Helpers
         /// <param name="collectionName">表名</param>
         public async Task DropIndexAsync<T>(string indexName, string collectionName = null)
         {
-            var collection = this.database.GetCollection<T>(collectionName ?? typeof(T).Name);
+            var attribute = this.GetMongoDbAttribute<T>(collectionName);
+            var collection = this.database.GetCollection<T>(attribute.CollectionName);
             await collection.Indexes.DropOneAsync(indexName);
         }
         #endregion
         #endregion
+        #endregion
+
+        #region 表名
+        /// <summary>
+        /// 获取MongoDb表特性
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public MongoDbAttribute GetMongoDbAttribute<T>(string collectionName = null)
+        {
+            if (!collectionName.IsNullOrEmpty())
+                return new MongoDbAttribute(collectionName);
+
+            return typeof(T).GetCustomAttribute<MongoDbAttribute>() ?? new MongoDbAttribute(typeof(T).Name);
+        }
         #endregion
 
         #region 新增
@@ -646,7 +686,8 @@ namespace ZqUtils.Helpers
         /// <param name="entity">插入实体</param>
         public void InsertOne<T>(T entity)
         {
-            this.InsertOne(typeof(T).Name, entity);
+            var attribute = this.GetMongoDbAttribute<T>();
+            this.InsertOne(attribute.CollectionName, entity);
         }
 
         /// <summary>
@@ -671,7 +712,8 @@ namespace ZqUtils.Helpers
         /// <param name="entity">插入实体</param>
         public void InsertMany<T>(List<T> entity)
         {
-            this.InsertMany(typeof(T).Name, entity);
+            var attribute = this.GetMongoDbAttribute<T>();
+            this.InsertMany(attribute.CollectionName, entity);
         }
 
         /// <summary>
@@ -698,7 +740,8 @@ namespace ZqUtils.Helpers
         /// <param name="entity">插入实体</param>
         public async Task InsertOneAsync<T>(T entity)
         {
-            await this.InsertOneAsync(typeof(T).Name, entity);
+            var attribute = this.GetMongoDbAttribute<T>();
+            await this.InsertOneAsync(attribute.CollectionName, entity);
         }
 
         /// <summary>
@@ -723,7 +766,8 @@ namespace ZqUtils.Helpers
         /// <param name="entity">插入实体</param>
         public async Task InsertManyAsync<T>(List<T> entity)
         {
-            await this.InsertManyAsync(typeof(T).Name, entity);
+            var attribute = this.GetMongoDbAttribute<T>();
+            await this.InsertManyAsync(attribute.CollectionName, entity);
         }
 
         /// <summary>
@@ -752,9 +796,12 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回是否删除成功</returns>
-        public bool DeleteOne<T>(Expression<Func<T, bool>> filter, DeleteOptions options = null)
+        public bool DeleteOne<T>(
+            Expression<Func<T, bool>> filter,
+            DeleteOptions options = null)
         {
-            return this.DeleteOne(typeof(T).Name, filter, options);
+            var attribute = this.GetMongoDbAttribute<T>();
+            return this.DeleteOne(attribute.CollectionName, filter, options);
         }
 
         /// <summary>
@@ -765,7 +812,10 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回是否删除成功</returns>
-        public bool DeleteOne<T>(string collectionName, Expression<Func<T, bool>> filter, DeleteOptions options = null)
+        public bool DeleteOne<T>(
+            string collectionName,
+            Expression<Func<T, bool>> filter,
+            DeleteOptions options = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             return collection.DeleteOne(filter, options).DeletedCount > 0;
@@ -778,9 +828,12 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回是否删除成功</returns>
-        public bool DeleteOneByDefinition<T>(FilterDefinition<T> filter, DeleteOptions options = null)
+        public bool DeleteOneByDefinition<T>(
+            FilterDefinition<T> filter,
+            DeleteOptions options = null)
         {
-            return this.DeleteOneByDefinition(typeof(T).Name, filter, options);
+            var attribute = this.GetMongoDbAttribute<T>();
+            return this.DeleteOneByDefinition(attribute.CollectionName, filter, options);
         }
 
         /// <summary>
@@ -791,7 +844,10 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回是否删除成功</returns>
-        public bool DeleteOneByDefinition<T>(string collectionName, FilterDefinition<T> filter, DeleteOptions options = null)
+        public bool DeleteOneByDefinition<T>(
+            string collectionName,
+            FilterDefinition<T> filter,
+            DeleteOptions options = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             return collection.DeleteOne(filter, options).DeletedCount > 0;
@@ -806,9 +862,12 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回是否删除成功</returns>
-        public bool DeleteMany<T>(Expression<Func<T, bool>> filter, DeleteOptions options = null)
+        public bool DeleteMany<T>(
+            Expression<Func<T, bool>> filter,
+            DeleteOptions options = null)
         {
-            return this.DeleteMany(typeof(T).Name, filter, options);
+            var attribute = this.GetMongoDbAttribute<T>();
+            return this.DeleteMany(attribute.CollectionName, filter, options);
         }
 
         /// <summary>
@@ -819,7 +878,10 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回是否删除成功</returns>
-        public bool DeleteMany<T>(string collectionName, Expression<Func<T, bool>> filter, DeleteOptions options = null)
+        public bool DeleteMany<T>(
+            string collectionName,
+            Expression<Func<T, bool>> filter,
+            DeleteOptions options = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             return collection.DeleteMany(filter, options).DeletedCount > 0;
@@ -832,9 +894,12 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回是否删除成功</returns>
-        public bool DeleteManyByDefinition<T>(FilterDefinition<T> filter, DeleteOptions options = null)
+        public bool DeleteManyByDefinition<T>(
+            FilterDefinition<T> filter,
+            DeleteOptions options = null)
         {
-            return this.DeleteManyByDefinition(typeof(T).Name, filter, options);
+            var attribute = this.GetMongoDbAttribute<T>();
+            return this.DeleteManyByDefinition(attribute.CollectionName, filter, options);
         }
 
         /// <summary>
@@ -845,7 +910,10 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回是否删除成功</returns>
-        public bool DeleteManyByDefinition<T>(string collectionName, FilterDefinition<T> filter, DeleteOptions options = null)
+        public bool DeleteManyByDefinition<T>(
+            string collectionName,
+            FilterDefinition<T> filter,
+            DeleteOptions options = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             return collection.DeleteMany(filter, options).DeletedCount > 0;
@@ -884,9 +952,12 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回是否删除成功</returns>
-        public async Task<DeleteResult> DeleteOneAsync<T>(Expression<Func<T, bool>> filter, DeleteOptions options = null)
+        public async Task<DeleteResult> DeleteOneAsync<T>(
+            Expression<Func<T, bool>> filter,
+            DeleteOptions options = null)
         {
-            return await this.DeleteOneAsync(typeof(T).Name, filter, options);
+            var attribute = this.GetMongoDbAttribute<T>();
+            return await this.DeleteOneAsync(attribute.CollectionName, filter, options);
         }
 
         /// <summary>
@@ -897,7 +968,10 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回是否删除成功</returns>
-        public async Task<DeleteResult> DeleteOneAsync<T>(string collectionName, Expression<Func<T, bool>> filter, DeleteOptions options = null)
+        public async Task<DeleteResult> DeleteOneAsync<T>(
+            string collectionName,
+            Expression<Func<T, bool>> filter,
+            DeleteOptions options = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             return await collection.DeleteOneAsync(filter, options);
@@ -910,9 +984,12 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回是否删除成功</returns>
-        public async Task<DeleteResult> DeleteOneByDefinitionAsync<T>(FilterDefinition<T> filter, DeleteOptions options = null)
+        public async Task<DeleteResult> DeleteOneByDefinitionAsync<T>(
+            FilterDefinition<T> filter,
+            DeleteOptions options = null)
         {
-            return await this.DeleteOneByDefinitionAsync(typeof(T).Name, filter, options);
+            var attribute = this.GetMongoDbAttribute<T>();
+            return await this.DeleteOneByDefinitionAsync(attribute.CollectionName, filter, options);
         }
 
         /// <summary>
@@ -923,7 +1000,10 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回是否删除成功</returns>
-        public async Task<DeleteResult> DeleteOneByDefinitionAsync<T>(string collectionName, FilterDefinition<T> filter, DeleteOptions options = null)
+        public async Task<DeleteResult> DeleteOneByDefinitionAsync<T>(
+            string collectionName,
+            FilterDefinition<T> filter,
+            DeleteOptions options = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             return await collection.DeleteOneAsync(filter, options);
@@ -938,9 +1018,12 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回是否删除成功</returns>
-        public async Task<DeleteResult> DeleteManyAsync<T>(Expression<Func<T, bool>> filter, DeleteOptions options = null)
+        public async Task<DeleteResult> DeleteManyAsync<T>(
+            Expression<Func<T, bool>> filter,
+            DeleteOptions options = null)
         {
-            return await this.DeleteManyAsync(typeof(T).Name, filter, options);
+            var attribute = this.GetMongoDbAttribute<T>();
+            return await this.DeleteManyAsync(attribute.CollectionName, filter, options);
         }
 
         /// <summary>
@@ -951,7 +1034,10 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回是否删除成功</returns>
-        public async Task<DeleteResult> DeleteManyAsync<T>(string collectionName, Expression<Func<T, bool>> filter, DeleteOptions options = null)
+        public async Task<DeleteResult> DeleteManyAsync<T>(
+            string collectionName,
+            Expression<Func<T, bool>> filter,
+            DeleteOptions options = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             return await collection.DeleteManyAsync(filter, options);
@@ -964,9 +1050,12 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回是否删除成功</returns>
-        public async Task<DeleteResult> DeleteManyByDefinitionAsync<T>(FilterDefinition<T> filter, DeleteOptions options = null)
+        public async Task<DeleteResult> DeleteManyByDefinitionAsync<T>(
+            FilterDefinition<T> filter,
+            DeleteOptions options = null)
         {
-            return await this.DeleteManyByDefinitionAsync(typeof(T).Name, filter, options);
+            var attribute = this.GetMongoDbAttribute<T>();
+            return await this.DeleteManyByDefinitionAsync(attribute.CollectionName, filter, options);
         }
 
         /// <summary>
@@ -977,7 +1066,10 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回是否删除成功</returns>
-        public async Task<DeleteResult> DeleteManyByDefinitionAsync<T>(string collectionName, FilterDefinition<T> filter, DeleteOptions options = null)
+        public async Task<DeleteResult> DeleteManyByDefinitionAsync<T>(
+            string collectionName,
+            FilterDefinition<T> filter,
+            DeleteOptions options = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             return await collection.DeleteManyAsync(filter, options);
@@ -1019,9 +1111,12 @@ namespace ZqUtils.Helpers
         /// <param name="item">要新增的子项值</param>
         /// <param name="filter">条件</param>
         /// <returns>返回是否新增成功</returns>
-        public bool UpdatePushItem<T>(object item, Expression<Func<T, bool>> filter)
+        public bool UpdatePushItem<T>(
+            object item,
+            Expression<Func<T, bool>> filter)
         {
-            return this.UpdatePushItem(typeof(T).Name, item, filter);
+            var attribute = this.GetMongoDbAttribute<T>();
+            return this.UpdatePushItem(attribute.CollectionName, item, filter);
         }
 
         /// <summary>
@@ -1032,7 +1127,10 @@ namespace ZqUtils.Helpers
         /// <param name="item">要新增的子项值</param>
         /// <param name="filter">条件</param>
         /// <returns>返回是否新增成功</returns>
-        public bool UpdatePushItem<T>(string collectionName, object item, Expression<Func<T, bool>> filter)
+        public bool UpdatePushItem<T>(
+            string collectionName,
+            object item,
+            Expression<Func<T, bool>> filter)
         {
             return this.UpdatePushItem(collectionName, GetFields<T>(item).FirstOrDefault(), item, filter);
         }
@@ -1046,7 +1144,11 @@ namespace ZqUtils.Helpers
         /// <param name="item">要新增的子项值</param>
         /// <param name="filter">条件</param>
         /// <returns>返回是否新增成功</returns>
-        public bool UpdatePushItem<T>(string collectionName, string field, object item, Expression<Func<T, bool>> filter)
+        public bool UpdatePushItem<T>(
+            string collectionName,
+            string field,
+            object item,
+            Expression<Func<T, bool>> filter)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             return collection.UpdateOne<T>(filter, Builders<T>.Update.Push(field, item)).ModifiedCount > 0;
@@ -1061,9 +1163,12 @@ namespace ZqUtils.Helpers
         /// <param name="item">要删除的子项值</param>
         /// <param name="filter">条件</param>
         /// <returns>返回是否删除成功</returns>
-        public bool UpdatePullItem<T>(object item, Expression<Func<T, bool>> filter)
+        public bool UpdatePullItem<T>(
+            object item,
+            Expression<Func<T, bool>> filter)
         {
-            return this.UpdatePullItem(typeof(T).Name, item, filter);
+            var attribute = this.GetMongoDbAttribute<T>();
+            return this.UpdatePullItem(attribute.CollectionName, item, filter);
         }
 
         /// <summary>
@@ -1074,7 +1179,10 @@ namespace ZqUtils.Helpers
         /// <param name="item">要删除的子项值</param>
         /// <param name="filter">条件</param>
         /// <returns>返回是否删除成功</returns>
-        public bool UpdatePullItem<T>(string collectionName, object item, Expression<Func<T, bool>> filter)
+        public bool UpdatePullItem<T>(
+            string collectionName,
+            object item,
+            Expression<Func<T, bool>> filter)
         {
             return this.UpdatePushItem(collectionName, GetFields<T>(item).FirstOrDefault(), item, filter);
         }
@@ -1088,7 +1196,11 @@ namespace ZqUtils.Helpers
         /// <param name="item">要删除的子项值</param>
         /// <param name="filter">条件</param>
         /// <returns>返回是否删除成功</returns>
-        public bool UpdatePullItem<T>(string collectionName, string field, object item, Expression<Func<T, bool>> filter)
+        public bool UpdatePullItem<T>(
+            string collectionName,
+            string field,
+            object item,
+            Expression<Func<T, bool>> filter)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             return collection.UpdateOne<T>(filter, Builders<T>.Update.Pull(field, item)).ModifiedCount > 0;
@@ -1103,9 +1215,12 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="entity">新实体</param>
         /// <returns>返回是否更新成功</returns>
-        public bool UpdateOne<T>(Expression<Func<T, bool>> filter, T entity)
+        public bool UpdateOne<T>(
+            Expression<Func<T, bool>> filter,
+            T entity)
         {
-            return this.UpdateOne(typeof(T).Name, filter, entity);
+            var attribute = this.GetMongoDbAttribute<T>();
+            return this.UpdateOne(attribute.CollectionName, filter, entity);
         }
 
         /// <summary>
@@ -1116,7 +1231,10 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="entity">新实体</param>
         /// <returns>返回是否更新成功</returns>
-        public bool UpdateOne<T>(string collectionName, Expression<Func<T, bool>> filter, T entity)
+        public bool UpdateOne<T>(
+            string collectionName,
+            Expression<Func<T, bool>> filter,
+            T entity)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             var updateList = BuildUpdateDefinition<T>(entity);
@@ -1130,9 +1248,12 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="parameters">要修改的参数</param>
         /// <returns>返回是否更新成功</returns>
-        public bool UpdateOneByDefinition<T>(FilterDefinition<T> filter, Dictionary<string, object> parameters)
+        public bool UpdateOneByDefinition<T>(
+            FilterDefinition<T> filter,
+            Dictionary<string, object> parameters)
         {
-            return this.UpdateOneByDefinition(typeof(T).Name, filter, parameters);
+            var attribute = this.GetMongoDbAttribute<T>();
+            return this.UpdateOneByDefinition(attribute.CollectionName, filter, parameters);
         }
 
         /// <summary>
@@ -1143,12 +1264,16 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="parameters">要修改的参数</param>
         /// <returns>返回是否更新成功</returns>
-        public bool UpdateOneByDefinition<T>(string collectionName, FilterDefinition<T> filter, Dictionary<string, object> parameters)
+        public bool UpdateOneByDefinition<T>(
+            string collectionName,
+            FilterDefinition<T> filter,
+            Dictionary<string, object> parameters)
         {
             var list = new List<UpdateDefinition<T>>();
             foreach (var item in typeof(T).GetType().GetProperties())
             {
-                if (!parameters.ContainsKey(item.Name)) continue;
+                if (!parameters.ContainsKey(item.Name))
+                    continue;
                 list.Add(Builders<T>.Update.Set(item.Name, parameters[item.Name]));
             }
             var update = Builders<T>.Update.Combine(list);
@@ -1165,9 +1290,12 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="entity">新实体</param>
         /// <returns>返回是否更新成功</returns>
-        public bool UpdateMany<T>(Expression<Func<T, bool>> filter, T entity)
+        public bool UpdateMany<T>(
+            Expression<Func<T, bool>> filter,
+            T entity)
         {
-            return this.UpdateMany(typeof(T).Name, filter, entity);
+            var attribute = this.GetMongoDbAttribute<T>();
+            return this.UpdateMany(attribute.CollectionName, filter, entity);
         }
 
         /// <summary>
@@ -1178,7 +1306,10 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="entity">新实体</param>
         /// <returns>返回是否更新成功</returns>
-        public bool UpdateMany<T>(string collectionName, Expression<Func<T, bool>> filter, T entity)
+        public bool UpdateMany<T>(
+            string collectionName,
+            Expression<Func<T, bool>> filter,
+            T entity)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             var updateList = BuildUpdateDefinition<T>(entity);
@@ -1192,9 +1323,12 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="parameters">要修改的参数</param>
         /// <returns>返回是否更新成功</returns>
-        public bool UpdateManyByDefinition<T>(FilterDefinition<T> filter, Dictionary<string, object> parameters)
+        public bool UpdateManyByDefinition<T>(
+            FilterDefinition<T> filter,
+            Dictionary<string, object> parameters)
         {
-            return this.UpdateManyByDefinition(typeof(T).Name, filter, parameters);
+            var attribute = this.GetMongoDbAttribute<T>();
+            return this.UpdateManyByDefinition(attribute.CollectionName, filter, parameters);
         }
 
         /// <summary>
@@ -1205,12 +1339,16 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="parameters">要修改的参数</param>
         /// <returns>返回是否更新成功</returns>
-        public bool UpdateManyByDefinition<T>(string collectionName, FilterDefinition<T> filter, Dictionary<string, object> parameters)
+        public bool UpdateManyByDefinition<T>(
+            string collectionName,
+            FilterDefinition<T> filter,
+            Dictionary<string, object> parameters)
         {
             var list = new List<UpdateDefinition<T>>();
             foreach (var item in typeof(T).GetType().GetProperties())
             {
-                if (!parameters.ContainsKey(item.Name)) continue;
+                if (!parameters.ContainsKey(item.Name))
+                    continue;
                 list.Add(Builders<T>.Update.Set(item.Name, parameters[item.Name]));
             }
             var update = Builders<T>.Update.Combine(list);
@@ -1229,9 +1367,12 @@ namespace ZqUtils.Helpers
         /// <param name="item">要新增的子项值</param>
         /// <param name="filter">条件</param>
         /// <returns>返回更新结果</returns>
-        public async Task<UpdateResult> UpdatePushItemAsync<T>(object item, Expression<Func<T, bool>> filter)
+        public async Task<UpdateResult> UpdatePushItemAsync<T>(
+            object item,
+            Expression<Func<T, bool>> filter)
         {
-            return await this.UpdatePushItemAsync(typeof(T).Name, item, filter);
+            var attribute = this.GetMongoDbAttribute<T>();
+            return await this.UpdatePushItemAsync(attribute.CollectionName, item, filter);
         }
 
         /// <summary>
@@ -1242,7 +1383,10 @@ namespace ZqUtils.Helpers
         /// <param name="item">要新增的子项值</param>
         /// <param name="filter">条件</param>
         /// <returns>返回更新结果</returns>
-        public async Task<UpdateResult> UpdatePushItemAsync<T>(string collectionName, object item, Expression<Func<T, bool>> filter)
+        public async Task<UpdateResult> UpdatePushItemAsync<T>(
+            string collectionName,
+            object item,
+            Expression<Func<T, bool>> filter)
         {
             return await this.UpdatePushItemAsync(collectionName, GetFields<T>(item).FirstOrDefault(), item, filter);
         }
@@ -1256,7 +1400,11 @@ namespace ZqUtils.Helpers
         /// <param name="item">要新增的子项值</param>
         /// <param name="filter">条件</param>
         /// <returns>返回更新结果</returns>
-        public async Task<UpdateResult> UpdatePushItemAsync<T>(string collectionName, string field, object item, Expression<Func<T, bool>> filter)
+        public async Task<UpdateResult> UpdatePushItemAsync<T>(
+            string collectionName,
+            string field,
+            object item,
+            Expression<Func<T, bool>> filter)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             return await collection.UpdateOneAsync<T>(filter, Builders<T>.Update.Push(field, item));
@@ -1271,9 +1419,12 @@ namespace ZqUtils.Helpers
         /// <param name="item">要删除的子项值</param>
         /// <param name="filter">条件</param>
         /// <returns>返回更新结果</returns>
-        public async Task<UpdateResult> UpdatePullItemAsync<T>(object item, Expression<Func<T, bool>> filter)
+        public async Task<UpdateResult> UpdatePullItemAsync<T>(
+            object item,
+            Expression<Func<T, bool>> filter)
         {
-            return await this.UpdatePullItemAsync(typeof(T).Name, item, filter);
+            var attribute = this.GetMongoDbAttribute<T>();
+            return await this.UpdatePullItemAsync(attribute.CollectionName, item, filter);
         }
 
         /// <summary>
@@ -1284,7 +1435,10 @@ namespace ZqUtils.Helpers
         /// <param name="item">要删除的子项值</param>
         /// <param name="filter">条件</param>
         /// <returns>返回更新结果</returns>
-        public async Task<UpdateResult> UpdatePullItemAsync<T>(string collectionName, object item, Expression<Func<T, bool>> filter)
+        public async Task<UpdateResult> UpdatePullItemAsync<T>(
+            string collectionName,
+            object item,
+            Expression<Func<T, bool>> filter)
         {
             return await this.UpdatePullItemAsync(collectionName, GetFields<T>(item).FirstOrDefault(), item, filter);
         }
@@ -1298,7 +1452,11 @@ namespace ZqUtils.Helpers
         /// <param name="item">要删除的子项值</param>
         /// <param name="filter">条件</param>
         /// <returns>返回更新结果</returns>
-        public async Task<UpdateResult> UpdatePullItemAsync<T>(string collectionName, string field, object item, Expression<Func<T, bool>> filter)
+        public async Task<UpdateResult> UpdatePullItemAsync<T>(
+            string collectionName,
+            string field,
+            object item,
+            Expression<Func<T, bool>> filter)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             return await collection.UpdateOneAsync<T>(filter, Builders<T>.Update.Pull(field, item));
@@ -1313,9 +1471,12 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="entity">新实体</param>
         /// <returns>返回更新结果</returns>
-        public async Task<UpdateResult> UpdateOneAsync<T>(Expression<Func<T, bool>> filter, T entity)
+        public async Task<UpdateResult> UpdateOneAsync<T>(
+            Expression<Func<T, bool>> filter,
+            T entity)
         {
-            return await this.UpdateOneAsync(typeof(T).Name, filter, entity);
+            var attribute = this.GetMongoDbAttribute<T>();
+            return await this.UpdateOneAsync(attribute.CollectionName, filter, entity);
         }
 
         /// <summary>
@@ -1326,7 +1487,10 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="entity">新实体</param>
         /// <returns>返回更新结果</returns>
-        public async Task<UpdateResult> UpdateOneAsync<T>(string collectionName, Expression<Func<T, bool>> filter, T entity)
+        public async Task<UpdateResult> UpdateOneAsync<T>(
+            string collectionName,
+            Expression<Func<T, bool>> filter,
+            T entity)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             var updateList = BuildUpdateDefinition<T>(entity);
@@ -1340,9 +1504,12 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="parameters">要修改的参数</param>
         /// <returns>返回更新结果</returns>
-        public async Task<UpdateResult> UpdateOneByDefinitionAsync<T>(FilterDefinition<T> filter, Dictionary<string, object> parameters)
+        public async Task<UpdateResult> UpdateOneByDefinitionAsync<T>(
+            FilterDefinition<T> filter,
+            Dictionary<string, object> parameters)
         {
-            return await this.UpdateOneByDefinitionAsync(typeof(T).Name, filter, parameters);
+            var attribute = this.GetMongoDbAttribute<T>();
+            return await this.UpdateOneByDefinitionAsync(attribute.CollectionName, filter, parameters);
         }
 
         /// <summary>
@@ -1353,12 +1520,16 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="parameters">要修改的参数</param>
         /// <returns>返回更新结果</returns>
-        public async Task<UpdateResult> UpdateOneByDefinitionAsync<T>(string collectionName, FilterDefinition<T> filter, Dictionary<string, object> parameters)
+        public async Task<UpdateResult> UpdateOneByDefinitionAsync<T>(
+            string collectionName,
+            FilterDefinition<T> filter,
+            Dictionary<string, object> parameters)
         {
             var list = new List<UpdateDefinition<T>>();
             foreach (var item in typeof(T).GetType().GetProperties())
             {
-                if (!parameters.ContainsKey(item.Name)) continue;
+                if (!parameters.ContainsKey(item.Name))
+                    continue;
                 list.Add(Builders<T>.Update.Set(item.Name, parameters[item.Name]));
             }
             var update = Builders<T>.Update.Combine(list);
@@ -1375,9 +1546,12 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="entity">新实体</param>
         /// <returns>返回更新结果</returns>
-        public async Task<UpdateResult> UpdateManyAsync<T>(Expression<Func<T, bool>> filter, T entity)
+        public async Task<UpdateResult> UpdateManyAsync<T>(
+            Expression<Func<T, bool>> filter,
+            T entity)
         {
-            return await this.UpdateManyAsync(typeof(T).Name, filter, entity);
+            var attribute = this.GetMongoDbAttribute<T>();
+            return await this.UpdateManyAsync(attribute.CollectionName, filter, entity);
         }
 
         /// <summary>
@@ -1388,7 +1562,10 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="entity">新实体</param>
         /// <returns>返回更新结果</returns>
-        public async Task<UpdateResult> UpdateManyAsync<T>(string collectionName, Expression<Func<T, bool>> filter, T entity)
+        public async Task<UpdateResult> UpdateManyAsync<T>(
+            string collectionName,
+            Expression<Func<T, bool>> filter,
+            T entity)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             var updateList = BuildUpdateDefinition<T>(entity);
@@ -1402,9 +1579,12 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="parameters">要修改的参数</param>
         /// <returns>返回更新结果</returns>
-        public async Task<UpdateResult> UpdateManyByDefinitionAsync<T>(FilterDefinition<T> filter, Dictionary<string, object> parameters)
+        public async Task<UpdateResult> UpdateManyByDefinitionAsync<T>(
+            FilterDefinition<T> filter,
+            Dictionary<string, object> parameters)
         {
-            return await this.UpdateManyByDefinitionAsync(typeof(T).Name, filter, parameters);
+            var attribute = this.GetMongoDbAttribute<T>();
+            return await this.UpdateManyByDefinitionAsync(attribute.CollectionName, filter, parameters);
         }
 
         /// <summary>
@@ -1415,12 +1595,16 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="parameters">要修改的参数</param>
         /// <returns>返回更新结果</returns>
-        public async Task<UpdateResult> UpdateManyByDefinitionAsync<T>(string collectionName, FilterDefinition<T> filter, Dictionary<string, object> parameters)
+        public async Task<UpdateResult> UpdateManyByDefinitionAsync<T>(
+            string collectionName,
+            FilterDefinition<T> filter,
+            Dictionary<string, object> parameters)
         {
             var list = new List<UpdateDefinition<T>>();
             foreach (var item in typeof(T).GetType().GetProperties())
             {
-                if (!parameters.ContainsKey(item.Name)) continue;
+                if (!parameters.ContainsKey(item.Name))
+                    continue;
                 list.Add(Builders<T>.Update.Set(item.Name, parameters[item.Name]));
             }
             var update = Builders<T>.Update.Combine(list);
@@ -1441,9 +1625,12 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回查询结果实体</returns>
-        public T FindEntity<T>(Expression<Func<T, bool>> filter, FindOptions options = null)
+        public T FindEntity<T>(
+            Expression<Func<T, bool>> filter,
+            FindOptions options = null)
         {
-            return this.FindEntity(typeof(T).Name, filter, options);
+            var attribute = this.GetMongoDbAttribute<T>();
+            return this.FindEntity(attribute.CollectionName, filter, options);
         }
 
         /// <summary>
@@ -1454,7 +1641,10 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回查询结果实体</returns>
-        public T FindEntity<T>(string collectionName, Expression<Func<T, bool>> filter, FindOptions options = null)
+        public T FindEntity<T>(
+            string collectionName,
+            Expression<Func<T, bool>> filter,
+            FindOptions options = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             return collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip(0).Limit(1).FirstOrDefault();
@@ -1467,9 +1657,12 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回查询结果实体</returns>
-        public T FindEntityByDefinition<T>(FilterDefinition<T> filter, FindOptions options = null)
+        public T FindEntityByDefinition<T>(
+            FilterDefinition<T> filter,
+            FindOptions options = null)
         {
-            return this.FindEntityByDefinition(typeof(T).Name, filter, options);
+            var attribute = this.GetMongoDbAttribute<T>();
+            return this.FindEntityByDefinition(attribute.CollectionName, filter, options);
         }
 
         /// <summary>
@@ -1480,7 +1673,10 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回查询结果实体</returns>
-        public T FindEntityByDefinition<T>(string collectionName, FilterDefinition<T> filter, FindOptions options = null)
+        public T FindEntityByDefinition<T>(
+            string collectionName,
+            FilterDefinition<T> filter,
+            FindOptions options = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             return collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip(0).Limit(1).FirstOrDefault();
@@ -1499,9 +1695,16 @@ namespace ZqUtils.Helpers
         /// <param name="pageIndex">当前页码</param>
         /// <param name="pageSize">每页行数</param>
         /// <returns>返回查询结果集合和总条数，默认不分页，返回总条数为0</returns>
-        public (List<T> list, long total) FindList<T>(Expression<Func<T, bool>> filter = null, Expression<Func<T, object>> sort = null, bool isDesc = false, FindOptions options = null, int? pageIndex = null, int? pageSize = null)
+        public (List<T> list, long total) FindList<T>(
+            Expression<Func<T, bool>> filter = null,
+            Expression<Func<T, object>> sort = null,
+            bool isDesc = false,
+            FindOptions options = null,
+            int? pageIndex = null,
+            int? pageSize = null)
         {
-            return this.FindList(typeof(T).Name, filter, sort, isDesc, options, pageIndex, pageSize);
+            var attribute = this.GetMongoDbAttribute<T>();
+            return this.FindList(attribute.CollectionName, filter, sort, isDesc, options, pageIndex, pageSize);
         }
 
         /// <summary>
@@ -1516,7 +1719,14 @@ namespace ZqUtils.Helpers
         /// <param name="pageIndex">当前页码</param>
         /// <param name="pageSize">每页行数</param>
         /// <returns>返回查询结果集合和总条数，默认不分页，返回总条数为0</returns>
-        public (List<T> list, long total) FindList<T>(string collectionName, Expression<Func<T, bool>> filter = null, Expression<Func<T, object>> sort = null, bool isDesc = false, FindOptions options = null, int? pageIndex = null, int? pageSize = null)
+        public (List<T> list, long total) FindList<T>(
+            string collectionName,
+            Expression<Func<T, bool>> filter = null,
+            Expression<Func<T, object>> sort = null,
+            bool isDesc = false,
+            FindOptions options = null,
+            int? pageIndex = null,
+            int? pageSize = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             //是否分页
@@ -1555,9 +1765,15 @@ namespace ZqUtils.Helpers
         /// <param name="pageIndex">当前页码</param>
         /// <param name="pageSize">每页行数</param>
         /// <returns>返回查询结果集合和总条数，默认不分页，返回总条数为0</returns>
-        public (List<T> list, long total) FindListByDefinition<T>(FilterDefinition<T> filter = null, SortDefinition<T> sort = null, FindOptions options = null, int? pageIndex = null, int? pageSize = null)
+        public (List<T> list, long total) FindListByDefinition<T>(
+            FilterDefinition<T> filter = null,
+            SortDefinition<T> sort = null,
+            FindOptions options = null,
+            int? pageIndex = null,
+            int? pageSize = null)
         {
-            return this.FindListByDefinition(typeof(T).Name, sort, options, pageIndex, pageSize);
+            var attribute = this.GetMongoDbAttribute<T>();
+            return this.FindListByDefinition(attribute.CollectionName, filter, sort, options, pageIndex, pageSize);
         }
 
         /// <summary>
@@ -1571,7 +1787,13 @@ namespace ZqUtils.Helpers
         /// <param name="pageIndex">当前页码</param>
         /// <param name="pageSize">每页行数</param>
         /// <returns>返回查询结果集合和总条数，默认不分页，返回总条数为0</returns>
-        public (List<T> list, long total) FindListByDefinition<T>(string collectionName, FilterDefinition<T> filter = null, SortDefinition<T> sort = null, FindOptions options = null, int? pageIndex = null, int? pageSize = null)
+        public (List<T> list, long total) FindListByDefinition<T>(
+            string collectionName,
+            FilterDefinition<T> filter = null,
+            SortDefinition<T> sort = null,
+            FindOptions options = null,
+            int? pageIndex = null,
+            int? pageSize = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             //是否分页
@@ -1603,9 +1825,12 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回查询结果实体</returns>
-        public async Task<T> FindEntityAsync<T>(Expression<Func<T, bool>> filter, FindOptions options = null)
+        public async Task<T> FindEntityAsync<T>(
+            Expression<Func<T, bool>> filter,
+            FindOptions options = null)
         {
-            return await this.FindEntityAsync(typeof(T).Name, filter, options);
+            var attribute = this.GetMongoDbAttribute<T>();
+            return await this.FindEntityAsync(attribute.CollectionName, filter, options);
         }
 
         /// <summary>
@@ -1616,7 +1841,10 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回查询结果实体</returns>
-        public async Task<T> FindEntityAsync<T>(string collectionName, Expression<Func<T, bool>> filter, FindOptions options = null)
+        public async Task<T> FindEntityAsync<T>(
+            string collectionName,
+            Expression<Func<T, bool>> filter,
+            FindOptions options = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             return await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip(0).Limit(1).FirstOrDefaultAsync();
@@ -1629,9 +1857,12 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回查询结果实体</returns>
-        public async Task<T> FindEntityByDefinitionAsync<T>(FilterDefinition<T> filter, FindOptions options = null)
+        public async Task<T> FindEntityByDefinitionAsync<T>(
+            FilterDefinition<T> filter,
+            FindOptions options = null)
         {
-            return await this.FindEntityByDefinitionAsync(typeof(T).Name, filter, options);
+            var attribute = this.GetMongoDbAttribute<T>();
+            return await this.FindEntityByDefinitionAsync(attribute.CollectionName, filter, options);
         }
 
         /// <summary>
@@ -1642,7 +1873,10 @@ namespace ZqUtils.Helpers
         /// <param name="filter">条件</param>
         /// <param name="options">配置</param>
         /// <returns>返回查询结果实体</returns>
-        public async Task<T> FindEntityByDefinitionAsync<T>(string collectionName, FilterDefinition<T> filter, FindOptions options = null)
+        public async Task<T> FindEntityByDefinitionAsync<T>(
+            string collectionName,
+            FilterDefinition<T> filter,
+            FindOptions options = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             return await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip(0).Limit(1).FirstOrDefaultAsync();
@@ -1661,9 +1895,16 @@ namespace ZqUtils.Helpers
         /// <param name="pageIndex">当前页码</param>
         /// <param name="pageSize">每页行数</param>
         /// <returns>返回查询结果集合和总条数，默认不分页，返回总条数为0</returns>
-        public async Task<(List<T> list, long total)> FindListAsync<T>(Expression<Func<T, bool>> filter = null, Expression<Func<T, object>> sort = null, bool isDesc = false, FindOptions options = null, int? pageIndex = null, int? pageSize = null)
+        public async Task<(List<T> list, long total)> FindListAsync<T>(
+            Expression<Func<T, bool>> filter = null,
+            Expression<Func<T, object>> sort = null,
+            bool isDesc = false,
+            FindOptions options = null,
+            int? pageIndex = null,
+            int? pageSize = null)
         {
-            return await this.FindListAsync(typeof(T).Name, filter, sort, isDesc, options, pageIndex, pageSize);
+            var attribute = this.GetMongoDbAttribute<T>();
+            return await this.FindListAsync(attribute.CollectionName, filter, sort, isDesc, options, pageIndex, pageSize);
         }
 
         /// <summary>
@@ -1678,7 +1919,14 @@ namespace ZqUtils.Helpers
         /// <param name="pageIndex">当前页码</param>
         /// <param name="pageSize">每页行数</param>
         /// <returns>返回查询结果集合和总条数，默认不分页，返回总条数为0</returns>
-        public async Task<(List<T> list, long total)> FindListAsync<T>(string collectionName, Expression<Func<T, bool>> filter = null, Expression<Func<T, object>> sort = null, bool isDesc = false, FindOptions options = null, int? pageIndex = null, int? pageSize = null)
+        public async Task<(List<T> list, long total)> FindListAsync<T>(
+            string collectionName,
+            Expression<Func<T, bool>> filter = null,
+            Expression<Func<T, object>> sort = null,
+            bool isDesc = false,
+            FindOptions options = null,
+            int? pageIndex = null,
+            int? pageSize = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             //是否分页
@@ -1717,9 +1965,15 @@ namespace ZqUtils.Helpers
         /// <param name="pageIndex">当前页码</param>
         /// <param name="pageSize">每页行数</param>
         /// <returns>返回查询结果集合和总条数，默认不分页，返回总条数为0</returns>
-        public async Task<(List<T> list, long total)> FindListByDefinitionAsync<T>(FilterDefinition<T> filter = null, SortDefinition<T> sort = null, FindOptions options = null, int? pageIndex = null, int? pageSize = null)
+        public async Task<(List<T> list, long total)> FindListByDefinitionAsync<T>(
+            FilterDefinition<T> filter = null,
+            SortDefinition<T> sort = null,
+            FindOptions options = null,
+            int? pageIndex = null,
+            int? pageSize = null)
         {
-            return await this.FindListByDefinitionAsync(typeof(T).Name, sort, options, pageIndex, pageSize);
+            var attribute = this.GetMongoDbAttribute<T>();
+            return await this.FindListByDefinitionAsync(attribute.CollectionName, filter, sort, options, pageIndex, pageSize);
         }
 
         /// <summary>
@@ -1733,7 +1987,13 @@ namespace ZqUtils.Helpers
         /// <param name="pageIndex">当前页码</param>
         /// <param name="pageSize">每页行数</param>
         /// <returns>返回查询结果集合和总条数，默认不分页，返回总条数为0</returns>
-        public async Task<(List<T> list, long total)> FindListByDefinitionAsync<T>(string collectionName, FilterDefinition<T> filter = null, SortDefinition<T> sort = null, FindOptions options = null, int? pageIndex = null, int? pageSize = null)
+        public async Task<(List<T> list, long total)> FindListByDefinitionAsync<T>(
+            string collectionName,
+            FilterDefinition<T> filter = null,
+            SortDefinition<T> sort = null,
+            FindOptions options = null,
+            int? pageIndex = null,
+            int? pageSize = null)
         {
             var collection = this.database.GetCollection<T>(collectionName);
             //是否分页
@@ -1775,7 +2035,7 @@ namespace ZqUtils.Helpers
         public bool Unique { get; set; }
 
         /// <summary>  
-        /// 是否升序，默认true  
+        /// 是否升序，默认true
         /// </summary>  
         public bool Ascending { get; set; }
 
@@ -1790,6 +2050,27 @@ namespace ZqUtils.Helpers
             this.Name = name;
             this.Unique = unique;
             this.Ascending = ascding;
+        }
+    }
+
+    /// <summary>
+    /// MongoDB实体特性
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    public class MongoDbAttribute : Attribute
+    {
+        /// <summary>
+        /// 表名
+        /// </summary>
+        public string CollectionName { get; set; }
+
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="collectionName">表名</param>
+        public MongoDbAttribute(string collectionName)
+        {
+            CollectionName = collectionName;
         }
     }
 
