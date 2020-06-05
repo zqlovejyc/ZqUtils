@@ -744,13 +744,12 @@ namespace ZqUtils.Extensions
 
         #region 字符串转日期
         /// <summary>
-        /// GMT字符串/时间戳转DateTime
+        /// GMT字符串/日期字符串/时间戳 转DateTime
         /// </summary>
         /// <param name="this">GMT日期字符串</param>
         /// <returns>DateTime</returns>
-        public static DateTime ToDateTime(this string @this)
+        public static DateTime? ToDateTime(this string @this)
         {
-            var dt = DateTime.MinValue;
             if (!@this.IsNull())
             {
                 #region GMT日期
@@ -765,13 +764,21 @@ namespace ZqUtils.Extensions
                     if (@this.ToUpper().IndexOf("GMT") != -1) pattern = "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'";
                     if (pattern != "")
                     {
-                        dt = DateTime.ParseExact(@this, pattern, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal);
-                        dt = dt.ToLocalTime();
+                        var dt = DateTime.ParseExact(@this, pattern, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal);
+                        return dt.ToLocalTime();
                     }
                     else
                     {
-                        dt = Convert.ToDateTime(@this);
+                        return Convert.ToDateTime(@this);
                     }
+                }
+                #endregion
+
+                #region 日期字符串
+                else if (@this.Contains("-") || @this.Contains(":") || @this.Contains("/"))
+                {
+                    if (DateTime.TryParse(@this, out DateTime time))
+                        return time;
                 }
                 #endregion
 
@@ -784,18 +791,18 @@ namespace ZqUtils.Extensions
                     {
                         var ticks = long.Parse(@this + "0000000");
                         var time = new TimeSpan(ticks);
-                        dt = start.Add(time);
+                        return start.Add(time);
                     }
                     else if (type == 13)
                     {
                         var ticks = long.Parse(@this + "0000");
                         var time = new TimeSpan(ticks);
-                        dt = start.Add(time);
+                        return start.Add(time);
                     }
                 }
                 #endregion
             }
-            return dt;
+            return null;
         }
         #endregion
 
