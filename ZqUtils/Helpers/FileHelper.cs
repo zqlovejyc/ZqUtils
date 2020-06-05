@@ -16,18 +16,18 @@
  */
 #endregion
 
+using ICSharpCode.SharpZipLib.Zip;
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Text;
-using System.Web;
 using System.Linq;
+using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Security.Cryptography;
-using ICSharpCode.SharpZipLib.Zip;
+using System.Web;
 using ZqUtils.Extensions;
-using System.Reflection;
 /****************************
 * [Author] 张强
 * [Date] 2015-10-26
@@ -98,6 +98,33 @@ namespace ZqUtils.Helpers
                         while ((count = stream.Read(buffer, 0, buffer.Length)) != 0)
                         {
                             fs.Write(buffer, 0, count);
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 读取嵌入资源创建指定文件
+        /// </summary>
+        /// <param name="assembly">程序集</param>
+        /// <param name="manifestResourcePath">嵌入资源路径</param>
+        /// <param name="filePath">文件路径</param>
+        public static async Task CreateFileFromManifestResourceAsync(Assembly assembly, string manifestResourcePath, string filePath)
+        {
+            if (!File.Exists(filePath))
+            {
+                //读取嵌入资源
+                using (var stream = assembly.GetManifestResourceStream(manifestResourcePath))
+                {
+                    using (var fs = File.Create(filePath))
+                    {
+                        var buffer = new byte[2048];
+                        var count = 0;
+                        //每次读取2kb数据，然后写入文件
+                        while ((count = await stream.ReadAsync(buffer, 0, buffer.Length)) != 0)
+                        {
+                            await fs.WriteAsync(buffer, 0, count);
                         }
                     }
                 }
@@ -311,40 +338,37 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 获取压缩过的文件
         /// </summary>
-        /// <param name="pathArr">文件路径数组</param>
+        /// <param name="filePaths">文件路径数组</param>
         /// <param name="zipName">压缩文件名</param>
         /// <param name="isDeleteFiles">是否删除源文件</param>
-        public static void GetFileOfZip(string[] pathArr, string zipName, bool isDeleteFiles = false)
+        public static void GetFileOfZip(string[] filePaths, string zipName, bool isDeleteFiles = false)
         {
             try
             {
-                if (pathArr?.Length > 0)
+                if (filePaths?.Length > 0)
                 {
                     HttpContext.Current.Response.ContentType = "application/zip";
                     HttpContext.Current.Response.AddHeader("content-disposition", $"filename={zipName}");
                     //jquery.fileDownload插件必须添加以下Cookie设置，否则successCallback回调无效                
                     HttpContext.Current.Response.Cookies.Add(new HttpCookie("fileDownload", "true"));
-                    using (var zipOutputStream = new ZipOutputStream(HttpContext.Current.Response.OutputStream))
+                    using (var zipStream = new ZipOutputStream(HttpContext.Current.Response.OutputStream))
                     {
-                        zipOutputStream.SetLevel(3); //0-9, 9 being the highest level of compression
-                        foreach (string fileName in pathArr)
+                        zipStream.SetLevel(3); //0-9, 9 being the highest level of compression
+                        foreach (string file in filePaths)
                         {
-                            using (var fs = File.OpenRead(fileName))
+                            using (var fs = File.OpenRead(file))
                             {
-                                var entry = new ZipEntry(ZipEntry.CleanName(fileName))
-                                {
-                                    Size = fs.Length
-                                };
+                                var entry = new ZipEntry(ZipEntry.CleanName(file)) { Size = fs.Length };
                                 //Setting the Size provides WinXP built-in extractor compatibility,
                                 //but if not available, you can set zipOutputStream.UseZip64 = UseZip64.Off instead.
-                                zipOutputStream.PutNextEntry(entry);
+                                zipStream.PutNextEntry(entry);
                                 var buffer = new byte[4096];
-                                var count = fs.Read(buffer, 0, buffer.Length);
-                                while (count > 0)
+                                var count = 0;
+                                while ((count = fs.Read(buffer, 0, buffer.Length)) != 0)
                                 {
-                                    zipOutputStream.Write(buffer, 0, count);
-                                    count = fs.Read(buffer, 0, buffer.Length);
-                                    if (!HttpContext.Current.Response.IsClientConnected) break;
+                                    zipStream.Write(buffer, 0, count);
+                                    if (!HttpContext.Current.Response.IsClientConnected)
+                                        break;
                                     HttpContext.Current.Response.Flush();
                                 }
                             }
@@ -361,12 +385,71 @@ namespace ZqUtils.Helpers
                 //删除文件
                 if (isDeleteFiles)
                 {
-                    foreach (var j in pathArr)
+                    foreach (var file in filePaths)
                     {
-                        if (File.Exists(j)) File.Delete(j);
+                        if (File.Exists(file))
+                            File.Delete(file);
                     }
                 }
                 HttpContext.Current.Response.End();
+            }
+        }
+
+        /// <summary>
+        /// 获取压缩过的文件
+        /// </summary>
+        /// <param name="filePaths">文件路径数组</param>
+        /// <param name="isDeleteFiles">是否删除源文件</param>
+        public static byte[] GetFileOfZip(string[] filePaths, bool isDeleteFiles = false)
+        {
+            try
+            {
+                if (filePaths?.Length > 0)
+                {
+                    using (var stream = new MemoryStream())
+                    {
+                        using (var zipStream = new ZipOutputStream(stream))
+                        {
+                            zipStream.SetLevel(3); //0-9, 9 being the highest level of compression
+                            foreach (string file in filePaths)
+                            {
+                                using (var fs = File.OpenRead(file))
+                                {
+                                    var entry = new ZipEntry(ZipEntry.CleanName(file)) { Size = fs.Length };
+                                    //Setting the Size provides WinXP built-in extractor compatibility,
+                                    //but if not available, you can set zipOutputStream.UseZip64 = UseZip64.Off instead.
+                                    zipStream.PutNextEntry(entry);
+                                    var buffer = new byte[4096];
+                                    var count = 0;
+                                    while ((count = fs.Read(buffer, 0, buffer.Length)) != 0)
+                                    {
+                                        zipStream.Write(buffer, 0, count);
+                                        zipStream.Flush();
+                                    }
+                                }
+                            }
+                            zipStream.Finish();
+                            return stream.ToArray();
+                        }
+                    }
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                //删除文件
+                if (isDeleteFiles)
+                {
+                    foreach (var file in filePaths)
+                    {
+                        if (File.Exists(file))
+                            File.Delete(file);
+                    }
+                }
             }
         }
         #endregion
@@ -587,36 +670,35 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 获取压缩过的文件
         /// </summary>
-        /// <param name="pathArr">文件路径数组</param>
+        /// <param name="filePaths">文件路径数组</param>
         /// <param name="zipName">压缩文件名</param>
         /// <param name="isDeleteFiles">是否删除源文件</param>
-        public static async Task GetFileOfZipAsync(string[] pathArr, string zipName, bool isDeleteFiles = false)
+        public static async Task GetFileOfZipAsync(string[] filePaths, string zipName, bool isDeleteFiles = false)
         {
             try
             {
-                if (pathArr?.Length > 0)
+                if (filePaths?.Length > 0)
                 {
                     HttpContext.Current.Response.ContentType = "application/zip";
                     HttpContext.Current.Response.AddHeader("content-disposition", $"filename={zipName}");
                     //jquery.fileDownload插件必须添加以下Cookie设置，否则successCallback回调无效                
                     HttpContext.Current.Response.Cookies.Add(new HttpCookie("fileDownload", "true"));
-                    using (var zipOutputStream = new ZipOutputStream(HttpContext.Current.Response.OutputStream))
+                    using (var zipStream = new ZipOutputStream(HttpContext.Current.Response.OutputStream))
                     {
-                        zipOutputStream.SetLevel(3); //0-9, 9 being the highest level of compression
-                        foreach (string fileName in pathArr)
+                        zipStream.SetLevel(3); //0-9, 9 being the highest level of compression
+                        foreach (string file in filePaths)
                         {
-                            using (var fs = File.OpenRead(fileName))
+                            using (var fs = File.OpenRead(file))
                             {
-                                var entry = new ZipEntry(ZipEntry.CleanName(fileName)) { Size = fs.Length };
+                                var entry = new ZipEntry(ZipEntry.CleanName(file)) { Size = fs.Length };
                                 //Setting the Size provides WinXP built-in extractor compatibility,
                                 //but if not available, you can set zipOutputStream.UseZip64 = UseZip64.Off instead.
-                                zipOutputStream.PutNextEntry(entry);
+                                zipStream.PutNextEntry(entry);
                                 var buffer = new byte[4096];
-                                var count = await fs.ReadAsync(buffer, 0, buffer.Length);
-                                while (count > 0)
+                                var count = 0;
+                                while ((count = await fs.ReadAsync(buffer, 0, buffer.Length)) != 0)
                                 {
-                                    await zipOutputStream.WriteAsync(buffer, 0, count);
-                                    count = await fs.ReadAsync(buffer, 0, buffer.Length);
+                                    await zipStream.WriteAsync(buffer, 0, count);
                                     if (!HttpContext.Current.Response.IsClientConnected)
                                         break;
                                     await HttpContext.Current.Response.OutputStream.FlushAsync();
@@ -635,13 +717,71 @@ namespace ZqUtils.Helpers
                 //删除文件
                 if (isDeleteFiles)
                 {
-                    foreach (var j in pathArr)
+                    foreach (var file in filePaths)
                     {
-                        if (File.Exists(j))
-                            File.Delete(j);
+                        if (File.Exists(file))
+                            File.Delete(file);
                     }
                 }
                 HttpContext.Current.Response.End();
+            }
+        }
+
+        /// <summary>
+        /// 获取压缩过的文件
+        /// </summary>
+        /// <param name="filePaths">文件路径数组</param>
+        /// <param name="isDeleteFiles">是否删除源文件</param>
+        public static async Task<byte[]> GetFileOfZipAsync(string[] filePaths, bool isDeleteFiles = false)
+        {
+            try
+            {
+                if (filePaths?.Length > 0)
+                {
+                    using (var stream = new MemoryStream())
+                    {
+                        using (var zipStream = new ZipOutputStream(stream))
+                        {
+                            zipStream.SetLevel(3); //0-9, 9 being the highest level of compression
+                            foreach (string file in filePaths)
+                            {
+                                using (var fs = File.OpenRead(file))
+                                {
+                                    var entry = new ZipEntry(ZipEntry.CleanName(file)) { Size = fs.Length };
+                                    //Setting the Size provides WinXP built-in extractor compatibility,
+                                    //but if not available, you can set zipOutputStream.UseZip64 = UseZip64.Off instead.
+                                    zipStream.PutNextEntry(entry);
+                                    var buffer = new byte[4096];
+                                    var count = 0;
+                                    while ((count = await fs.ReadAsync(buffer, 0, buffer.Length)) != 0)
+                                    {
+                                        await zipStream.WriteAsync(buffer, 0, count);
+                                        await zipStream.FlushAsync();
+                                    }
+                                }
+                            }
+                            zipStream.Finish();
+                            return stream.ToArray();
+                        }
+                    }
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                //删除文件
+                if (isDeleteFiles)
+                {
+                    foreach (var file in filePaths)
+                    {
+                        if (File.Exists(file))
+                            File.Delete(file);
+                    }
+                }
             }
         }
         #endregion
@@ -819,7 +959,8 @@ namespace ZqUtils.Helpers
             if (!path.IsNull() && !File.Exists(path))
             {
                 var directory = Path.GetDirectoryName(path);
-                if (!Directory.Exists(directory)) 
+
+                if (!Directory.Exists(directory))
                     Directory.CreateDirectory(directory);
 
                 File.Create(path).Close();
