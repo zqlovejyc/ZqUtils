@@ -804,6 +804,21 @@ namespace ZqUtils.Extensions
             }
             return null;
         }
+
+        /// <summary>
+        /// 自定义格式转换日期字符串
+        /// </summary>
+        /// <param name="this"></param>
+        /// <param name="format">日期字符串格式化</param>
+        /// <param name="provider">格式化驱动</param>
+        /// <returns></returns>
+        public static DateTime ToDateTime(this string @this, string format, IFormatProvider provider = null)
+        {
+            if (!format.IsNullOrEmpty())
+                return DateTime.ParseExact(@this, format, provider);
+            else
+                return DateTime.Parse(@this);
+        }
         #endregion
 
         #region 首字母转换
