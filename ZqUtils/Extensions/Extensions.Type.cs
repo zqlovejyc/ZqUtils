@@ -521,19 +521,19 @@ namespace ZqUtils.Extensions
         /// IsAssignableTo
         /// </summary>
         /// <param name="type"></param>
-        /// <param name="otherType"></param>
+        /// <param name="baseType"></param>
         /// <returns></returns>
-        public static bool IsAssignableTo(this Type type, Type otherType)
+        public static bool IsAssignableTo(this Type type, Type baseType)
         {
             var typeInfo = type.GetTypeInfo();
-            var otherTypeInfo = otherType.GetTypeInfo();
+            var baseTypeInfo = baseType.GetTypeInfo();
 
-            if (otherTypeInfo.IsGenericTypeDefinition)
+            if (baseTypeInfo.IsGenericTypeDefinition)
             {
-                return typeInfo.IsAssignableToGenericTypeDefinition(otherTypeInfo);
+                return typeInfo.IsAssignableToGenericTypeDefinition(baseTypeInfo);
             }
 
-            return otherTypeInfo.IsAssignableFrom(typeInfo);
+            return baseTypeInfo.IsAssignableFrom(typeInfo);
         }
         #endregion
 
@@ -584,7 +584,6 @@ namespace ZqUtils.Extensions
 
             return baseTypeInfo.IsAssignableToGenericTypeDefinition(genericTypeInfo);
         }
-
         #endregion
 
         #region IsNonAbstractClass
