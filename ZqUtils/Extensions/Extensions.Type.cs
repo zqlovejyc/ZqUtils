@@ -24,6 +24,7 @@ using System.Data;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 /****************************
 * [Author] 张强
 * [Date] 2018-05-16
@@ -255,7 +256,7 @@ namespace ZqUtils.Extensions
         {
             return @this.GetTypeInfo().GetCustomAttributes(attributeType, inherit).ToArray();
         }
-        #endregion        
+        #endregion
 
         #region GetAttribute
         /// <summary>
@@ -512,6 +513,159 @@ namespace ZqUtils.Extensions
         public static bool IsAssignableFrom(this Type @this, Type other)
         {
             return @this.GetTypeInfo().IsAssignableFrom(other.GetTypeInfo());
+        }
+        #endregion
+
+        #region IsAssignableTo
+        /// <summary>
+        /// IsAssignableTo
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="otherType"></param>
+        /// <returns></returns>
+        public static bool IsAssignableTo(this Type type, Type otherType)
+        {
+            var typeInfo = type.GetTypeInfo();
+            var otherTypeInfo = otherType.GetTypeInfo();
+
+            if (otherTypeInfo.IsGenericTypeDefinition)
+            {
+                return typeInfo.IsAssignableToGenericTypeDefinition(otherTypeInfo);
+            }
+
+            return otherTypeInfo.IsAssignableFrom(typeInfo);
+        }
+        #endregion
+
+        #region IsAssignableToGenericTypeDefinition
+        /// <summary>
+        /// IsAssignableToGenericTypeDefinition
+        /// </summary>
+        /// <param name="typeInfo"></param>
+        /// <param name="genericTypeInfo"></param>
+        /// <returns></returns>
+        public static bool IsAssignableToGenericTypeDefinition(this TypeInfo typeInfo, TypeInfo genericTypeInfo)
+        {
+            var interfaceTypes = typeInfo.ImplementedInterfaces.Select(t => t.GetTypeInfo());
+
+            foreach (var interfaceType in interfaceTypes)
+            {
+                if (interfaceType.IsGenericType)
+                {
+                    var typeDefinitionTypeInfo = interfaceType
+                        .GetGenericTypeDefinition()
+                        .GetTypeInfo();
+
+                    if (typeDefinitionTypeInfo.Equals(genericTypeInfo))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            if (typeInfo.IsGenericType)
+            {
+                var typeDefinitionTypeInfo = typeInfo
+                    .GetGenericTypeDefinition()
+                    .GetTypeInfo();
+
+                if (typeDefinitionTypeInfo.Equals(genericTypeInfo))
+                {
+                    return true;
+                }
+            }
+
+            var baseTypeInfo = typeInfo.BaseType?.GetTypeInfo();
+
+            if (baseTypeInfo is null)
+            {
+                return false;
+            }
+
+            return baseTypeInfo.IsAssignableToGenericTypeDefinition(genericTypeInfo);
+        }
+
+        #endregion
+
+        #region IsNonAbstractClass
+        /// <summary>
+        /// IsNonAbstractClass
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="publicOnly"></param>
+        /// <returns></returns>
+        public static bool IsNonAbstractClass(this Type type, bool publicOnly)
+        {
+            var typeInfo = type.GetTypeInfo();
+
+            if (typeInfo.IsSpecialName)
+            {
+                return false;
+            }
+
+            if (typeInfo.IsClass && !typeInfo.IsAbstract)
+            {
+                if (typeInfo.IsDefined(typeof(CompilerGeneratedAttribute), inherit: true))
+                {
+                    return false;
+                }
+
+                if (publicOnly)
+                {
+                    return typeInfo.IsPublic || typeInfo.IsNestedPublic;
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+        #endregion
+
+        #region IsInNamespace
+        /// <summary>
+        /// IsInNamespace
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="namespace"></param>
+        /// <returns></returns>
+        public static bool IsInNamespace(this Type type, string @namespace)
+        {
+            var typeNamespace = type.Namespace ?? string.Empty;
+
+            if (@namespace.Length > typeNamespace.Length)
+            {
+                return false;
+            }
+
+            var typeSubNamespace = typeNamespace.Substring(0, @namespace.Length);
+
+            if (typeSubNamespace.Equals(@namespace, StringComparison.Ordinal))
+            {
+                if (typeNamespace.Length == @namespace.Length)
+                {
+                    //exactly the same
+                    return true;
+                }
+
+                //is a subnamespace?
+                return typeNamespace[@namespace.Length] == '.';
+            }
+
+            return false;
+        }
+        #endregion
+
+        #region IsInExactNamespace
+        /// <summary>
+        /// IsInExactNamespace
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="namespace"></param>
+        /// <returns></returns>
+        public static bool IsInExactNamespace(this Type type, string @namespace)
+        {
+            return string.Equals(type.Namespace, @namespace, StringComparison.Ordinal);
         }
         #endregion
 
@@ -881,6 +1035,34 @@ namespace ZqUtils.Extensions
         }
         #endregion                
 
+        #region GetBaseTypes
+        /// <summary>
+        /// GetBaseTypes
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static IEnumerable<Type> GetBaseTypes(this Type type)
+        {
+            var typeInfo = type.GetTypeInfo();
+
+            foreach (var implementedInterface in typeInfo.ImplementedInterfaces)
+            {
+                yield return implementedInterface;
+            }
+
+            var baseType = typeInfo.BaseType;
+
+            while (baseType != null)
+            {
+                var baseTypeInfo = baseType.GetTypeInfo();
+
+                yield return baseType;
+
+                baseType = baseTypeInfo.BaseType;
+            }
+        }
+        #endregion
+
         #region Has
         /// <summary>
         /// Has
@@ -891,6 +1073,31 @@ namespace ZqUtils.Extensions
         public static bool Has<TAttribute>(this Type @this) where TAttribute : Attribute
         {
             return @this.GetTypeInfo().IsDefined(typeof(TAttribute), inherit: false);
+        }
+        #endregion
+
+        #region HasAttribute
+        /// <summary>
+        /// HasAttribute
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="attributeType"></param>
+        /// <returns></returns>
+        public static bool HasAttribute(this Type type, Type attributeType)
+        {
+            return type.GetTypeInfo().IsDefined(attributeType, inherit: true);
+        }
+
+        /// <summary>
+        /// HasAttribute
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="type"></param>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
+        public static bool HasAttribute<T>(this Type type, Func<T, bool> predicate) where T : Attribute
+        {
+            return type.GetTypeInfo().GetCustomAttributes<T>(inherit: true).Any(predicate);
         }
         #endregion
 
