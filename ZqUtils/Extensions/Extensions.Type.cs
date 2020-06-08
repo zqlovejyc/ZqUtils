@@ -172,9 +172,7 @@ namespace ZqUtils.Extensions
         {
             return @this.GetAllMethods().FirstOrDefault(mi => mi.Name == name);
         }
-        #endregion
 
-        #region GetDeclaredMethod
         /// <summary>
         /// GetDeclaredMethod
         /// </summary>
@@ -347,9 +345,8 @@ namespace ZqUtils.Extensions
         /// GetGetMethod
         /// </summary>
         /// <param name="this"></param>
-        /// <param name="ignored"></param>
         /// <returns></returns>
-        public static MethodInfo GetGetMethod(this PropertyInfo @this, bool ignored)
+        public static MethodInfo GetGetMethod(this PropertyInfo @this)
         {
             return @this.GetMethod;
         }
@@ -360,9 +357,8 @@ namespace ZqUtils.Extensions
         /// GetSetMethod
         /// </summary>
         /// <param name="this"></param>
-        /// <param name="ignored"></param>
         /// <returns></returns>
-        public static MethodInfo GetSetMethod(this PropertyInfo @this, bool ignored)
+        public static MethodInfo GetSetMethod(this PropertyInfo @this)
         {
             return @this.SetMethod;
         }
