@@ -37,7 +37,7 @@ namespace ZqUtils.Extensions
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static Expression<Func<T, bool>> True<T>() => parameter => true;
+        public static Expression<Func<T, bool>> True<T>() => p => true;
 
         /// <summary>
         /// True
@@ -54,7 +54,7 @@ namespace ZqUtils.Extensions
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static Expression<Func<T, bool>> False<T>() => parameter => false;
+        public static Expression<Func<T, bool>> False<T>() => p => false;
 
         /// <summary>
         /// False
@@ -236,59 +236,59 @@ namespace ZqUtils.Extensions
         /// linq正序排序扩展
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="source"></param>
+        /// <param name="this"></param>
         /// <param name="property"></param>
         /// <returns></returns>
-        public static IOrderedQueryable<T> OrderBy<T>(this IQueryable<T> source, string property)
+        public static IOrderedQueryable<T> OrderBy<T>(this IQueryable<T> @this, string property)
         {
-            return source.BuildIOrderedQueryable<T>(property, "OrderBy");
+            return @this.BuildIOrderedQueryable<T>(property, "OrderBy");
         }
 
         /// <summary>
         /// linq倒叙排序扩展
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="source"></param>
+        /// <param name="this"></param>
         /// <param name="property"></param>
         /// <returns></returns>
-        public static IOrderedQueryable<T> OrderByDescending<T>(this IQueryable<T> source, string property)
+        public static IOrderedQueryable<T> OrderByDescending<T>(this IQueryable<T> @this, string property)
         {
-            return source.BuildIOrderedQueryable<T>(property, "OrderByDescending");
+            return @this.BuildIOrderedQueryable<T>(property, "OrderByDescending");
         }
 
         /// <summary>
         /// linq正序多列排序扩展
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="source"></param>
+        /// <param name="this"></param>
         /// <param name="property"></param>
         /// <returns></returns>
-        public static IOrderedQueryable<T> ThenBy<T>(this IOrderedQueryable<T> source, string property)
+        public static IOrderedQueryable<T> ThenBy<T>(this IOrderedQueryable<T> @this, string property)
         {
-            return source.BuildIOrderedQueryable<T>(property, "ThenBy");
+            return @this.BuildIOrderedQueryable<T>(property, "ThenBy");
         }
 
         /// <summary>
         /// linq倒序多列排序扩展
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="source"></param>
+        /// <param name="this"></param>
         /// <param name="property"></param>
         /// <returns></returns>
-        public static IOrderedQueryable<T> ThenByDescending<T>(this IOrderedQueryable<T> source, string property)
+        public static IOrderedQueryable<T> ThenByDescending<T>(this IOrderedQueryable<T> @this, string property)
         {
-            return source.BuildIOrderedQueryable<T>(property, "ThenByDescending");
+            return @this.BuildIOrderedQueryable<T>(property, "ThenByDescending");
         }
 
         /// <summary>
         /// 根据属性和排序方法构建IOrderedQueryable
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="source"></param>
+        /// <param name="this"></param>
         /// <param name="property"></param>
         /// <param name="methodName"></param>
         /// <returns></returns>
-        public static IOrderedQueryable<T> BuildIOrderedQueryable<T>(this IQueryable<T> source, string property, string methodName)
+        public static IOrderedQueryable<T> BuildIOrderedQueryable<T>(this IQueryable<T> @this, string property, string methodName)
         {
             var props = property.Split('.');
             var type = typeof(T);
@@ -309,7 +309,7 @@ namespace ZqUtils.Extensions
                 && method.GetGenericArguments().Length == 2
                 && method.GetParameters().Length == 2)
               .MakeGenericMethod(typeof(T), type)
-              .Invoke(null, new object[] { source, lambda });
+              .Invoke(null, new object[] { @this, lambda });
             return (IOrderedQueryable<T>)result;
         }
         #endregion
@@ -318,12 +318,12 @@ namespace ZqUtils.Extensions
         /// <summary>
         /// Property
         /// </summary>
-        /// <param name="expression"></param>
+        /// <param name="this"></param>
         /// <param name="propertyName"></param>
         /// <returns></returns>
-        public static Expression Property(this Expression expression, string propertyName)
+        public static Expression Property(this Expression @this, string propertyName)
         {
-            return Expression.Property(expression, propertyName);
+            return Expression.Property(@this, propertyName);
         }
         #endregion
 
@@ -331,12 +331,12 @@ namespace ZqUtils.Extensions
         /// <summary>
         /// AndAlso
         /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
+        /// <param name="this"></param>
+        /// <param name="other"></param>
         /// <returns></returns>
-        public static Expression AndAlso(this Expression left, Expression right)
+        public static Expression AndAlso(this Expression @this, Expression other)
         {
-            return Expression.AndAlso(left, right);
+            return Expression.AndAlso(@this, other);
         }
         #endregion
 
@@ -344,13 +344,13 @@ namespace ZqUtils.Extensions
         /// <summary>
         /// Call
         /// </summary>
-        /// <param name="instance"></param>
+        /// <param name="this"></param>
         /// <param name="methodName"></param>
         /// <param name="arguments"></param>
         /// <returns></returns>
-        public static Expression Call(this Expression instance, string methodName, params Expression[] arguments)
+        public static Expression Call(this Expression @this, string methodName, params Expression[] arguments)
         {
-            return Expression.Call(instance, instance.Type.GetMethod(methodName), arguments);
+            return Expression.Call(@this, @this.Type.GetMethod(methodName), arguments);
         }
         #endregion
 
@@ -358,12 +358,12 @@ namespace ZqUtils.Extensions
         /// <summary>
         /// GreaterThan
         /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
+        /// <param name="this"></param>
+        /// <param name="other"></param>
         /// <returns></returns>
-        public static Expression GreaterThan(this Expression left, Expression right)
+        public static Expression GreaterThan(this Expression @this, Expression other)
         {
-            return Expression.GreaterThan(left, right);
+            return Expression.GreaterThan(@this, other);
         }
         #endregion
     }
