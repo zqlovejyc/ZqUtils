@@ -287,7 +287,7 @@ namespace ZqUtils.Extensions
         /// <returns>bool</returns>
         public static bool IsTel(this string @this)
         {
-            return Regex.IsMatch(@this, @"^[0-9]{3,4}\-[0-9]{3,8}\-[0-9]{1,4}$)|(^[0-9]{3,4}\-[0-9]{3,8}$)|(^[0-9]{3,8}$)|(^\([0-9]{3,4}\)[0-9]{3,8}$");
+            return Regex.IsMatch(@this, @"(^[0-9]{3,4}\-[0-9]{3,8}\-[0-9]{1,4}$)|(^[0-9]{3,4}\-[0-9]{3,8}$)|(^[0-9]{3,8}$)|(^\([0-9]{3,4}\)[0-9]{3,8}$)");
         }
         #endregion
 
