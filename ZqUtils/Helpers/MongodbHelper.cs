@@ -55,16 +55,6 @@ namespace ZqUtils.Helpers
         /// 数据库，若不存在，则自动创建
         /// </summary>
         private readonly string databaseName = ConfigHelper.GetAppSettings<string>("mongodbDatabase") ?? "Database";
-
-        /// <summary>
-        /// MongoClient
-        /// </summary>
-        private readonly MongoClient client;
-
-        /// <summary>
-        /// IMongoDatabase
-        /// </summary>
-        private readonly IMongoDatabase database;
         #endregion
 
         #region 公有属性
@@ -72,6 +62,16 @@ namespace ZqUtils.Helpers
         /// 静态单例
         /// </summary>
         public static MongodbHelper Instance => SingletonHelper<MongodbHelper>.GetInstance();
+
+        /// <summary>
+        /// MongoClient
+        /// </summary>
+        private MongoClient Client { get; set; }
+
+        /// <summary>
+        /// IMongoDatabase
+        /// </summary>
+        private IMongoDatabase Database { get; set; }
         #endregion
 
         #region 构造函数
@@ -80,8 +80,8 @@ namespace ZqUtils.Helpers
         /// </summary>
         public MongodbHelper()
         {
-            this.client = new MongoClient(this.connectionString);
-            this.database = this.client.GetDatabase(this.databaseName);
+            this.Client = new MongoClient(this.connectionString);
+            this.Database = this.Client.GetDatabase(this.databaseName);
         }
 
         /// <summary>
@@ -91,8 +91,8 @@ namespace ZqUtils.Helpers
         public MongodbHelper(string databaseName)
         {
             this.databaseName = databaseName;
-            this.client = new MongoClient(this.connectionString);
-            this.database = this.client.GetDatabase(this.databaseName);
+            this.Client = new MongoClient(this.connectionString);
+            this.Database = this.Client.GetDatabase(this.databaseName);
         }
 
         /// <summary>
@@ -103,8 +103,8 @@ namespace ZqUtils.Helpers
         public MongodbHelper(string databaseName, MongoClientSettings settings)
         {
             this.databaseName = databaseName;
-            this.client = new MongoClient(settings);
-            this.database = this.client.GetDatabase(this.databaseName);
+            this.Client = new MongoClient(settings);
+            this.Database = this.Client.GetDatabase(this.databaseName);
         }
 
         /// <summary>
@@ -121,10 +121,10 @@ namespace ZqUtils.Helpers
             this.databaseName = databaseName;
             this.connectionString = connectionString;
             if (isMongoClientSettings)
-                this.client = new MongoClient(MongoClientSettings.FromConnectionString(connectionString));
+                this.Client = new MongoClient(MongoClientSettings.FromConnectionString(connectionString));
             else
-                this.client = new MongoClient(this.connectionString);
-            this.database = this.client.GetDatabase(this.databaseName);
+                this.Client = new MongoClient(this.connectionString);
+            this.Database = this.Client.GetDatabase(this.databaseName);
         }
         #endregion
 
@@ -382,7 +382,7 @@ namespace ZqUtils.Helpers
             if (!_pool.ContainsKey(databaseName))
             {
                 var objectPool = new Lazy<ObjectPoolHelper<MongodbHelper>>(() => new ObjectPoolHelper<MongodbHelper>(() => new MongodbHelper(databaseName)));
-                _pool.GetOrAdd(database.ToString(), objectPool);
+                _pool.GetOrAdd(Database.ToString(), objectPool);
                 return objectPool.Value.GetObject();
             }
             else
@@ -446,7 +446,7 @@ namespace ZqUtils.Helpers
         public void CreateIndex<T>(string collectionName = null)
         {
             var attribute = this.GetMongoDbAttribute<T>(collectionName);
-            var collection = this.database.GetCollection<T>(attribute.CollectionName);
+            var collection = this.Database.GetCollection<T>(attribute.CollectionName);
             var props = typeof(T).GetProperties(BindingFlags.Instance | BindingFlags.Public);
             if (props?.Length > 0)
             {
@@ -489,7 +489,7 @@ namespace ZqUtils.Helpers
         public bool ExistIndex<T>(string indexName, string collectionName = null)
         {
             var attribute = this.GetMongoDbAttribute<T>(collectionName);
-            var collection = this.database.GetCollection<T>(attribute.CollectionName);
+            var collection = this.Database.GetCollection<T>(attribute.CollectionName);
             var indexes = collection.Indexes.List();
             var indexNames = indexes.ToList().Select(i => i.GetValue("name").AsString);
             return indexNames.Contains(indexName);
@@ -520,7 +520,7 @@ namespace ZqUtils.Helpers
         public void DropIndex<T>(string indexName, string collectionName = null)
         {
             var attribute = this.GetMongoDbAttribute<T>(collectionName);
-            var collection = this.database.GetCollection<T>(attribute.CollectionName);
+            var collection = this.Database.GetCollection<T>(attribute.CollectionName);
             collection.Indexes.DropOne(indexName);
         }
         #endregion
@@ -580,7 +580,7 @@ namespace ZqUtils.Helpers
         public async Task CreateIndexAsync<T>(string collectionName = null)
         {
             var attribute = this.GetMongoDbAttribute<T>(collectionName);
-            var collection = this.database.GetCollection<T>(attribute.CollectionName);
+            var collection = this.Database.GetCollection<T>(attribute.CollectionName);
             var props = typeof(T).GetProperties(BindingFlags.Instance | BindingFlags.Public);
             if (props?.Length > 0)
             {
@@ -623,7 +623,7 @@ namespace ZqUtils.Helpers
         public async Task<bool> ExistIndexAsync<T>(string indexName, string collectionName = null)
         {
             var attribute = this.GetMongoDbAttribute<T>(collectionName);
-            var collection = this.database.GetCollection<T>(attribute.CollectionName);
+            var collection = this.Database.GetCollection<T>(attribute.CollectionName);
             var indexes = await collection.Indexes.ListAsync();
             var indexNames = (await indexes.ToListAsync()).Select(i => i.GetValue("name").AsString);
             return indexNames.Contains(indexName);
@@ -654,7 +654,7 @@ namespace ZqUtils.Helpers
         public async Task DropIndexAsync<T>(string indexName, string collectionName = null)
         {
             var attribute = this.GetMongoDbAttribute<T>(collectionName);
-            var collection = this.database.GetCollection<T>(attribute.CollectionName);
+            var collection = this.Database.GetCollection<T>(attribute.CollectionName);
             await collection.Indexes.DropOneAsync(indexName);
         }
         #endregion
@@ -698,7 +698,7 @@ namespace ZqUtils.Helpers
         /// <param name="entity">插入实体</param>
         public void InsertOne<T>(string collectionName, T entity)
         {
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             collection.InsertOne(entity);
             this.CreateIndex<T>(collectionName);
         }
@@ -724,7 +724,7 @@ namespace ZqUtils.Helpers
         /// <param name="entity">插入实体</param>
         public void InsertMany<T>(string collectionName, List<T> entity)
         {
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             collection.InsertMany(entity);
             this.CreateIndex<T>(collectionName);
         }
@@ -752,7 +752,7 @@ namespace ZqUtils.Helpers
         /// <param name="entity">插入实体</param>
         public async Task InsertOneAsync<T>(string collectionName, T entity)
         {
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             await collection.InsertOneAsync(entity);
             await this.CreateIndexAsync<T>(collectionName);
         }
@@ -778,7 +778,7 @@ namespace ZqUtils.Helpers
         /// <param name="entity">插入实体</param>
         public async Task InsertManyAsync<T>(string collectionName, List<T> entity)
         {
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             await collection.InsertManyAsync(entity);
             await this.CreateIndexAsync<T>(collectionName);
         }
@@ -817,7 +817,7 @@ namespace ZqUtils.Helpers
             Expression<Func<T, bool>> filter,
             DeleteOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             return collection.DeleteOne(filter, options).DeletedCount > 0;
         }
 
@@ -849,7 +849,7 @@ namespace ZqUtils.Helpers
             FilterDefinition<T> filter,
             DeleteOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             return collection.DeleteOne(filter, options).DeletedCount > 0;
         }
         #endregion
@@ -883,7 +883,7 @@ namespace ZqUtils.Helpers
             Expression<Func<T, bool>> filter,
             DeleteOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             return collection.DeleteMany(filter, options).DeletedCount > 0;
         }
 
@@ -915,7 +915,7 @@ namespace ZqUtils.Helpers
             FilterDefinition<T> filter,
             DeleteOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             return collection.DeleteMany(filter, options).DeletedCount > 0;
         }
         #endregion
@@ -927,7 +927,7 @@ namespace ZqUtils.Helpers
         /// <param name="collectionName">表名</param>
         public void DropCollection(string collectionName)
         {
-            this.database.DropCollection(collectionName);
+            this.Database.DropCollection(collectionName);
         }
         #endregion
 
@@ -938,7 +938,7 @@ namespace ZqUtils.Helpers
         /// <param name="databaseName">数据库名称</param>
         public void DropDatabase(string databaseName)
         {
-            this.client.DropDatabase(databaseName);
+            this.Client.DropDatabase(databaseName);
         }
         #endregion
         #endregion
@@ -973,7 +973,7 @@ namespace ZqUtils.Helpers
             Expression<Func<T, bool>> filter,
             DeleteOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             return await collection.DeleteOneAsync(filter, options);
         }
 
@@ -1005,7 +1005,7 @@ namespace ZqUtils.Helpers
             FilterDefinition<T> filter,
             DeleteOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             return await collection.DeleteOneAsync(filter, options);
         }
         #endregion
@@ -1039,7 +1039,7 @@ namespace ZqUtils.Helpers
             Expression<Func<T, bool>> filter,
             DeleteOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             return await collection.DeleteManyAsync(filter, options);
         }
 
@@ -1071,7 +1071,7 @@ namespace ZqUtils.Helpers
             FilterDefinition<T> filter,
             DeleteOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             return await collection.DeleteManyAsync(filter, options);
         }
         #endregion
@@ -1083,7 +1083,7 @@ namespace ZqUtils.Helpers
         /// <param name="collectionName">表名</param>
         public async Task DropCollectionAsync(string collectionName)
         {
-            await this.database.DropCollectionAsync(collectionName);
+            await this.Database.DropCollectionAsync(collectionName);
         }
         #endregion
 
@@ -1095,7 +1095,7 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public async Task DropDatabaseAsync(string databaseName)
         {
-            await this.client.DropDatabaseAsync(databaseName);
+            await this.Client.DropDatabaseAsync(databaseName);
         }
         #endregion
         #endregion
@@ -1150,7 +1150,7 @@ namespace ZqUtils.Helpers
             object item,
             Expression<Func<T, bool>> filter)
         {
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             return collection.UpdateOne<T>(filter, Builders<T>.Update.Push(field, item)).ModifiedCount > 0;
         }
         #endregion
@@ -1202,7 +1202,7 @@ namespace ZqUtils.Helpers
             object item,
             Expression<Func<T, bool>> filter)
         {
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             return collection.UpdateOne<T>(filter, Builders<T>.Update.Pull(field, item)).ModifiedCount > 0;
         }
         #endregion
@@ -1236,7 +1236,7 @@ namespace ZqUtils.Helpers
             Expression<Func<T, bool>> filter,
             T entity)
         {
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             var updateList = BuildUpdateDefinition<T>(entity);
             return collection.UpdateOne<T>(filter, Builders<T>.Update.Combine(updateList)).ModifiedCount > 0;
         }
@@ -1277,7 +1277,7 @@ namespace ZqUtils.Helpers
                 list.Add(Builders<T>.Update.Set(item.Name, parameters[item.Name]));
             }
             var update = Builders<T>.Update.Combine(list);
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             return collection.UpdateOne(filter, update).ModifiedCount > 0;
         }
         #endregion
@@ -1311,7 +1311,7 @@ namespace ZqUtils.Helpers
             Expression<Func<T, bool>> filter,
             T entity)
         {
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             var updateList = BuildUpdateDefinition<T>(entity);
             return collection.UpdateMany<T>(filter, Builders<T>.Update.Combine(updateList)).ModifiedCount > 0;
         }
@@ -1352,7 +1352,7 @@ namespace ZqUtils.Helpers
                 list.Add(Builders<T>.Update.Set(item.Name, parameters[item.Name]));
             }
             var update = Builders<T>.Update.Combine(list);
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             return collection.UpdateMany(filter, update).ModifiedCount > 0;
         }
         #endregion
@@ -1406,7 +1406,7 @@ namespace ZqUtils.Helpers
             object item,
             Expression<Func<T, bool>> filter)
         {
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             return await collection.UpdateOneAsync<T>(filter, Builders<T>.Update.Push(field, item));
         }
         #endregion
@@ -1458,7 +1458,7 @@ namespace ZqUtils.Helpers
             object item,
             Expression<Func<T, bool>> filter)
         {
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             return await collection.UpdateOneAsync<T>(filter, Builders<T>.Update.Pull(field, item));
         }
         #endregion
@@ -1492,7 +1492,7 @@ namespace ZqUtils.Helpers
             Expression<Func<T, bool>> filter,
             T entity)
         {
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             var updateList = BuildUpdateDefinition<T>(entity);
             return await collection.UpdateOneAsync<T>(filter, Builders<T>.Update.Combine(updateList));
         }
@@ -1533,7 +1533,7 @@ namespace ZqUtils.Helpers
                 list.Add(Builders<T>.Update.Set(item.Name, parameters[item.Name]));
             }
             var update = Builders<T>.Update.Combine(list);
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             return await collection.UpdateOneAsync(filter, update);
         }
         #endregion
@@ -1567,7 +1567,7 @@ namespace ZqUtils.Helpers
             Expression<Func<T, bool>> filter,
             T entity)
         {
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             var updateList = BuildUpdateDefinition<T>(entity);
             return await collection.UpdateManyAsync<T>(filter, Builders<T>.Update.Combine(updateList));
         }
@@ -1608,7 +1608,7 @@ namespace ZqUtils.Helpers
                 list.Add(Builders<T>.Update.Set(item.Name, parameters[item.Name]));
             }
             var update = Builders<T>.Update.Combine(list);
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             return await collection.UpdateManyAsync(filter, update);
         }
         #endregion
@@ -1646,7 +1646,7 @@ namespace ZqUtils.Helpers
             Expression<Func<T, bool>> filter,
             FindOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             return collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip(0).Limit(1).FirstOrDefault();
         }
 
@@ -1678,7 +1678,7 @@ namespace ZqUtils.Helpers
             FilterDefinition<T> filter,
             FindOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             return collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip(0).Limit(1).FirstOrDefault();
         }
         #endregion
@@ -1728,7 +1728,7 @@ namespace ZqUtils.Helpers
             int? pageIndex = null,
             int? pageSize = null)
         {
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             //是否分页
             if (pageIndex != null && pageSize != null)
             {
@@ -1795,7 +1795,7 @@ namespace ZqUtils.Helpers
             int? pageIndex = null,
             int? pageSize = null)
         {
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             //是否分页
             if (pageIndex != null && pageSize != null)
             {
@@ -1846,7 +1846,7 @@ namespace ZqUtils.Helpers
             Expression<Func<T, bool>> filter,
             FindOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             return await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip(0).Limit(1).FirstOrDefaultAsync();
         }
 
@@ -1878,7 +1878,7 @@ namespace ZqUtils.Helpers
             FilterDefinition<T> filter,
             FindOptions options = null)
         {
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             return await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip(0).Limit(1).FirstOrDefaultAsync();
         }
         #endregion
@@ -1928,7 +1928,7 @@ namespace ZqUtils.Helpers
             int? pageIndex = null,
             int? pageSize = null)
         {
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             //是否分页
             if (pageIndex != null && pageSize != null)
             {
@@ -1995,7 +1995,7 @@ namespace ZqUtils.Helpers
             int? pageIndex = null,
             int? pageSize = null)
         {
-            var collection = this.database.GetCollection<T>(collectionName);
+            var collection = this.Database.GetCollection<T>(collectionName);
             //是否分页
             if (pageIndex != null && pageSize != null)
             {
