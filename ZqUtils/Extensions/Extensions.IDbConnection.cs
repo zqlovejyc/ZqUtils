@@ -28,7 +28,7 @@ namespace ZqUtils.Extensions
     /// <summary>
     /// IDbConnection扩展类
     /// </summary>
-    public static partial class Extensions
+    public static class IDbConnectionExtensions
     {
         #region EnsureOpen
         /// <summary>

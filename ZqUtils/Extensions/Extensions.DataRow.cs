@@ -32,7 +32,7 @@ namespace ZqUtils.Extensions
     /// <summary>
     /// DataRow扩展类
     /// </summary>
-    public static partial class Extensions
+    public static class DataRowExtensions
     {
         #region ToHashTable
         /// <summary>

@@ -30,7 +30,7 @@ namespace ZqUtils.Extensions
     /// <summary>
     /// Array扩展类
     /// </summary>
-    public static partial class Extensions
+    public static class ArrayExtensions
     {
         #region IndexOf
         /// <summary>

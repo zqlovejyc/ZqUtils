@@ -27,7 +27,7 @@ namespace ZqUtils.Extensions
     /// <summary>
     /// DataColumnCollection扩展类
     /// </summary>
-    public static partial class Extensions
+    public static class DataColumnCollectionExtensions
     {
         #region AddRange
         /// <summary>

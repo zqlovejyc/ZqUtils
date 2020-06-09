@@ -30,7 +30,7 @@ namespace ZqUtils.Extensions
     /// <summary>
     /// DbCommand扩展类
     /// </summary>
-    public static partial class Extensions
+    public static class DbCommandExtensions
     {
         #region ExecuteEntities
         /// <summary>

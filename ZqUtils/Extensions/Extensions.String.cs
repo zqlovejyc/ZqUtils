@@ -36,7 +36,7 @@ namespace ZqUtils.Extensions
     /// <summary>
     /// string扩展类
     /// </summary>
-    public static partial class Extensions
+    public static class StringExtensions
     {
         #region 随机字符串
         /// <summary>

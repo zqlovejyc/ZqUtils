@@ -29,7 +29,7 @@ namespace ZqUtils.Extensions
     /// <summary>
     /// StringBuilder扩展类
     /// </summary>
-    public static partial class Extensions
+    public static class StringBuilderExtensions
     {
         #region AppendWhereOrAnd
         /// <summary>

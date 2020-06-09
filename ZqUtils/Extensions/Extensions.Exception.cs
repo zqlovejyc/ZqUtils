@@ -29,7 +29,7 @@ namespace ZqUtils.Extensions
     /// <summary>
     /// Exception扩展类
     /// </summary>
-    public static partial class Extensions
+    public static class ExceptionExtensions
     {
         #region 获取内部真实异常
         /// <summary>

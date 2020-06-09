@@ -30,7 +30,7 @@ namespace ZqUtils.Extensions
     /// <summary>
     /// Assembly扩展类
     /// </summary>
-    public static partial class Extensions
+    public static class AssemblyExtensions
     {
         /// <summary>
         /// 通过 继承的接口名 查找 对应的 实体类型集合

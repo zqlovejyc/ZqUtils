@@ -44,7 +44,7 @@ namespace ZqUtils.Extensions
     /// <summary>
     /// object扩展类
     /// </summary>
-    public static partial class Extensions
+    public static class ObjectExtensions
     {
         #region ToJson
         /// <summary>
@@ -961,7 +961,7 @@ namespace ZqUtils.Extensions
             {
                 // 拷贝而来的逗号分隔整数
                 str = str.Replace(",", null);
-                str = ToDBC(str).Trim();
+                str = str.ToDBC().Trim();
                 if (str.IsNullOrEmpty()) return defaultValue;
                 if (int.TryParse(str, out var n)) return n;
                 return defaultValue;
@@ -1016,7 +1016,7 @@ namespace ZqUtils.Extensions
             {
                 // 拷贝而来的逗号分隔整数
                 str = str.Replace(",", null);
-                str = ToDBC(str).Trim();
+                str = str.ToDBC().Trim();
                 if (str.IsNullOrEmpty()) return defaultValue;
                 if (long.TryParse(str, out var n)) return n;
                 return defaultValue;
@@ -1149,7 +1149,7 @@ namespace ZqUtils.Extensions
             // 特殊处理字符串，也是最常见的
             if (@this is string str)
             {
-                str = ToDBC(str).Trim();
+                str = str.ToDBC().Trim();
                 if (str.IsNullOrEmpty()) return defaultValue;
 
                 if (double.TryParse(str, out var n)) return n;
@@ -1307,7 +1307,7 @@ namespace ZqUtils.Extensions
             // 特殊处理字符串，也是最常见的
             if (@this is string str)
             {
-                str = ToDBC(str).Trim();
+                str = str.ToDBC().Trim();
                 if (str.IsNullOrEmpty()) return defaultValue;
                 if (bool.TryParse(str, out var b)) return b;
                 if (string.Equals(str, bool.TrueString, StringComparison.OrdinalIgnoreCase)) return true;
@@ -1455,7 +1455,7 @@ namespace ZqUtils.Extensions
             // 特殊处理字符串，也是最常见的
             if (@this is string str)
             {
-                str = ToDBC(str).Trim();
+                str = str.ToDBC().Trim();
                 if (str.IsNullOrEmpty()) return defaultValue;
                 if (DateTime.TryParse(str, out var n)) return n;
                 if (str.Contains("-") && DateTime.TryParseExact(str, "yyyy-M-d", null, DateTimeStyles.None, out n)) return n;

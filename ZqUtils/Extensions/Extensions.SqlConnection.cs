@@ -31,7 +31,7 @@ namespace ZqUtils.Extensions
     /// <summary>
     /// SqlConnection扩展类
     /// </summary>
-    public static partial class Extensions
+    public static class SqlConnectionExtensions
     {
         #region ExecuteDataSet
         /// <summary>

@@ -36,7 +36,7 @@ namespace ZqUtils.Extensions
     /// <summary>
     /// DataTable扩展类
     /// </summary>
-    public static partial class Extensions
+    public static class DataTableExtensions
     {
         #region ForEach
         /// <summary>

@@ -30,7 +30,7 @@ namespace ZqUtils.Extensions
     /// <summary>
     /// DbParameter扩展类
     /// </summary>
-    public static partial class Extensions
+    public static class DbParameterExtensions
     {
         #region ToDynamicParameters
         /// <summary>

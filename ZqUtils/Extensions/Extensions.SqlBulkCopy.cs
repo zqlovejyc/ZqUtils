@@ -29,7 +29,7 @@ namespace ZqUtils.Extensions
     /// <summary>
     /// SqlBulkCopy扩展类
     /// </summary>
-    public static partial class Extensions
+    public static class SqlBulkCopyExtensions
     {
         #region GetConnection
         /// <summary>

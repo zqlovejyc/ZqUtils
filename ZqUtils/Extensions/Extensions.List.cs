@@ -35,7 +35,7 @@ namespace ZqUtils.Extensions
     /// <summary>
     /// 集合扩展类
     /// </summary>
-    public static partial class Extensions
+    public static class ListExtensions
     {
         #region ToList
         /// <summary>

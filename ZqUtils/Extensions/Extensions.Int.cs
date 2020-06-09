@@ -30,7 +30,7 @@ namespace ZqUtils.Extensions
     /// <summary>
     /// Int扩展类
     /// </summary>
-    public static partial class Extensions
+    public static class IntExtensions
     {
         #region 随机字符串
         /// <summary>

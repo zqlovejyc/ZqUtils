@@ -32,7 +32,7 @@ namespace ZqUtils.Extensions
     /// <summary>
     /// MemberInfo扩展类
     /// </summary>
-    public static partial class Extensions
+    public static class MemberInfoExtensions
     {
         #region Attribute
         /// <summary>

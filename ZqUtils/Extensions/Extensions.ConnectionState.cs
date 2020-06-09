@@ -27,7 +27,7 @@ namespace ZqUtils.Extensions
     /// <summary>
     /// ConnectionState扩展类
     /// </summary>
-    public static partial class Extensions
+    public static class ConnectionStateExtensions
     {
         #region In
         /// <summary>

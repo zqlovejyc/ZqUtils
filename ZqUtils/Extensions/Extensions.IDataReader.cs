@@ -32,7 +32,7 @@ namespace ZqUtils.Extensions
     /// <summary>
     /// IDataReader扩展类
     /// </summary>
-    public static partial class Extensions
+    public static class IDataReaderExtensions
     {
         #region ToDynamic
         /// <summary>

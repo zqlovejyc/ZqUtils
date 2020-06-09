@@ -27,7 +27,7 @@ namespace ZqUtils.Extensions
     /// <summary>
     /// DateTimeOffset扩展类
     /// </summary>
-    public static partial class Extensions
+    public static class DateTimeOffsetExtensions
     {
         #region Between
         /// <summary>

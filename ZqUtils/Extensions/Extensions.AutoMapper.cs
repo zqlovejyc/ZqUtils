@@ -31,7 +31,7 @@ namespace ZqUtils.Extensions
     /// <summary>
     /// AutoMapper扩展类
     /// </summary>
-    public static partial class Extensions
+    public static class AutoMapperExtensions
     {
         #region 映射配置缓存
         /// <summary>

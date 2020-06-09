@@ -33,7 +33,7 @@ namespace ZqUtils.Extensions
     /// <summary>
     /// Stream扩展类
     /// </summary>
-    public static partial class Extensions
+    public static class StreamExtensions
     {
         #region 压缩/解压缩 数据
         /// <summary>

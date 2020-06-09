@@ -35,7 +35,7 @@ namespace ZqUtils.Extensions
     /// <summary>
     /// Type扩展类
     /// </summary>
-    public static partial class Extensions
+    public static class TypeExtensions
     {
         #region GetCoreType
         /// <summary>

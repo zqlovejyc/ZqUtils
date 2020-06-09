@@ -28,7 +28,7 @@ namespace ZqUtils.Extensions
     /// <summary>
     /// DataSet扩展类
     /// </summary>
-    public static partial class Extensions
+    public static class DataSetExtensions
     {
         #region DataSet转Xml
         /// <summary>

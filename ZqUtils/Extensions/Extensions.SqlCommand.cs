@@ -28,7 +28,7 @@ namespace ZqUtils.Extensions
     /// <summary>
     /// SqlCommand扩展类
     /// </summary>
-    public static partial class Extensions
+    public static class SqlCommandExtensions
     {
         #region ExecuteDataSet
         /// <summary>

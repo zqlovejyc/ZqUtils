@@ -30,7 +30,7 @@ namespace ZqUtils.Extensions
     /// <summary>
     /// 枚举扩展类
     /// </summary>
-    public static partial class Extensions
+    public static class EnumExtensions
     {
         #region Has
         /// <summary>
@@ -106,7 +106,7 @@ namespace ZqUtils.Extensions
         public static Dictionary<TEnum, string> GetDescriptions<TEnum>()
         {
             var dic = new Dictionary<TEnum, string>();
-            foreach (var item in GetDescriptions(typeof(TEnum)))
+            foreach (var item in typeof(TEnum).GetDescriptions())
             {
                 dic.Add((TEnum)(object)item.Key, item.Value);
             }
