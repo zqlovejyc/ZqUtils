@@ -72,7 +72,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// IMongoDatabase
         /// </summary>
-        private IMongoDatabase Database { get; set; }
+        public IMongoDatabase Database { get; set; }
         #endregion
 
         #region 构造函数
