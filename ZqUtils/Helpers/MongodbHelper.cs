@@ -67,7 +67,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// MongoClient
         /// </summary>
-        private MongoClient Client { get; set; }
+        public MongoClient Client { get; set; }
 
         /// <summary>
         /// IMongoDatabase
