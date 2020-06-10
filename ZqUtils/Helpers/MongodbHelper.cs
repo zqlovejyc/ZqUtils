@@ -16,6 +16,10 @@
  */
 #endregion
 
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -24,9 +28,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Driver;
 using ZqUtils.Extensions;
 /****************************
 * [Author] 张强
@@ -368,6 +369,51 @@ namespace ZqUtils.Helpers
                 }
             }
             return fields;
+        }
+        #endregion
+
+        #region 获取集合
+        /// <summary>
+        /// 获取IMongoCollection集合
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public IMongoCollection<T> GetMongoCollection<T>()
+        {
+            var attribute = this.GetMongoDbAttribute<T>();
+            return this.GetMongoCollection<T>(attribute.CollectionName);
+        }
+
+        /// <summary>
+        /// 获取IMongoCollection
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="collectionName">表名</param>
+        /// <returns></returns>
+        public IMongoCollection<T> GetMongoCollection<T>(string collectionName)
+        {
+            return this.Database.GetCollection<T>(collectionName);
+        }
+
+        /// <summary>
+        /// 获取IMongoQueryable
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public IMongoQueryable<T> GetMongoQueryable<T>()
+        {
+            return this.GetMongoCollection<T>().AsQueryable();
+        }
+
+        /// <summary>
+        /// 获取IMongoQueryable
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="collectionName">表名</param>
+        /// <returns></returns>
+        public IMongoQueryable<T> GetMongoQueryable<T>(string collectionName)
+        {
+            return this.GetMongoCollection<T>(collectionName).AsQueryable();
         }
         #endregion
 
