@@ -374,7 +374,7 @@ namespace ZqUtils.Helpers
 
         #region 获取集合
         /// <summary>
-        /// 获取IMongoCollection集合
+        /// 获取IMongoCollection
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
