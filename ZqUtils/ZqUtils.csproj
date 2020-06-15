@@ -177,6 +177,7 @@
     <Compile Include="Helpers\FileHelper.cs" />
     <Compile Include="Helpers\GpsHelper.cs" />
     <Compile Include="Helpers\HttpHelper.cs" />
+    <Compile Include="Helpers\IEqualityComparerHelper.cs" />
     <Compile Include="Helpers\ImageHelper.cs" />
     <Compile Include="Helpers\JwtTokenHelper.cs" />
     <Compile Include="Helpers\LogHelper.cs" />
