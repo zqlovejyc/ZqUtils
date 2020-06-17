@@ -7082,5 +7082,29 @@ namespace ZqUtils.Extensions
             return (isValid, validationResults);
         }
         #endregion
+
+        #region GetValue
+        /// <summary>
+        /// 获取目标对象的成员值
+        /// </summary>
+        /// <param name="target">目标对象</param>
+        /// <param name="member">成员</param>
+        /// <returns></returns>
+        public static object GetValue(this object target, MemberInfo member)
+        {
+            if (member == null)
+            {
+                member = target as MemberInfo;
+                target = null;
+            }
+
+            if (member is PropertyInfo)
+                return (member as PropertyInfo)?.GetValue(target, null);
+            else if (member is FieldInfo)
+                return (member as FieldInfo)?.GetValue(target);
+            else
+                throw new ArgumentOutOfRangeException(nameof(member));
+        }
+        #endregion
     }
 }
