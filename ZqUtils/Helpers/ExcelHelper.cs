@@ -58,6 +58,9 @@ namespace ZqUtils.Helpers
                     var table = new DataTable();
                     using (var sheet = package.Workbook.Worksheets[sheetIndex])
                     {
+                        if (sheet.Dimension == null)
+                            continue;
+
                         var colCount = sheet.Dimension.End.Column;
                         var rowCount = sheet.Dimension.End.Row;
                         for (var j = 1; j <= colCount; j++)
@@ -95,6 +98,9 @@ namespace ZqUtils.Helpers
                     var table = new DataTable();
                     using (var sheet = package.Workbook.Worksheets[sheetIndex])
                     {
+                        if (sheet.Dimension == null)
+                            continue;
+
                         var colCount = sheet.Dimension.End.Column;
                         var rowCount = sheet.Dimension.End.Row;
                         for (var j = 1; j <= colCount; j++)
@@ -133,16 +139,19 @@ namespace ZqUtils.Helpers
                 for (var sheetIndex = 0; sheetIndex < package.Workbook.Worksheets.Count; sheetIndex++)
                 {
                     var list = new List<T>();
-                    using (var worksheet = package.Workbook.Worksheets[sheetIndex])
+                    using (var sheet = package.Workbook.Worksheets[sheetIndex])
                     {
-                        var colStart = worksheet.Dimension.Start.Column;//工作区开始列
-                        var colEnd = worksheet.Dimension.End.Column;//工作区结束列
-                        var rowStart = worksheet.Dimension.Start.Row;//工作区开始行号
-                        var rowEnd = worksheet.Dimension.End.Row;//工作区结束行号
-                                                                 //将每列标题添加到字典中                                               
+                        if (sheet.Dimension == null)
+                            continue;
+
+                        var colStart = sheet.Dimension.Start.Column;//工作区开始列
+                        var colEnd = sheet.Dimension.End.Column;//工作区结束列
+                        var rowStart = sheet.Dimension.Start.Row;//工作区开始行号
+                        var rowEnd = sheet.Dimension.End.Row;//工作区结束行号
+                                                             //将每列标题添加到字典中                                               
                         for (int i = colStart; i <= colEnd; i++)
                         {
-                            headers[worksheet.Cells[rowStart, i].Value.ToString()] = i;
+                            headers[sheet.Cells[rowStart, i].Value.ToString()] = i;
                         }
                         var propertyInfoList = new List<PropertyInfo>(typeof(T).GetProperties());
                         for (int row = rowStart + 1; row <= rowEnd; row++)
@@ -152,7 +161,7 @@ namespace ZqUtils.Helpers
                             foreach (var p in propertyInfoList)
                             {
                                 //与属性名对应的单元格
-                                var cell = worksheet.Cells[row, headers[p.GetExcelColumn()]];
+                                var cell = sheet.Cells[row, headers[p.GetExcelColumn()]];
                                 if (cell.Value == null) continue;
                                 switch (p.PropertyType.GetCoreType().Name.ToLower())
                                 {
@@ -217,16 +226,19 @@ namespace ZqUtils.Helpers
                 for (var sheetIndex = 0; sheetIndex < package.Workbook.Worksheets.Count; sheetIndex++)
                 {
                     var list = new List<T>();
-                    using (var worksheet = package.Workbook.Worksheets[sheetIndex])
+                    using (var sheet = package.Workbook.Worksheets[sheetIndex])
                     {
-                        var colStart = worksheet.Dimension.Start.Column;//工作区开始列
-                        var colEnd = worksheet.Dimension.End.Column;//工作区结束列
-                        var rowStart = worksheet.Dimension.Start.Row;//工作区开始行号
-                        var rowEnd = worksheet.Dimension.End.Row;//工作区结束行号
-                                                                 //将每列标题添加到字典中                                               
+                        if (sheet.Dimension == null)
+                            continue;
+
+                        var colStart = sheet.Dimension.Start.Column;//工作区开始列
+                        var colEnd = sheet.Dimension.End.Column;//工作区结束列
+                        var rowStart = sheet.Dimension.Start.Row;//工作区开始行号
+                        var rowEnd = sheet.Dimension.End.Row;//工作区结束行号
+                                                             //将每列标题添加到字典中                                               
                         for (int i = colStart; i <= colEnd; i++)
                         {
-                            headers[worksheet.Cells[rowStart, i].Value.ToString()] = i;
+                            headers[sheet.Cells[rowStart, i].Value.ToString()] = i;
                         }
                         var propertyInfoList = new List<PropertyInfo>(typeof(T).GetProperties());
                         for (int row = rowStart + 1; row <= rowEnd; row++)
@@ -236,7 +248,7 @@ namespace ZqUtils.Helpers
                             foreach (var p in propertyInfoList)
                             {
                                 //与属性名对应的单元格
-                                var cell = worksheet.Cells[row, headers[p.GetExcelColumn()]];
+                                var cell = sheet.Cells[row, headers[p.GetExcelColumn()]];
                                 if (cell.Value == null) continue;
                                 switch (p.PropertyType.GetCoreType().Name.ToLower())
                                 {
