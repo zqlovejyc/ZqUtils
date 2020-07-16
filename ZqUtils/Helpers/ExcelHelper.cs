@@ -488,7 +488,7 @@ namespace ZqUtils.Helpers
         /// <param name="columnName">表头数组</param>
         /// <param name="action">sheet自定义处理委托</param>
         /// <param name="styles">导出样式</param>
-        public static byte[] EPPlusExportExcelToBytes<T>(IEnumerable<T> list, string[] columnName = null, Action<ExcelWorksheet> action = null, TableStyles styles = TableStyles.Light1) where T : class, new()
+        public static byte[] EPPlusExportExcelToBytes<T>(IEnumerable<T> list, string[] columnName, Action<ExcelWorksheet> action = null, TableStyles styles = TableStyles.Light1) where T : class, new()
         {
             if (list?.Count() > 0)
             {
@@ -646,7 +646,7 @@ namespace ZqUtils.Helpers
         /// <param name="ext">扩展名(.xls|.xlsx)可选参数</param>
         /// <param name="action">sheet自定义处理委托</param>
         /// <param name="styles">导出样式</param>
-        public static void EPPlusExportExcel<T>(IEnumerable<T> list, string fileName, string[] columnName = null, string ext = ".xlsx", Action<ExcelWorksheet> action = null, TableStyles styles = TableStyles.Light1) where T : class, new()
+        public static void EPPlusExportExcel<T>(IEnumerable<T> list, string fileName, string[] columnName, string ext = ".xlsx", Action<ExcelWorksheet> action = null, TableStyles styles = TableStyles.Light1) where T : class, new()
         {
             var bytes = EPPlusExportExcelToBytes(list, columnName, action, styles);
             if (bytes != null)
@@ -758,7 +758,7 @@ namespace ZqUtils.Helpers
         /// <param name="ext">扩展名(.xls|.xlsx)可选参数</param>
         /// <param name="action">sheet自定义处理委托</param>
         /// <param name="styles">导出样式</param>
-        public static async Task EPPlusExportExcelAsync<T>(IEnumerable<T> list, string fileName, string[] columnName = null, string ext = ".xlsx", Action<ExcelWorksheet> action = null, TableStyles styles = TableStyles.Light1) where T : class, new()
+        public static async Task EPPlusExportExcelAsync<T>(IEnumerable<T> list, string fileName, string[] columnName, string ext = ".xlsx", Action<ExcelWorksheet> action = null, TableStyles styles = TableStyles.Light1) where T : class, new()
         {
             var bytes = EPPlusExportExcelToBytes(list, columnName, action, styles);
             if (bytes != null)
@@ -965,7 +965,7 @@ namespace ZqUtils.Helpers
         /// <param name="columnName">表头数组</param>
         /// <param name="action">sheet自定义处理委托</param>
         /// <param name="styles">导出样式</param>
-        public static void EPPlusExportExcelToFile<T>(IEnumerable<T> list, string savePath, string[] columnName = null, Action<ExcelWorksheet> action = null, TableStyles styles = TableStyles.Light1) where T : class, new()
+        public static void EPPlusExportExcelToFile<T>(IEnumerable<T> list, string savePath, string[] columnName, Action<ExcelWorksheet> action = null, TableStyles styles = TableStyles.Light1) where T : class, new()
         {
             if (list?.Count() > 0)
             {
