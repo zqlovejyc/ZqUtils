@@ -104,14 +104,14 @@ namespace ZqUtils.Extensions
         /// </summary>
         /// <param name="this">10进制数字</param>
         /// <param name="radix">进制，范围2-36</param>
+        /// <param name="digits">编码取值规则，最大转换位数不能大于该字符串的长度</param>
         /// <returns></returns>
-        public static string ToBase(this long @this, int radix)
+        public static string ToBase(this long @this, int radix, string digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ")
         {
             const int BitsInLong = 64;
-            const string Digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-            if (radix < 2 || radix > Digits.Length)
-                throw new ArgumentException("The radix must be >= 2 and <= " + Digits.Length.ToString());
+            if (radix < 2 || radix > digits.Length)
+                throw new ArgumentException("The radix must be >= 2 and <= " + digits.Length.ToString());
 
             if (@this == 0)
                 return "0";
@@ -123,7 +123,7 @@ namespace ZqUtils.Extensions
             while (currentNumber != 0)
             {
                 var remainder = (int)(currentNumber % radix);
-                charArray[index--] = Digits[remainder];
+                charArray[index--] = digits[remainder];
                 currentNumber /= radix;
             }
 
