@@ -251,7 +251,7 @@ namespace ZqUtils.Extensions
         /// <returns>bool</returns>
         public static bool IsNum(this string @this)
         {
-            return Regex.IsMatch(@this, @"^\d+$");
+            return Regex.IsMatch(@this, @"^(-?)\d+$");
         }
         #endregion
 
@@ -263,7 +263,7 @@ namespace ZqUtils.Extensions
         /// <returns>bool</returns>
         public static bool IsFloat(this string @this)
         {
-            return Regex.IsMatch(@this, @"^\d*[.]{0,1}\d*$");
+            return Regex.IsMatch(@this, @"^(-?)\d*[.]{0,1}\d*$");
         }
         #endregion
 
