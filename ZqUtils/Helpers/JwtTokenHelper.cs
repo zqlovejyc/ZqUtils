@@ -22,6 +22,7 @@ using System.Security.Claims;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
+using ZqUtils.Extensions;
 /****************************
 * [Author] 张强
 * [Date] 2020-03-20
@@ -44,7 +45,13 @@ namespace ZqUtils.Helpers
         /// <param name="audience">jwt接收方</param>
         /// <param name="securityAlgorithms">加密类型</param>
         /// <returns></returns>
-        public static string CreateToken(IEnumerable<Claim> claims, int expires, string secret, string issuer = null, string audience = null, string securityAlgorithms = SecurityAlgorithms.HmacSha256)
+        public static string CreateToken(
+            IEnumerable<Claim> claims,
+            int expires,
+            string secret,
+            string issuer = null,
+            string audience = null,
+            string securityAlgorithms = SecurityAlgorithms.HmacSha256)
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
             var signingCredentials = new SigningCredentials(key, securityAlgorithms);
@@ -62,24 +69,33 @@ namespace ZqUtils.Helpers
         /// 解析Token
         /// </summary>
         /// <param name="token">JwtToken字符串</param>
-        /// <param name="secret">密钥，默认null</param>
-        /// <param name="validate">是否启用Token校验，默认不启用，principal返回null，若启用校验需要secret参数；</param>
+        /// <param name="secret">密钥，不为null时启用token校验</param>
+        /// <param name="validationParameters">自定义token校验参数</param>
         /// <returns></returns>
-        public static (JwtSecurityToken securityToken, ClaimsPrincipal principal) ReadToken(string token, string secret = null, bool validate = false)
+        public static (JwtSecurityToken securityToken, ClaimsPrincipal principal) ReadToken(
+            string token,
+            string secret = null,
+            TokenValidationParameters validationParameters = null)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var securityToken = tokenHandler.ReadJwtToken(token);
-            if (validate)
+            if (!secret.IsNullOrEmpty())
             {
+                //签名
                 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
-                var validationParameters = new TokenValidationParameters()
+
+                //判断是否有自定义TokenValidationParameters
+                validationParameters = validationParameters ?? new TokenValidationParameters
                 {
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    RequireExpirationTime = true,
-                    IssuerSigningKey = key
+                    ValidateIssuer = false,//是否校验issuer
+                    ValidateAudience = false,//是否校验audience
+                    ValidateLifetime = true,//是否校验失效时间
+                    RequireExpirationTime = true,//是否校验expiration
+                    ValidateIssuerSigningKey = true,//是否校验securityKey
+                    IssuerSigningKey = key//securityKey
                 };
                 var principal = tokenHandler.ValidateToken(token, validationParameters, out _);
+
                 return (securityToken, principal);
             }
             return (securityToken, null);
