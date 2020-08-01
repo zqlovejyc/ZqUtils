@@ -61,6 +61,40 @@ namespace ZqUtils.Extensions
             {
                 @this.Append(appendStringBuilder);
             }
+
+            return hasWhere;
+        }
+
+        /// <summary>
+        /// sql拼接where或者and
+        /// </summary>
+        /// <param name="this">当前sql拼接对象</param>
+        /// <param name="hasWhere">是否有where</param>
+        /// <param name="appendSql">拼接sql字符串</param>
+        /// <param name="sqlKeywordOfAnd">sql关键字and</param>
+        /// <param name="sqlKeywordOfWhere">sql关键字where</param>
+        /// <param name="appendStringBuilder">拼接StringBuilder对象</param>
+        /// <returns>bool</returns>
+        public static bool AppendWhereOrAnd(this StringBuilder @this, ref bool hasWhere, string appendSql = null, string sqlKeywordOfAnd = " AND ", string sqlKeywordOfWhere = " WHERE ", StringBuilder appendStringBuilder = null)
+        {
+            if (hasWhere)
+            {
+                @this.Append(sqlKeywordOfAnd);
+            }
+            else
+            {
+                @this.Append(sqlKeywordOfWhere);
+                hasWhere = true;
+            }
+            if (!string.IsNullOrEmpty(appendSql))
+            {
+                @this.Append(appendSql);
+            }
+            if (appendStringBuilder != null)
+            {
+                @this.Append(appendStringBuilder);
+            }
+
             return hasWhere;
         }
         #endregion
