@@ -187,27 +187,27 @@ namespace ZqUtils.Extensions
         }
         #endregion
 
-        #region 判断字符是否为空
+        #region 判断字符是否为空/不为空
         /// <summary>
         /// 判断字符串是否为空
         /// </summary>
         /// <param name="this">源字符串</param>
         /// <param name="nullStrings">自定义空字符串，中间“|”分隔</param>
-        /// <param name="isTrim">是否移除收尾空白字符串，默认：false</param>
+        /// <param name="trim">是否移除收尾空白字符串，默认：false</param>
         /// <returns>bool</returns>
-        public static bool IsNull(this string @this, string nullStrings = "null|{}|[]", bool isTrim = false)
+        public static bool IsNull(this string @this, string nullStrings = "null|{}|[]", bool trim = false)
         {
             var result = true;
             if (@this != null)
             {
-                if (isTrim)
+                if (trim)
                     result = @this.Trim() == "";
                 else
                     result = @this == "";
                 //是否为自定义空字符串
-                if (!result && !string.IsNullOrEmpty(nullStrings))
+                if (!result && !nullStrings.IsNullOrEmpty())
                 {
-                    if (isTrim)
+                    if (trim)
                         result = nullStrings.Split('|').Contains(@this.Trim().ToLower());
                     else
                         result = nullStrings.Split('|').Contains(@this.ToLower());
@@ -217,11 +217,27 @@ namespace ZqUtils.Extensions
         }
 
         /// <summary>
-        /// 指示指定的字符串是 null 还是 string.Empty 字符串
+        /// 判断字符串是否不为空
+        /// </summary>
+        /// <param name="this">源字符串</param>
+        /// <param name="nullStrings">自定义空字符串，中间“|”分隔</param>
+        /// <param name="trim">是否移除收尾空白字符串，默认：false</param>
+        /// <returns>bool</returns>
+        public static bool IsNotNull(this string @this, string nullStrings = "null|{}|[]", bool trim = false) => !@this.IsNull(nullStrings, trim);
+
+        /// <summary>
+        /// 指示指定的字符串是null还是string.Empty字符串
         /// </summary>
         /// <param name="this">当前字符串</param>
         /// <returns>bool</returns>
         public static bool IsNullOrEmpty(this string @this) => string.IsNullOrEmpty(@this);
+
+        /// <summary>
+        /// 指示指定的字符串不是是null且不是 string.Empty 字符串
+        /// </summary>
+        /// <param name="this">当前字符串</param>
+        /// <returns>bool</returns>
+        public static bool IsNotNullOrEmpty(this string @this) => !@this.IsNullOrEmpty();
 
         /// <summary>
         /// 是否空或者空白字符串
@@ -229,6 +245,13 @@ namespace ZqUtils.Extensions
         /// <param name="this">当前字符串</param>
         /// <returns>bool</returns>
         public static bool IsNullOrWhiteSpace(this string @this) => string.IsNullOrWhiteSpace(@this);
+
+        /// <summary>
+        /// 是否不是空且不是空白字符串
+        /// </summary>
+        /// <param name="this">当前字符串</param>
+        /// <returns>bool</returns>
+        public static bool IsNotNullOrWhiteSpace(this string @this) => !@this.IsNullOrWhiteSpace();
         #endregion
 
         #region 验证字符是否是字母类型
