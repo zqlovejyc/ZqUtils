@@ -680,27 +680,80 @@ namespace ZqUtils.Extensions
         }
         #endregion
 
-        #region 判断指定字符串是否对象类型的Json字符串格式
+        #region 判断指定字符串是否是/不是对象类型的Json字符串格式
         /// <summary>
-        /// 判断指定字符串是否对象类型的Json字符串格式
+        /// 判断指定字符串是否是对象类型的Json字符串格式
         /// </summary>
         /// <param name="this">json字符串</param>
         /// <returns>bool</returns>
         public static bool IsJsonObjectString(this string @this)
         {
-            return @this != null && @this.StartsWith("{") && @this.EndsWith("}");
+            return @this.IsNotNull() && @this.StartsWith("{") && @this.EndsWith("}");
+        }
+
+        /// <summary>
+        /// 判断指定字符串是否不是对象类型的Json字符串格式
+        /// </summary>
+        /// <param name="this">json字符串</param>
+        /// <returns>bool</returns>
+        public static bool IsNotJsonObjectString(this string @this)
+        {
+            return !@this.IsJsonObjectString();
         }
         #endregion
 
-        #region 判断指定字符串是否集合类型的Json字符串格式
+        #region 判断指定字符串是否是/不是集合类型的Json字符串格式
         /// <summary>
-        /// 判断指定字符串是否集合类型的Json字符串格式
+        /// 判断指定字符串是否是集合类型的Json字符串格式
         /// </summary>
         /// <param name="this">json字符串</param>
         /// <returns>bool</returns>
         public static bool IsJsonArrayString(this string @this)
         {
-            return @this != null && @this.StartsWith("[") && @this.EndsWith("]");
+            return @this.IsNotNull() && @this.StartsWith("[") && @this.EndsWith("]");
+        }
+
+        /// <summary>
+        /// 判断指定字符串是否不是集合类型的Json字符串格式
+        /// </summary>
+        /// <param name="this">json字符串</param>
+        /// <returns>bool</returns>
+        public static bool IsNotJsonArrayString(this string @this)
+        {
+            return !@this.IsJsonArrayString();
+        }
+        #endregion
+
+        #region 判断是否是/不是Json字符串
+        /// <summary>
+        /// 验证字符串是否是Json字符串
+        /// </summary>
+        /// <param name="this">json字符串</param>
+        /// <returns>bool</returns>
+        public static bool IsJsonString(this string @this)
+        {
+            try
+            {
+                if (@this.IsJsonObjectString() && @this.ToJObject() != null)
+                    return true;
+                if (@this.IsJsonArrayString() && @this.ToJArray() != null)
+                    return true;
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 验证字符串是否不是Json字符串
+        /// </summary>
+        /// <param name="this">json字符串</param>
+        /// <returns>bool</returns>
+        public static bool IsNotJsonString(this string @this)
+        {
+            return !@this.IsJsonString();
         }
         #endregion
 
@@ -738,29 +791,6 @@ namespace ZqUtils.Extensions
             else
             {
                 return null;
-            }
-        }
-        #endregion
-
-        #region 判断是否是Json字符串
-        /// <summary>
-        /// 验证字符串是否是Json字符串
-        /// </summary>
-        /// <param name="this">json字符串</param>
-        /// <returns>bool</returns>
-        public static bool IsJsonString(this string @this)
-        {
-            try
-            {
-                if (@this.IsJsonObjectString() && @this.ToJObject() != null)
-                    return true;
-                if (@this.IsJsonArrayString() && @this.ToJArray() != null)
-                    return true;
-                return false;
-            }
-            catch
-            {
-                return false;
             }
         }
         #endregion
