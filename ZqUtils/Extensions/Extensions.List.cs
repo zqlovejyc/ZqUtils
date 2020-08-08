@@ -530,6 +530,21 @@ namespace ZqUtils.Extensions
         /// </summary>
         /// <typeparam name="T">Generic type parameter.</typeparam>
         /// <param name="this">The @this to act on.</param>
+        /// <param name="predicate">The predicate to remove.</param>
+        public static void RemoveIf<T>(this ICollection<T> @this, Func<T, bool> predicate)
+        {
+            var res = @this.Where(predicate);
+            if (res.IsNotNullOrEmpty())
+            {
+                @this.RemoveRange(res.ToArray());
+            }
+        }
+
+        /// <summary>
+        /// An ICollection&lt;T&gt; extension method that removes if.
+        /// </summary>
+        /// <typeparam name="T">Generic type parameter.</typeparam>
+        /// <param name="this">The @this to act on.</param>
         /// <param name="value">The value.</param>
         /// <param name="predicate">The predicate.</param>
         public static void RemoveIf<T>(this ICollection<T> @this, T value, Func<T, bool> predicate)
