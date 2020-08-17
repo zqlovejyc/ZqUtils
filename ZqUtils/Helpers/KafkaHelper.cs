@@ -35,6 +35,9 @@ namespace ZqUtils.Helpers
     /// </summary>
     public class KafkaHelper
     {
+        /// <summary>
+        /// 私有配置
+        /// </summary>
         private readonly KafkaConfig _config;
 
         /// <summary>
@@ -48,7 +51,12 @@ namespace ZqUtils.Helpers
         public ConsumerConfig ConsumerConfig { get; set; }
 
         /// <summary>
-        /// KafkaHelper
+        /// 构造函数
+        /// </summary>
+        public KafkaHelper() { }
+
+        /// <summary>
+        /// 构造函数
         /// </summary>
         /// <param name="config"></param>
         public KafkaHelper(KafkaConfig config)
@@ -107,7 +115,11 @@ namespace ZqUtils.Helpers
         /// <param name="message"></param>
         /// <param name="deliveryHandler"></param>
         /// <param name="delegate"></param>
-        public void Publish<TKey, TValue>(string topic, Message<TKey, TValue> message, Action<DeliveryReport<TKey, TValue>> deliveryHandler = null, Action<ProducerBuilder<TKey, TValue>> @delegate = null)
+        public void Publish<TKey, TValue>(
+            string topic,
+            Message<TKey, TValue> message,
+            Action<DeliveryReport<TKey, TValue>> deliveryHandler = null,
+            Action<ProducerBuilder<TKey, TValue>> @delegate = null)
         {
             var producer = this.GetOrInitProducer(@delegate);
 
@@ -124,7 +136,11 @@ namespace ZqUtils.Helpers
         /// <param name="messages"></param>
         /// <param name="deliveryHandler"></param>
         /// <param name="delegate"></param>
-        public void Publish<TKey, TValue>(string topic, IEnumerable<Message<TKey, TValue>> messages, Action<DeliveryReport<TKey, TValue>> deliveryHandler = null, Action<ProducerBuilder<TKey, TValue>> @delegate = null)
+        public void Publish<TKey, TValue>(
+            string topic,
+            IEnumerable<Message<TKey, TValue>> messages,
+            Action<DeliveryReport<TKey, TValue>> deliveryHandler = null,
+            Action<ProducerBuilder<TKey, TValue>> @delegate = null)
         {
             var producer = this.GetOrInitProducer(@delegate);
 
@@ -148,7 +164,10 @@ namespace ZqUtils.Helpers
         /// <param name="message"></param>
         /// <param name="delegate"></param>
         /// <returns></returns>
-        public async Task<DeliveryResult<TKey, TValue>> PublishAsync<TKey, TValue>(string topic, Message<TKey, TValue> message, Action<ProducerBuilder<TKey, TValue>> @delegate = null)
+        public async Task<DeliveryResult<TKey, TValue>> PublishAsync<TKey, TValue>(
+            string topic,
+            Message<TKey, TValue> message,
+            Action<ProducerBuilder<TKey, TValue>> @delegate = null)
         {
             var producer = this.GetOrInitProducer(@delegate);
             if (producer.IsNotNull())
@@ -166,7 +185,10 @@ namespace ZqUtils.Helpers
         /// <param name="messages"></param>
         /// <param name="delegate"></param>
         /// <returns></returns>
-        public async Task<IEnumerable<DeliveryResult<TKey, TValue>>> PublishAsync<TKey, TValue>(string topic, IEnumerable<Message<TKey, TValue>> messages, Action<ProducerBuilder<TKey, TValue>> @delegate = null)
+        public async Task<IEnumerable<DeliveryResult<TKey, TValue>>> PublishAsync<TKey, TValue>(
+            string topic,
+            IEnumerable<Message<TKey, TValue>> messages,
+            Action<ProducerBuilder<TKey, TValue>> @delegate = null)
         {
             var producer = this.GetOrInitProducer(@delegate);
             if (producer.IsNotNull())
@@ -192,7 +214,9 @@ namespace ZqUtils.Helpers
         /// <param name="topic"></param>
         /// <param name="delegate"></param>
         /// <returns></returns>
-        public IConsumer<TKey, TValue> Subscribe<TKey, TValue>(string topic, Action<ConsumerBuilder<TKey, TValue>> @delegate = null)
+        public IConsumer<TKey, TValue> Subscribe<TKey, TValue>(
+            string topic,
+            Action<ConsumerBuilder<TKey, TValue>> @delegate = null)
         {
             var consumer = this.GetOrInitConsumer(@delegate);
             if (consumer.IsNotNull())
@@ -212,7 +236,9 @@ namespace ZqUtils.Helpers
         /// <param name="topics"></param>
         /// <param name="delegate"></param>
         /// <returns></returns>
-        public IConsumer<TKey, TValue> Subscribe<TKey, TValue>(IEnumerable<string> topics, Action<ConsumerBuilder<TKey, TValue>> @delegate = null)
+        public IConsumer<TKey, TValue> Subscribe<TKey, TValue>(
+            IEnumerable<string> topics,
+            Action<ConsumerBuilder<TKey, TValue>> @delegate = null)
         {
             var consumer = this.GetOrInitConsumer(@delegate);
             if (consumer.IsNotNull())
@@ -233,7 +259,11 @@ namespace ZqUtils.Helpers
         /// <param name="receiveHandler"></param>
         /// <param name="commit"></param>
         /// <param name="delegate"></param>
-        public void Subscribe<TKey, TValue>(string topic, Action<ConsumeResult<TKey, TValue>> receiveHandler, bool commit = false, Action<ConsumerBuilder<TKey, TValue>> @delegate = null)
+        public void Subscribe<TKey, TValue>(
+            string topic,
+            Action<ConsumeResult<TKey, TValue>> receiveHandler,
+            bool commit = false,
+            Action<ConsumerBuilder<TKey, TValue>> @delegate = null)
         {
             var consumer = this.Subscribe(topic, @delegate);
 
@@ -264,7 +294,11 @@ namespace ZqUtils.Helpers
         /// <param name="receiveHandler"></param>
         /// <param name="commit"></param>
         /// <param name="delegate"></param>
-        public void Subscribe<TKey, TValue>(IEnumerable<string> topics, Action<ConsumeResult<TKey, TValue>> receiveHandler, bool commit = false, Action<ConsumerBuilder<TKey, TValue>> @delegate = null)
+        public void Subscribe<TKey, TValue>(
+            IEnumerable<string> topics,
+            Action<ConsumeResult<TKey, TValue>> receiveHandler,
+            bool commit = false,
+            Action<ConsumerBuilder<TKey, TValue>> @delegate = null)
         {
             var consumer = this.Subscribe(topics, @delegate);
 
