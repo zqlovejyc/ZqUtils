@@ -33,21 +33,19 @@ namespace ZqUtils.Helpers
     /// <summary>
     /// Kafka工具类
     /// </summary>
-    public class KafkaHelper<TKey, TValue>
+    public class KafkaHelper
     {
         private readonly KafkaConfig _config;
-        private IProducer<TKey, TValue> _producer;
-        private IConsumer<TKey, TValue> _consumer;
 
         /// <summary>
-        /// 初始化Producer时异常事件
+        /// 生产者连接配置
         /// </summary>
-        public EventHandler<(IProducer<TKey, TValue>, Error)> OnInitProcuderError;
+        public ProducerConfig ProducerConfig { get; set; }
 
         /// <summary>
-        /// 初始化Consumer时异常事件
+        /// 消费者连接配置
         /// </summary>
-        public EventHandler<(IConsumer<TKey, TValue>, Error)> OnInitConsumerError;
+        public ConsumerConfig ConsumerConfig { get; set; }
 
         /// <summary>
         /// KafkaHelper
@@ -61,44 +59,57 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 获取并初始化生产者
         /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="delegate"></param>
         /// <returns></returns>
-        public IProducer<TKey, TValue> GetOrInitProducer()
+        public IProducer<TKey, TValue> GetOrInitProducer<TKey, TValue>(Action<ProducerBuilder<TKey, TValue>> @delegate = null)
         {
-            if (_producer.IsNull())
-            {
-                _producer = new ProducerBuilder<TKey, TValue>(_config.AsKafkaConfig())
-                                     .SetErrorHandler((x, y) => OnInitProcuderError?.Invoke(null, (x, y)))
-                                     .Build();
-            }
+            ProducerBuilder<TKey, TValue> builder;
 
-            return _producer;
+            if (this.ProducerConfig.IsNotNull())
+                builder = new ProducerBuilder<TKey, TValue>(this.ProducerConfig);
+            else
+                builder = new ProducerBuilder<TKey, TValue>(_config.AsKafkaConfig());
+
+            @delegate?.Invoke(builder);
+
+            return builder?.Build();
         }
 
         /// <summary>
         /// 获取并初始化消费者
         /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="delegate"></param>
         /// <returns></returns>
-        public IConsumer<TKey, TValue> GetOrInitConsumer()
+        public IConsumer<TKey, TValue> GetOrInitConsumer<TKey, TValue>(Action<ConsumerBuilder<TKey, TValue>> @delegate = null)
         {
-            if (_consumer.IsNull())
-            {
-                _consumer = new ConsumerBuilder<TKey, TValue>(_config.AsKafkaConfig())
-                                     .SetErrorHandler((x, y) => OnInitConsumerError?.Invoke(null, (x, y)))
-                                     .Build();
-            }
+            ConsumerBuilder<TKey, TValue> builder;
 
-            return _consumer;
+            if (this.ConsumerConfig.IsNotNull())
+                builder = new ConsumerBuilder<TKey, TValue>(this.ConsumerConfig);
+            else
+                builder = new ConsumerBuilder<TKey, TValue>(_config.AsKafkaConfig());
+
+            @delegate?.Invoke(builder);
+
+            return builder?.Build();
         }
 
         /// <summary>
         /// 发布消息
         /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
         /// <param name="topic"></param>
         /// <param name="message"></param>
         /// <param name="deliveryHandler"></param>
-        public void Publish(string topic, Message<TKey, TValue> message, Action<DeliveryReport<TKey, TValue>> deliveryHandler = null)
+        /// <param name="delegate"></param>
+        public void Publish<TKey, TValue>(string topic, Message<TKey, TValue> message, Action<DeliveryReport<TKey, TValue>> deliveryHandler = null, Action<ProducerBuilder<TKey, TValue>> @delegate = null)
         {
-            var producer = this.GetOrInitProducer();
+            var producer = this.GetOrInitProducer(@delegate);
 
             if (producer.IsNotNull())
                 producer.Produce(topic, message, deliveryHandler);
@@ -107,12 +118,15 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 发布消息
         /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
         /// <param name="topic"></param>
         /// <param name="messages"></param>
         /// <param name="deliveryHandler"></param>
-        public void Publish(string topic, IEnumerable<Message<TKey, TValue>> messages, Action<DeliveryReport<TKey, TValue>> deliveryHandler = null)
+        /// <param name="delegate"></param>
+        public void Publish<TKey, TValue>(string topic, IEnumerable<Message<TKey, TValue>> messages, Action<DeliveryReport<TKey, TValue>> deliveryHandler = null, Action<ProducerBuilder<TKey, TValue>> @delegate = null)
         {
-            var producer = this.GetOrInitProducer();
+            var producer = this.GetOrInitProducer(@delegate);
 
             if (producer.IsNotNull())
             {
@@ -128,11 +142,15 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 发布消息
         /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
         /// <param name="topic"></param>
         /// <param name="message"></param>
-        public async Task<DeliveryResult<TKey, TValue>> PublishAsync(string topic, Message<TKey, TValue> message)
+        /// <param name="delegate"></param>
+        /// <returns></returns>
+        public async Task<DeliveryResult<TKey, TValue>> PublishAsync<TKey, TValue>(string topic, Message<TKey, TValue> message, Action<ProducerBuilder<TKey, TValue>> @delegate = null)
         {
-            var producer = this.GetOrInitProducer();
+            var producer = this.GetOrInitProducer(@delegate);
             if (producer.IsNotNull())
                 return await producer.ProduceAsync(topic, message);
 
@@ -142,12 +160,15 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 发布消息
         /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
         /// <param name="topic"></param>
         /// <param name="messages"></param>
+        /// <param name="delegate"></param>
         /// <returns></returns>
-        public async Task<IEnumerable<DeliveryResult<TKey, TValue>>> PublishAsync(string topic, IEnumerable<Message<TKey, TValue>> messages)
+        public async Task<IEnumerable<DeliveryResult<TKey, TValue>>> PublishAsync<TKey, TValue>(string topic, IEnumerable<Message<TKey, TValue>> messages, Action<ProducerBuilder<TKey, TValue>> @delegate = null)
         {
-            var producer = this.GetOrInitProducer();
+            var producer = this.GetOrInitProducer(@delegate);
             if (producer.IsNotNull())
             {
                 var result = new List<DeliveryResult<TKey, TValue>>();
@@ -166,11 +187,14 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 订阅消息主题
         /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
         /// <param name="topic"></param>
+        /// <param name="delegate"></param>
         /// <returns></returns>
-        public IConsumer<TKey, TValue> Subscribe(string topic)
+        public IConsumer<TKey, TValue> Subscribe<TKey, TValue>(string topic, Action<ConsumerBuilder<TKey, TValue>> @delegate = null)
         {
-            var consumer = this.GetOrInitConsumer();
+            var consumer = this.GetOrInitConsumer(@delegate);
             if (consumer.IsNotNull())
             {
                 consumer.Subscribe(topic);
@@ -183,11 +207,14 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 批量订阅消息主题
         /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
         /// <param name="topics"></param>
+        /// <param name="delegate"></param>
         /// <returns></returns>
-        public IConsumer<TKey, TValue> Subscribe(IEnumerable<string> topics)
+        public IConsumer<TKey, TValue> Subscribe<TKey, TValue>(IEnumerable<string> topics, Action<ConsumerBuilder<TKey, TValue>> @delegate = null)
         {
-            var consumer = this.GetOrInitConsumer();
+            var consumer = this.GetOrInitConsumer(@delegate);
             if (consumer.IsNotNull())
             {
                 consumer.Subscribe(topics);
@@ -200,12 +227,15 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 订阅消息
         /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
         /// <param name="topic"></param>
         /// <param name="receiveHandler"></param>
         /// <param name="commit"></param>
-        public void Subscribe(string topic, Action<ConsumeResult<TKey, TValue>> receiveHandler, bool commit = false)
+        /// <param name="delegate"></param>
+        public void Subscribe<TKey, TValue>(string topic, Action<ConsumeResult<TKey, TValue>> receiveHandler, bool commit = false, Action<ConsumerBuilder<TKey, TValue>> @delegate = null)
         {
-            var consumer = this.Subscribe(topic);
+            var consumer = this.Subscribe(topic, @delegate);
 
             if (consumer.IsNotNull())
             {
@@ -214,7 +244,7 @@ namespace ZqUtils.Helpers
 
                     var res = consumer.Consume();
 
-                    if (res.IsPartitionEOF || res.Message == null || res.Message.Value == null)
+                    if (res.IsPartitionEOF || res.Message.IsNull() || res.Message.Value.IsNull())
                         continue;
 
                     receiveHandler?.Invoke(res);
@@ -228,12 +258,15 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 订阅消息
         /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
         /// <param name="topics"></param>
         /// <param name="receiveHandler"></param>
         /// <param name="commit"></param>
-        public void Subscribe(IEnumerable<string> topics, Action<ConsumeResult<TKey, TValue>> receiveHandler, bool commit = false)
+        /// <param name="delegate"></param>
+        public void Subscribe<TKey, TValue>(IEnumerable<string> topics, Action<ConsumeResult<TKey, TValue>> receiveHandler, bool commit = false, Action<ConsumerBuilder<TKey, TValue>> @delegate = null)
         {
-            var consumer = this.Subscribe(topics);
+            var consumer = this.Subscribe(topics, @delegate);
 
             if (consumer.IsNotNull())
             {
@@ -242,7 +275,7 @@ namespace ZqUtils.Helpers
 
                     var res = consumer.Consume();
 
-                    if (res.IsPartitionEOF || res.Message == null || res.Message.Value == null)
+                    if (res.IsPartitionEOF || res.Message.IsNull() || res.Message.Value.IsNull())
                         continue;
 
                     receiveHandler?.Invoke(res);
@@ -302,7 +335,7 @@ namespace ZqUtils.Helpers
         {
             if (_kafkaConfig == null)
             {
-                if (Servers.IsNullOrWhiteSpace() || !MainConfig.Keys.Contains("bootstrap.servers"))
+                if (Servers.IsNullOrWhiteSpace() && !MainConfig.Keys.Contains("bootstrap.servers"))
                 {
                     throw new ArgumentNullException(nameof(Servers));
                 }
