@@ -115,7 +115,8 @@ namespace ZqUtils.Helpers
         /// <param name="message"></param>
         /// <param name="deliveryHandler"></param>
         /// <param name="delegate"></param>
-        public void Publish<TKey, TValue>(
+        /// <returns></returns>
+        public bool Publish<TKey, TValue>(
             string topic,
             Message<TKey, TValue> message,
             Action<DeliveryReport<TKey, TValue>> deliveryHandler = null,
@@ -124,7 +125,13 @@ namespace ZqUtils.Helpers
             var producer = this.GetOrInitProducer(@delegate);
 
             if (producer.IsNotNull())
+            {
                 producer.Produce(topic, message, deliveryHandler);
+
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -136,7 +143,8 @@ namespace ZqUtils.Helpers
         /// <param name="messages"></param>
         /// <param name="deliveryHandler"></param>
         /// <param name="delegate"></param>
-        public void Publish<TKey, TValue>(
+        /// <returns></returns>
+        public bool Publish<TKey, TValue>(
             string topic,
             IEnumerable<Message<TKey, TValue>> messages,
             Action<DeliveryReport<TKey, TValue>> deliveryHandler = null,
@@ -152,7 +160,11 @@ namespace ZqUtils.Helpers
                 }
 
                 producer.Flush(TimeSpan.FromSeconds(10));
+
+                return true;
             }
+
+            return false;
         }
 
         /// <summary>
