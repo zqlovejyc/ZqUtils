@@ -124,7 +124,7 @@ namespace ZqUtils.Helpers
         {
             var producer = this.GetOrInitProducer(@delegate);
 
-            if (producer.IsNotNull())
+            if (producer.IsNotNull() && message.IsNotNull())
             {
                 producer.Produce(topic, message, deliveryHandler);
 
@@ -152,14 +152,12 @@ namespace ZqUtils.Helpers
         {
             var producer = this.GetOrInitProducer(@delegate);
 
-            if (producer.IsNotNull())
+            if (producer.IsNotNull() && messages.IsNotNullOrEmpty())
             {
                 foreach (var message in messages)
                 {
                     producer.Produce(topic, message, deliveryHandler);
                 }
-
-                producer.Flush(TimeSpan.FromSeconds(10));
 
                 return true;
             }
@@ -182,7 +180,8 @@ namespace ZqUtils.Helpers
             Action<ProducerBuilder<TKey, TValue>> @delegate = null)
         {
             var producer = this.GetOrInitProducer(@delegate);
-            if (producer.IsNotNull())
+
+            if (producer.IsNotNull() && message.IsNotNull())
                 return await producer.ProduceAsync(topic, message);
 
             return null;
@@ -203,7 +202,8 @@ namespace ZqUtils.Helpers
             Action<ProducerBuilder<TKey, TValue>> @delegate = null)
         {
             var producer = this.GetOrInitProducer(@delegate);
-            if (producer.IsNotNull())
+
+            if (producer.IsNotNull() && messages.IsNotNullOrEmpty())
             {
                 var result = new List<DeliveryResult<TKey, TValue>>();
                 foreach (var message in messages)
@@ -231,7 +231,8 @@ namespace ZqUtils.Helpers
             Action<ConsumerBuilder<TKey, TValue>> @delegate = null)
         {
             var consumer = this.GetOrInitConsumer(@delegate);
-            if (consumer.IsNotNull())
+
+            if (consumer.IsNotNull() && topic.IsNotNullOrWhiteSpace())
             {
                 consumer.Subscribe(topic);
                 return consumer;
@@ -253,7 +254,8 @@ namespace ZqUtils.Helpers
             Action<ConsumerBuilder<TKey, TValue>> @delegate = null)
         {
             var consumer = this.GetOrInitConsumer(@delegate);
-            if (consumer.IsNotNull())
+
+            if (consumer.IsNotNull() && topics.IsNotNullOrEmpty())
             {
                 consumer.Subscribe(topics);
                 return consumer;
