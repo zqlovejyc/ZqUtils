@@ -138,6 +138,35 @@ namespace ZqUtils.Extensions
         }
         #endregion
 
+        #region WeekOfYear
+        /// <summary>
+        /// 获取指定时间是当年的第几周
+        /// </summary>
+        /// <param name="this"></param>
+        /// <param name="dayOfWeek"></param>
+        /// <param name="weekRule"></param>
+        /// <returns></returns>
+        public static int WeekOfYear(this DateTime @this, DayOfWeek dayOfWeek = DayOfWeek.Monday, CalendarWeekRule weekRule = CalendarWeekRule.FirstDay)
+        {
+            var gc = new GregorianCalendar();
+            return gc.GetWeekOfYear(@this, weekRule, dayOfWeek);
+        }
+
+        /// <summary>
+        /// 获取指定时间是当年的第几周
+        /// </summary>
+        /// <param name="this"></param>
+        /// <param name="calendarTypes"></param>
+        /// <param name="dayOfWeek"></param>
+        /// <param name="weekRule"></param>
+        /// <returns></returns>
+        public static int WeekOfYear(this DateTime @this, GregorianCalendarTypes calendarTypes, DayOfWeek dayOfWeek = DayOfWeek.Monday, CalendarWeekRule weekRule = CalendarWeekRule.FirstDay)
+        {
+            var gc = new GregorianCalendar(calendarTypes);
+            return gc.GetWeekOfYear(@this, weekRule, dayOfWeek);
+        }
+        #endregion
+
         #region Format DateTime
         /// <summary>
         /// 获取格式化字符串，带时分秒，格式："yyyy-MM-dd HH:mm:ss"
