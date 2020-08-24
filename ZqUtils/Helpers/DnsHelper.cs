@@ -41,11 +41,12 @@ namespace ZqUtils.Helpers
         /// 获取本地的IP地址
         /// </summary>
         /// <param name="ipv4">是否ipv4</param>
+        /// <param name="hostNameOrAddress">主机名称或者地址</param>
         /// <returns></returns>
-        public static async Task<string> GetIpAddressAsync(bool ipv4 = true)
+        public static async Task<string> GetIpAddressAsync(bool ipv4 = true, string hostNameOrAddress = null)
         {
             var client = new LookupClient();
-            var hostEntry = await client.GetHostEntryAsync(Dns.GetHostName());
+            var hostEntry = await client.GetHostEntryAsync(hostNameOrAddress ?? Dns.GetHostName());
             IPAddress ipAddress = null;
             if (ipv4)
             {
