@@ -7000,9 +7000,11 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static IDictionary<string, object> ToDictionary(this object @this)
         {
-            if (@this is IDictionary<string, object> dic) return dic;
+            if (@this is IDictionary<string, object> dic)
+                return dic;
+
             dic = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
-            if (@this != null)
+            if (@this.IsNotNull())
             {
                 // 修正字符串字典的支持问题
                 if (@this is IDictionary dic2)
@@ -7016,9 +7018,53 @@ namespace ZqUtils.Extensions
                 {
                     foreach (var pi in @this.GetType().GetProperties())
                     {
-                        if (pi.GetIndexParameters().Length > 0) continue;
-                        if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
+                        if (pi.GetIndexParameters().Length > 0)
+                            continue;
+
+                        if (pi.GetCustomAttribute<XmlIgnoreAttribute>().IsNotNull())
+                            continue;
+
                         dic[pi.Name] = @this.GetValue(pi);
+                    }
+                }
+            }
+            return dic;
+        }
+
+        /// <summary>
+        /// 目标匿名参数对象转为字典
+        /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="this"></param>
+        /// <returns></returns>
+        public static IDictionary<TKey, TValue> ToDictionary<TKey, TValue>(this object @this)
+        {
+            if (@this is IDictionary<TKey, TValue> dic)
+                return dic;
+
+            dic = new Dictionary<TKey, TValue>();
+            if (@this.IsNotNull())
+            {
+                // 修正字符串字典的支持问题
+                if (@this is IDictionary dic2)
+                {
+                    foreach (DictionaryEntry item in dic2)
+                    {
+                        dic[item.Key.To<TKey>()] = item.Value.To<TValue>();
+                    }
+                }
+                else
+                {
+                    foreach (var pi in @this.GetType().GetProperties())
+                    {
+                        if (pi.GetIndexParameters().Length > 0)
+                            continue;
+
+                        if (pi.GetCustomAttribute<XmlIgnoreAttribute>().IsNotNull())
+                            continue;
+
+                        dic[pi.Name.To<TKey>()] = pi.GetValue(@this).To<TValue>();
                     }
                 }
             }
