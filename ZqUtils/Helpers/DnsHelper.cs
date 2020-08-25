@@ -17,13 +17,14 @@
 #endregion
 
 using DnsClient;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Web;
+using ZqUtils.Extensions;
 /****************************
 * [Author] 张强
 * [Date] 2018-08-24
@@ -36,33 +37,30 @@ namespace ZqUtils.Helpers
     /// </summary>
     public class DnsHelper
     {
-        #region GetIpAddressAsync
+        #region GetIpAddress
         /// <summary>
         /// 获取本地的IP地址
         /// </summary>
-        /// <param name="ipv4">是否ipv4</param>
-        /// <param name="hostNameOrAddress">主机名称或者地址</param>
+        /// <param name="ipv4">是否ipv4，否则ipv6，默认：ipv4</param>
+        /// <param name="wifi">是否无线网卡，默认：有线网卡</param>
         /// <returns></returns>
-        public static async Task<string> GetIpAddressAsync(bool ipv4 = true, string hostNameOrAddress = null)
+        public static string GetIpAddress(bool ipv4 = true, bool wifi = false)
         {
-            var client = new LookupClient();
-            var hostEntry = await client.GetHostEntryAsync(hostNameOrAddress ?? Dns.GetHostName());
-            IPAddress ipAddress = null;
-            if (ipv4)
-            {
-                ipAddress = hostEntry
-                                .AddressList
-                                .Where(ip => !IPAddress.IsLoopback(ip) && ip.AddressFamily == AddressFamily.InterNetwork)
-                                .FirstOrDefault();
-            }
-            else
-            {
-                ipAddress = hostEntry
-                                .AddressList
-                                .Where(ip => !IPAddress.IsLoopback(ip) && ip.AddressFamily == AddressFamily.InterNetworkV6)
-                                .FirstOrDefault();
-            }
-            return ipAddress?.ToString();
+            return NetworkInterface
+                        .GetAllNetworkInterfaces()
+                        .Where(x => (wifi ?
+                            x.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 ://WIFI
+                            x.NetworkInterfaceType == NetworkInterfaceType.Ethernet) && //有线网
+                            x.OperationalStatus == OperationalStatus.Up)
+                        .Select(p => p.GetIPProperties())
+                        .SelectMany(p => p.UnicastAddresses)
+                        .Where(p => (ipv4 ?
+                            p.Address.AddressFamily == AddressFamily.InterNetwork :
+                            p.Address.AddressFamily == AddressFamily.InterNetworkV6) &&
+                            !IPAddress.IsLoopback(p.Address))
+                        .FirstOrDefault()?
+                        .Address
+                        .ToString();
         }
 
         /// <summary>
@@ -87,41 +85,25 @@ namespace ZqUtils.Helpers
         /// <returns>string</returns>
         public static string GetClientIp()
         {
-            string[] temp;
-            var isErr = false;
-            var request = HttpContext.Current.Request;
-            string ip;
-            if (request.ServerVariables["HTTP_X_ForWARDED_For"] == null)
+            if (HttpContext.Current.IsNull() ||
+                HttpContext.Current.Request.IsNull() ||
+                HttpContext.Current.Request.ServerVariables.IsNull())
+                return null;
+
+            var ip = HttpContext.Current.Request.ServerVariables["REMOTE_ADDR"];
+            if (ip.IsNullOrEmpty())
             {
-                ip = request.ServerVariables["REMOTE_ADDR"].ToString();
+                if (HttpContext.Current.Request.ServerVariables["HTTP_VIA"].IsNotNullOrEmpty())
+                    ip = HttpContext.Current.Request.ServerVariables["HTTP_X_FORWARDED_FOR"].ToString().Split(',')[0].Trim();
             }
-            else
-            {
-                ip = request.ServerVariables["HTTP_X_ForWARDED_For"].ToString();
-            }
-            if (ip.Length > 15)
-            {
-                isErr = true;
-            }
-            else
-            {
-                temp = ip.Split('.');
-                if (temp.Length == 4)
-                {
-                    for (int i = 0; i < temp.Length; i++)
-                    {
-                        if (temp[i].Length > 3)
-                            isErr = true;
-                    }
-                }
-                else
-                {
-                    isErr = true;
-                }
-            }
-            if (isErr)
-                ip = "1.1.1.1";
-            return ip;
+
+            if (ip.IsNullOrEmpty())
+                ip = HttpContext.Current.Request.UserHostAddress;
+
+            if (ip.IsNotNullOrEmpty() && ip.IsIP() && !IPAddress.IsLoopback(IPAddress.Parse(ip)))
+                return ip;
+
+            return null;
         }
         #endregion
 
@@ -138,7 +120,9 @@ namespace ZqUtils.Helpers
             {
                 ["userAgent"] = request.UserAgent,
                 ["userHostName"] = request.UserHostName,
-                ["userHostAddress"] = request.UserHostAddress
+                ["userHostAddress"] = request.UserHostAddress,
+                ["remote_addr"] = HttpContext.Current.Request.ServerVariables["REMOTE_ADDR"],
+                ["http_x_forwarded_for"] = HttpContext.Current.Request.ServerVariables["HTTP_X_FORWARDED_FOR"]
             };
         }
         #endregion

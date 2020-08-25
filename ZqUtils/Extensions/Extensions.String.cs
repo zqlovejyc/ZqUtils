@@ -386,6 +386,18 @@ namespace ZqUtils.Extensions
         }
         #endregion
 
+        #region 验证字符串是否是IP地址
+        /// <summary>
+        /// 验证字符串是否是IP地址
+        /// </summary>
+        /// <param name="this"></param>
+        /// <returns></returns>
+        public static bool IsIP(this string @this)
+        {
+            return Regex.IsMatch(@this, @"^((2[0-4]\d|25[0-5]|[01]?\d\d?)\.){3}(2[0-4]\d|25[0-5]|[01]?\d\d?)$");
+        }
+        #endregion
+
         #region URL拼接字符串转换为Dictionary
         /// <summary>
         /// url拼接字符串，参数转换为Dictionary键值对数据
