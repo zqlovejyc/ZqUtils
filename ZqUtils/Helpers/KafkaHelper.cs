@@ -69,7 +69,7 @@ namespace ZqUtils.Helpers
         /// </summary>
         /// <typeparam name="TKey"></typeparam>
         /// <typeparam name="TValue"></typeparam>
-        /// <param name="delegate"></param>
+        /// <param name="delegate">生产者初始化委托</param>
         /// <returns></returns>
         public IProducer<TKey, TValue> GetOrInitProducer<TKey, TValue>(Action<ProducerBuilder<TKey, TValue>> @delegate = null)
         {
@@ -90,7 +90,7 @@ namespace ZqUtils.Helpers
         /// </summary>
         /// <typeparam name="TKey"></typeparam>
         /// <typeparam name="TValue"></typeparam>
-        /// <param name="delegate"></param>
+        /// <param name="delegate">消费者初始化委托</param>
         /// <returns></returns>
         public IConsumer<TKey, TValue> GetOrInitConsumer<TKey, TValue>(Action<ConsumerBuilder<TKey, TValue>> @delegate = null)
         {
@@ -111,10 +111,10 @@ namespace ZqUtils.Helpers
         /// </summary>
         /// <typeparam name="TKey"></typeparam>
         /// <typeparam name="TValue"></typeparam>
-        /// <param name="topic"></param>
-        /// <param name="message"></param>
-        /// <param name="deliveryHandler"></param>
-        /// <param name="delegate"></param>
+        /// <param name="topic">消息主题</param>
+        /// <param name="message">消息内容</param>
+        /// <param name="deliveryHandler">消息发送委托</param>
+        /// <param name="delegate">生产者初始化委托</param>
         /// <returns></returns>
         public bool Publish<TKey, TValue>(
             string topic,
@@ -139,10 +139,10 @@ namespace ZqUtils.Helpers
         /// </summary>
         /// <typeparam name="TKey"></typeparam>
         /// <typeparam name="TValue"></typeparam>
-        /// <param name="topic"></param>
-        /// <param name="messages"></param>
-        /// <param name="deliveryHandler"></param>
-        /// <param name="delegate"></param>
+        /// <param name="topic">消息主题</param>
+        /// <param name="messages">消息内容</param>
+        /// <param name="deliveryHandler">消息发送委托</param>
+        /// <param name="delegate">生产者初始化委托</param>
         /// <returns></returns>
         public bool Publish<TKey, TValue>(
             string topic,
@@ -170,9 +170,9 @@ namespace ZqUtils.Helpers
         /// </summary>
         /// <typeparam name="TKey"></typeparam>
         /// <typeparam name="TValue"></typeparam>
-        /// <param name="topic"></param>
-        /// <param name="message"></param>
-        /// <param name="delegate"></param>
+        /// <param name="topic">消息主题</param>
+        /// <param name="message">消息内容</param>
+        /// <param name="delegate">生产者初始化委托</param>
         /// <returns></returns>
         public async Task<DeliveryResult<TKey, TValue>> PublishAsync<TKey, TValue>(
             string topic,
@@ -192,9 +192,9 @@ namespace ZqUtils.Helpers
         /// </summary>
         /// <typeparam name="TKey"></typeparam>
         /// <typeparam name="TValue"></typeparam>
-        /// <param name="topic"></param>
-        /// <param name="messages"></param>
-        /// <param name="delegate"></param>
+        /// <param name="topic">消息主题</param>
+        /// <param name="messages">消息内容</param>
+        /// <param name="delegate">生产者初始化委托</param>
         /// <returns></returns>
         public async Task<IEnumerable<DeliveryResult<TKey, TValue>>> PublishAsync<TKey, TValue>(
             string topic,
@@ -223,8 +223,8 @@ namespace ZqUtils.Helpers
         /// </summary>
         /// <typeparam name="TKey"></typeparam>
         /// <typeparam name="TValue"></typeparam>
-        /// <param name="topic"></param>
-        /// <param name="delegate"></param>
+        /// <param name="topic">消息主题</param>
+        /// <param name="delegate">消费者初始化委托</param>
         /// <returns></returns>
         public IConsumer<TKey, TValue> Subscribe<TKey, TValue>(
             string topic,
@@ -246,8 +246,8 @@ namespace ZqUtils.Helpers
         /// </summary>
         /// <typeparam name="TKey"></typeparam>
         /// <typeparam name="TValue"></typeparam>
-        /// <param name="topics"></param>
-        /// <param name="delegate"></param>
+        /// <param name="topics">消息主题</param>
+        /// <param name="delegate">消费者初始化委托</param>
         /// <returns></returns>
         public IConsumer<TKey, TValue> Subscribe<TKey, TValue>(
             IEnumerable<string> topics,
@@ -269,15 +269,19 @@ namespace ZqUtils.Helpers
         /// </summary>
         /// <typeparam name="TKey"></typeparam>
         /// <typeparam name="TValue"></typeparam>
-        /// <param name="topic"></param>
-        /// <param name="receiveHandler"></param>
-        /// <param name="commit"></param>
-        /// <param name="delegate"></param>
+        /// <param name="topic">消息主题</param>
+        /// <param name="receiveHandler">消息接收处理委托</param>
+        /// <param name="exceptionHandler">异常处理委托</param>
+        /// <param name="delegate">消费者初始化委托</param>
+        /// <param name="commit">是否提交</param>
+        /// <param name="retryCount">异常重试次数</param>
         public void Subscribe<TKey, TValue>(
             string topic,
             Action<ConsumeResult<TKey, TValue>> receiveHandler,
+            Action<ConsumeResult<TKey, TValue>, int, Exception> exceptionHandler = null,
+            Action<ConsumerBuilder<TKey, TValue>> @delegate = null,
             bool commit = false,
-            Action<ConsumerBuilder<TKey, TValue>> @delegate = null)
+            int retryCount = 5)
         {
             var consumer = this.Subscribe(topic, @delegate);
 
@@ -285,16 +289,28 @@ namespace ZqUtils.Helpers
             {
                 while (true)
                 {
-
                     var res = consumer.Consume();
+                    var numberOfRetries = 0;
+                    while (numberOfRetries <= retryCount)
+                    {
+                        try
+                        {
+                            if (res.IsPartitionEOF || res.Message.IsNull() || res.Message.Value.IsNull())
+                                continue;
 
-                    if (res.IsPartitionEOF || res.Message.IsNull() || res.Message.Value.IsNull())
-                        continue;
+                            receiveHandler?.Invoke(res);
 
-                    receiveHandler?.Invoke(res);
+                            if (commit)
+                                consumer.Commit(res);
 
-                    if (commit)
-                        consumer.Commit(res);
+                            break;
+                        }
+                        catch (Exception ex)
+                        {
+                            exceptionHandler?.Invoke(res, numberOfRetries, ex);
+                            numberOfRetries++;
+                        }
+                    }
                 }
             }
         }
@@ -304,15 +320,19 @@ namespace ZqUtils.Helpers
         /// </summary>
         /// <typeparam name="TKey"></typeparam>
         /// <typeparam name="TValue"></typeparam>
-        /// <param name="topics"></param>
-        /// <param name="receiveHandler"></param>
-        /// <param name="commit"></param>
-        /// <param name="delegate"></param>
+        /// <param name="topics">消息主题</param>
+        /// <param name="receiveHandler">消息接收处理委托</param>
+        /// <param name="exceptionHandler">异常处理委托</param>
+        /// <param name="delegate">消费者初始化委托</param>
+        /// <param name="commit">是否提交</param>
+        /// <param name="retryCount">异常重试次数</param>
         public void Subscribe<TKey, TValue>(
             IEnumerable<string> topics,
             Action<ConsumeResult<TKey, TValue>> receiveHandler,
+            Action<ConsumeResult<TKey, TValue>, int, Exception> exceptionHandler = null,
+            Action<ConsumerBuilder<TKey, TValue>> @delegate = null,
             bool commit = false,
-            Action<ConsumerBuilder<TKey, TValue>> @delegate = null)
+            int retryCount = 5)
         {
             var consumer = this.Subscribe(topics, @delegate);
 
@@ -320,16 +340,28 @@ namespace ZqUtils.Helpers
             {
                 while (true)
                 {
-
                     var res = consumer.Consume();
+                    var numberOfRetries = 0;
+                    while (numberOfRetries <= retryCount)
+                    {
+                        try
+                        {
+                            if (res.IsPartitionEOF || res.Message.IsNull() || res.Message.Value.IsNull())
+                                continue;
 
-                    if (res.IsPartitionEOF || res.Message.IsNull() || res.Message.Value.IsNull())
-                        continue;
+                            receiveHandler?.Invoke(res);
 
-                    receiveHandler?.Invoke(res);
+                            if (commit)
+                                consumer.Commit(res);
 
-                    if (commit)
-                        consumer.Commit(res);
+                            break;
+                        }
+                        catch (Exception ex)
+                        {
+                            exceptionHandler?.Invoke(res, numberOfRetries, ex);
+                            numberOfRetries++;
+                        }
+                    }
                 }
             }
         }
