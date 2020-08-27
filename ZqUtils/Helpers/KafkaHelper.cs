@@ -35,11 +35,14 @@ namespace ZqUtils.Helpers
     /// </summary>
     public class KafkaHelper
     {
+        #region 私有字段
         /// <summary>
         /// 私有配置
         /// </summary>
         private readonly KafkaConfig _config;
+        #endregion
 
+        #region 公有属性
         /// <summary>
         /// 生产者连接配置
         /// </summary>
@@ -51,9 +54,31 @@ namespace ZqUtils.Helpers
         public ConsumerConfig ConsumerConfig { get; set; }
 
         /// <summary>
+        /// 静态单例
+        /// </summary>
+        public static KafkaHelper Instance => SingletonHelper<KafkaHelper>.GetInstance();
+        #endregion
+
+        #region 构造函数
+        /// <summary>
         /// 构造函数
         /// </summary>
-        public KafkaHelper() { }
+        public KafkaHelper()
+        {
+            this.ProducerConfig = ConfigHelper.GetAppSettings<ProducerConfig>("KafkaProducerConfig");
+            this.ConsumerConfig = ConfigHelper.GetAppSettings<ConsumerConfig>("KafkaConsumerConfig");
+        }
+
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="producerConfig">生产者连接配置</param>
+        /// <param name="consumerConfig">消费者连接配置</param>
+        public KafkaHelper(ProducerConfig producerConfig, ConsumerConfig consumerConfig)
+        {
+            this.ProducerConfig = producerConfig;
+            this.ConsumerConfig = consumerConfig;
+        }
 
         /// <summary>
         /// 构造函数
@@ -63,7 +88,9 @@ namespace ZqUtils.Helpers
         {
             _config = config;
         }
+        #endregion
 
+        #region 初始化生产者/消费者
         /// <summary>
         /// 获取并初始化生产者
         /// </summary>
@@ -105,7 +132,9 @@ namespace ZqUtils.Helpers
 
             return builder?.Build();
         }
+        #endregion
 
+        #region 发布消息
         /// <summary>
         /// 发布消息
         /// </summary>
@@ -217,7 +246,9 @@ namespace ZqUtils.Helpers
 
             return null;
         }
+        #endregion
 
+        #region 订阅消息
         /// <summary>
         /// 订阅消息主题
         /// </summary>
@@ -365,6 +396,7 @@ namespace ZqUtils.Helpers
                 }
             }
         }
+        #endregion
     }
 
     /// <summary>
