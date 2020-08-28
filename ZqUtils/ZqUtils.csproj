@@ -161,6 +161,7 @@
     <Compile Include="Extensions\Extensions.SqlCommand.cs" />
     <Compile Include="Extensions\Extensions.SqlConnection.cs" />
     <Compile Include="Extensions\Extensions.SqlParameterCollection.cs" />
+    <Compile Include="Helpers\AssemblyHelper.cs" />
     <Compile Include="Helpers\ConfigHelper.cs" />
     <Compile Include="Extensions\Extensions.AutoMapper.cs" />
     <Compile Include="Extensions\Extensions.DataRow.cs" />
