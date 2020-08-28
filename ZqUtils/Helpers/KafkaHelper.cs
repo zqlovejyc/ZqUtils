@@ -145,7 +145,7 @@ namespace ZqUtils.Helpers
         /// <param name="deliveryHandler">消息发送委托</param>
         /// <param name="delegate">生产者初始化委托</param>
         /// <returns></returns>
-        public bool Publish<TKey, TValue>(
+        public void Publish<TKey, TValue>(
             string topic,
             Message<TKey, TValue> message,
             Action<DeliveryReport<TKey, TValue>> deliveryHandler = null,
@@ -156,11 +156,7 @@ namespace ZqUtils.Helpers
             if (producer.IsNotNull() && message.IsNotNull())
             {
                 producer.Produce(topic, message, deliveryHandler);
-
-                return true;
             }
-
-            return false;
         }
 
         /// <summary>
@@ -173,7 +169,7 @@ namespace ZqUtils.Helpers
         /// <param name="deliveryHandler">消息发送委托</param>
         /// <param name="delegate">生产者初始化委托</param>
         /// <returns></returns>
-        public bool Publish<TKey, TValue>(
+        public void Publish<TKey, TValue>(
             string topic,
             IEnumerable<Message<TKey, TValue>> messages,
             Action<DeliveryReport<TKey, TValue>> deliveryHandler = null,
@@ -187,11 +183,7 @@ namespace ZqUtils.Helpers
                 {
                     producer.Produce(topic, message, deliveryHandler);
                 }
-
-                return true;
             }
-
-            return false;
         }
 
         /// <summary>
