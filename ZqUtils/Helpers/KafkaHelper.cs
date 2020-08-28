@@ -304,15 +304,17 @@ namespace ZqUtils.Helpers
         /// <param name="receiveHandler">消息接收处理委托</param>
         /// <param name="exceptionHandler">异常处理委托</param>
         /// <param name="delegate">消费者初始化委托</param>
-        /// <param name="commit">是否提交</param>
+        /// <param name="commit">是否手动提交</param>
         /// <param name="retryCount">异常重试次数</param>
+        /// <param name="durableFailOrExceptionMessage">是否持久化失败或者异常消息</param>
         public void Subscribe<TKey, TValue>(
             string topic,
-            Action<ConsumeResult<TKey, TValue>> receiveHandler,
+            Func<ConsumeResult<TKey, TValue>, bool> receiveHandler,
             Action<ConsumeResult<TKey, TValue>, int, Exception> exceptionHandler = null,
             Action<ConsumerBuilder<TKey, TValue>> @delegate = null,
             bool commit = false,
-            int retryCount = 5)
+            int retryCount = 5,
+            bool durableFailOrExceptionMessage = true)
         {
             var consumer = this.Subscribe(topic, @delegate);
 
@@ -320,27 +322,51 @@ namespace ZqUtils.Helpers
             {
                 while (true)
                 {
-                    var res = consumer.Consume();
+                    var message = consumer.Consume();
                     var numberOfRetries = 0;
+                    Exception exception = null;
+                    bool? result = false;
                     while (numberOfRetries <= retryCount)
                     {
                         try
                         {
-                            if (res.IsPartitionEOF || res.Message.IsNull() || res.Message.Value.IsNull())
+                            if (message.IsPartitionEOF || message.Message.IsNull() || message.Message.Value.IsNull())
                                 continue;
 
-                            receiveHandler?.Invoke(res);
+                            result = receiveHandler?.Invoke(message);
 
-                            if (commit)
-                                consumer.Commit(res);
+                            //异常置空
+                            exception = null;
 
                             break;
                         }
                         catch (Exception ex)
                         {
-                            exceptionHandler?.Invoke(res, numberOfRetries, ex);
+                            exception = ex;
+                            exceptionHandler?.Invoke(message, numberOfRetries, ex);
                             numberOfRetries++;
                         }
+                    }
+
+                    //是否手动提交
+                    if (commit)
+                        consumer.Commit(message);
+
+                    //是否持久化失败或者异常消息
+                    if (durableFailOrExceptionMessage && (!(result == true) || exception != null))
+                    {
+                        this.Publish($"{topic}.{(exception != null ? "error" : "fail")}", new Message<string, string>
+                        {
+                            Key = message.Message.Key?.ToString(),
+                            Value = new FailOrExceptionMessage
+                            {
+                                Body = message.Message.Value.ToJson(),
+                                Topics = new[] { topic },
+                                RetryCount = exception == null ? numberOfRetries : numberOfRetries - 1,
+                                Exception = exception,
+                                ExceptionMsg = exception?.Message
+                            }.ToJson()
+                        });
                     }
                 }
             }
@@ -355,15 +381,17 @@ namespace ZqUtils.Helpers
         /// <param name="receiveHandler">消息接收处理委托</param>
         /// <param name="exceptionHandler">异常处理委托</param>
         /// <param name="delegate">消费者初始化委托</param>
-        /// <param name="commit">是否提交</param>
+        /// <param name="commit">是否手动提交</param>
         /// <param name="retryCount">异常重试次数</param>
+        /// <param name="durableFailOrExceptionMessage">是否持久化失败或者异常消息</param>
         public void Subscribe<TKey, TValue>(
             IEnumerable<string> topics,
-            Action<ConsumeResult<TKey, TValue>> receiveHandler,
+            Func<ConsumeResult<TKey, TValue>, bool> receiveHandler,
             Action<ConsumeResult<TKey, TValue>, int, Exception> exceptionHandler = null,
             Action<ConsumerBuilder<TKey, TValue>> @delegate = null,
             bool commit = false,
-            int retryCount = 5)
+            int retryCount = 5,
+            bool durableFailOrExceptionMessage = true)
         {
             var consumer = this.Subscribe(topics, @delegate);
 
@@ -371,27 +399,51 @@ namespace ZqUtils.Helpers
             {
                 while (true)
                 {
-                    var res = consumer.Consume();
+                    var message = consumer.Consume();
                     var numberOfRetries = 0;
+                    Exception exception = null;
+                    bool? result = false;
                     while (numberOfRetries <= retryCount)
                     {
                         try
                         {
-                            if (res.IsPartitionEOF || res.Message.IsNull() || res.Message.Value.IsNull())
+                            if (message.IsPartitionEOF || message.Message.IsNull() || message.Message.Value.IsNull())
                                 continue;
 
-                            receiveHandler?.Invoke(res);
+                            result = receiveHandler?.Invoke(message);
 
-                            if (commit)
-                                consumer.Commit(res);
+                            //异常置空
+                            exception = null;
 
                             break;
                         }
                         catch (Exception ex)
                         {
-                            exceptionHandler?.Invoke(res, numberOfRetries, ex);
+                            exception = ex;
+                            exceptionHandler?.Invoke(message, numberOfRetries, ex);
                             numberOfRetries++;
                         }
+                    }
+
+                    //是否手动提交
+                    if (commit)
+                        consumer.Commit(message);
+
+                    //是否持久化失败或者异常消息
+                    if (durableFailOrExceptionMessage && (!(result == true) || exception != null))
+                    {
+                        this.Publish($"{topics.Join()}.{(exception != null ? "error" : "fail")}", new Message<string, string>
+                        {
+                            Key = message.Message.Key?.ToString(),
+                            Value = new FailOrExceptionMessage
+                            {
+                                Body = message.Message.Value.ToJson(),
+                                Topics = topics,
+                                RetryCount = exception == null ? numberOfRetries : numberOfRetries - 1,
+                                Exception = exception,
+                                ExceptionMsg = exception?.Message
+                            }.ToJson()
+                        });
                     }
                 }
             }
@@ -475,5 +527,41 @@ namespace ZqUtils.Helpers
 
             return _kafkaConfig;
         }
+    }
+
+    /// <summary>
+    /// 失败或者异常消息
+    /// </summary>
+    public class FailOrExceptionMessage
+    {
+        /// <summary>
+        /// 消息内容
+        /// </summary>
+        public string Body { get; set; }
+
+        /// <summary>
+        /// 订阅主题
+        /// </summary>
+        public IEnumerable<string> Topics { get; set; }
+
+        /// <summary>
+        /// 重试次数
+        /// </summary>
+        public int RetryCount { get; set; }
+
+        /// <summary>
+        /// 异常消息
+        /// </summary>
+        public string ExceptionMsg { get; set; }
+
+        /// <summary>
+        /// 异常
+        /// </summary>
+        public Exception Exception { get; set; }
+
+        /// <summary>
+        /// 创建时间
+        /// </summary>
+        public DateTime CreateDateTime { get; set; } = DateTime.Now;
     }
 }
