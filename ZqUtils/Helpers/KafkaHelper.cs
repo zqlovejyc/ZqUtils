@@ -144,7 +144,6 @@ namespace ZqUtils.Helpers
         /// <param name="message">消息内容</param>
         /// <param name="deliveryHandler">消息发送委托</param>
         /// <param name="delegate">生产者初始化委托</param>
-        /// <returns></returns>
         public void Publish<TKey, TValue>(
             string topic,
             Message<TKey, TValue> message,
@@ -168,7 +167,6 @@ namespace ZqUtils.Helpers
         /// <param name="messages">消息内容</param>
         /// <param name="deliveryHandler">消息发送委托</param>
         /// <param name="delegate">生产者初始化委托</param>
-        /// <returns></returns>
         public void Publish<TKey, TValue>(
             string topic,
             IEnumerable<Message<TKey, TValue>> messages,
