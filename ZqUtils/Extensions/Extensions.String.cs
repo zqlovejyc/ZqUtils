@@ -927,6 +927,34 @@ namespace ZqUtils.Extensions
         }
         #endregion
 
+        #region 校验是否是Base64字符串
+        /// <summary>
+        /// 校验是否是Base64字符串
+        /// </summary>
+        /// <param name="this"></param>
+        /// <returns></returns>
+        public static bool IsBase64(this string @this)
+        {
+            if (@this.IsNullOrWhiteSpace() ||
+                @this.Length % 4 != 0 ||
+                @this.Contains(" ") ||
+                @this.Contains("\t") ||
+                @this.Contains("\r") ||
+                @this.Contains("\n"))
+                return false;
+
+            try
+            {
+                Convert.FromBase64String(@this);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        #endregion
+
         #region Base64加密
         /// <summary>
         /// 字符串Base64加密
