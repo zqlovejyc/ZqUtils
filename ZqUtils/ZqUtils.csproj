@@ -43,8 +43,8 @@
     <Reference Include="BouncyCastle.Crypto, Version=1.8.6.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
       <HintPath>..\packages\BouncyCastle.1.8.6.1\lib\BouncyCastle.Crypto.dll</HintPath>
     </Reference>
-    <Reference Include="Confluent.Kafka, Version=1.5.0.0, Culture=neutral, PublicKeyToken=12c514ca49093d1e, processorArchitecture=MSIL">
-      <HintPath>..\packages\Confluent.Kafka.1.5.0\lib\net45\Confluent.Kafka.dll</HintPath>
+    <Reference Include="Confluent.Kafka, Version=1.5.1.0, Culture=neutral, PublicKeyToken=12c514ca49093d1e, processorArchitecture=MSIL">
+      <HintPath>..\packages\Confluent.Kafka.1.5.1\lib\net45\Confluent.Kafka.dll</HintPath>
     </Reference>
     <Reference Include="Dapper, Version=1.50.2.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Dapper.1.50.2\lib\net45\Dapper.dll</HintPath>
@@ -81,7 +81,7 @@
       <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NLog.4.7.3\lib\net45\NLog.dll</HintPath>
+      <HintPath>..\packages\NLog.4.7.4\lib\net45\NLog.dll</HintPath>
     </Reference>
     <Reference Include="OpenPop, Version=2.0.6.1120, Culture=neutral, PublicKeyToken=6bdb97f144b7efc8, processorArchitecture=MSIL">
       <HintPath>..\packages\OpenPop.NET.2.0.6.1120\lib\net40\OpenPop.dll</HintPath>
@@ -108,8 +108,8 @@
     <Reference Include="System.configuration" />
     <Reference Include="System.Data.Linq" />
     <Reference Include="System.Drawing" />
-    <Reference Include="System.IdentityModel.Tokens.Jwt, Version=6.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.IdentityModel.Tokens.Jwt.6.6.0\lib\net45\System.IdentityModel.Tokens.Jwt.dll</HintPath>
+    <Reference Include="System.IdentityModel.Tokens.Jwt, Version=6.7.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IdentityModel.Tokens.Jwt.6.7.1\lib\net45\System.IdentityModel.Tokens.Jwt.dll</HintPath>
     </Reference>
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -274,6 +274,7 @@
     <None Include="Nuget\Zq.Utils.1.0.6.9.nupkg" />
     <None Include="Nuget\Zq.Utils.1.0.7.1.nupkg" />
     <None Include="Nuget\Zq.Utils.1.0.7.2.nupkg" />
+    <None Include="Nuget\Zq.Utils.1.0.7.3.nupkg" />
     <None Include="Nuget\Zq.Utils.1.0.7.nupkg" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
