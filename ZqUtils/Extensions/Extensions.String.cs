@@ -876,13 +876,24 @@ namespace ZqUtils.Extensions
         /// <param name="this"></param>
         /// <param name="format">日期字符串格式化</param>
         /// <param name="provider">格式化驱动</param>
+        /// <param name="style">日期类型</param>
         /// <returns></returns>
-        public static DateTime ToDateTime(this string @this, string format, IFormatProvider provider = null)
+        public static DateTime? ToDateTime(this string @this, string format, IFormatProvider provider = null, DateTimeStyles style = DateTimeStyles.None)
         {
-            if (!format.IsNullOrEmpty())
-                return DateTime.ParseExact(@this, format, provider);
+            if (format.IsNotNullOrEmpty())
+            {
+                var res = DateTime.TryParseExact(@this, format, provider, style, out var time);
+                if (res)
+                    return time;
+            }
             else
-                return DateTime.Parse(@this);
+            {
+                var res = DateTime.TryParse(@this, out var time);
+                if (res)
+                    return time;
+            }
+
+            return null;
         }
         #endregion
 
