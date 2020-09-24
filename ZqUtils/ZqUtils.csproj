@@ -97,6 +97,9 @@
     <Reference Include="SevenZipSharp, Version=0.64.3890.29348, Culture=neutral, PublicKeyToken=20de82c62b055c88, processorArchitecture=MSIL">
       <HintPath>..\packages\SevenZipSharp.0.64\lib\SevenZipSharp.dll</HintPath>
     </Reference>
+    <Reference Include="Snowflake.Net, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Snowflake.Net.4.0.0\lib\Snowflake.Net.dll</HintPath>
+    </Reference>
     <Reference Include="StackExchange.Redis, Version=1.2.6.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\StackExchange.Redis.1.2.6\lib\net45\StackExchange.Redis.dll</HintPath>
     </Reference>
@@ -205,6 +208,7 @@
     <Compile Include="Helpers\RabbitMqHelper.cs" />
     <Compile Include="Helpers\RedisHelper.cs" />
     <Compile Include="Helpers\RSAKeyConvertHelper.cs" />
+    <Compile Include="Helpers\SnowflakeHelper.cs" />
     <Compile Include="Helpers\SqlHelper.cs" />
     <Compile Include="Helpers\MailHelper.cs" />
     <Compile Include="Helpers\MessageHelper.cs" />
