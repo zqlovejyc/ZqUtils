@@ -201,7 +201,7 @@ namespace ZqUtils.Helpers
         /// 解析雪花ID
         /// </summary>
         /// <returns></returns>
-        public static string AnalyzeId(long Id)
+        public static string ResolveId(long Id)
         {
             var sb = new StringBuilder();
 
