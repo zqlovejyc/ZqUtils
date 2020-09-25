@@ -32,12 +32,12 @@ namespace ZqUtils.Helpers
     public class SnowflakeHelper
     {
         /// <summary>
-        /// 初始化IdWorker属性
+        /// Id生产者
         /// </summary>
         public static IdWorker Worker { get; set; }
 
         /// <summary>
-        /// 生成Id
+        /// 唯一标识Id
         /// </summary>
         public static long NextId => Worker.NextId();
 
