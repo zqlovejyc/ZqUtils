@@ -195,7 +195,7 @@ namespace ZqUtils.Helpers
         /// 生成唯一标识ID
         /// </summary>
         /// <returns></returns>
-        public static long GenerateId() => Instance.NextId();
+        public static long NewId() => Instance.NextId();
 
         /// <summary>
         /// 解析雪花ID
