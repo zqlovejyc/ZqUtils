@@ -16,7 +16,9 @@
  */
 #endregion
 
+using Newtonsoft.Json.Linq;
 using Snowflake.Net;
+using ZqUtils.Extensions;
 /****************************
 * [Author] 张强
 * [Date] 2020-09-24
@@ -32,11 +34,31 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 初始化IdWorker属性
         /// </summary>
-        public static IdWorker Worker { get; set; } = new IdWorker(1, 1);
+        public static IdWorker Worker { get; set; }
 
         /// <summary>
         /// 生成Id
         /// </summary>
         public static long NextId => Worker.NextId();
+
+        /// <summary>
+        /// 静态构造函数
+        /// </summary>
+        static SnowflakeHelper()
+        {
+            var jObject = ConfigHelper.GetAppSettings<JObject>("Snowflake");
+            if (jObject.IsNotNull())
+            {
+                var workId = jObject.Value<long>("WorkId");
+                var datacenterId = jObject.Value<long>("DatacenterId");
+                var sequence = jObject.Value<long>("Sequence");
+
+                Worker = new IdWorker(workId, datacenterId, sequence);
+            }
+            else
+            {
+                Worker = new IdWorker(1, 1);
+            }
+        }
     }
 }
