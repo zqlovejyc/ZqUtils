@@ -47,8 +47,8 @@ namespace ZqUtils.Helpers
     /// </summary>
     public class SnowflakeHelper
     {
-        // 开始时间截 (new DateTime(2020, 1, 1).ToUniversalTime() - Jan1st1970).TotalMilliseconds
-        private const long twepoch = 1577808000000L;
+        // 开始时间截 (这个用自己业务系统上线的时间) 
+        private static readonly long twepoch;
 
         // 机器id所占的位数
         private const int workerIdBits = 5;
@@ -113,13 +113,16 @@ namespace ZqUtils.Helpers
             var jObject = ConfigHelper.GetAppSettings<JObject>("Snowflake");
             if (jObject.IsNotNull())
             {
-                var datacenterId = jObject.Value<long>("DatacenterId");
                 var workId = jObject.Value<long>("WorkId");
+                var datacenterId = jObject.Value<long>("DatacenterId");
+                var twepochTime = jObject.Value<DateTime>("TwepochTime");
 
+                twepoch = (long)(twepochTime.ToUniversalTime() - Jan1st1970).TotalMilliseconds;
                 Instance = new SnowflakeHelper(datacenterId, workId);
             }
             else
             {
+                twepoch = (long)(new DateTime(2020, 1, 1).ToUniversalTime() - Jan1st1970).TotalMilliseconds;
                 Instance = new SnowflakeHelper(1, 1);
             }
         }
