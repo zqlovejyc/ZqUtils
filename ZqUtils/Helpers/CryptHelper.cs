@@ -606,5 +606,30 @@ namespace ZqUtils.Helpers
         }
         #endregion
         #endregion        
+
+        #region 密码加密
+        /// <summary>
+        /// 密码加密
+        /// </summary>
+        /// <param name="password">Des加密过后的密码</param>
+        /// <returns></returns>
+        public static string EncryptPassword(string password)
+        {
+            //Des解密
+            var result = CryptHelper.DecryptByDes(password, "baize#66", "lxeP@ssx");
+
+            //表示密码解密失败
+            if (result == password)
+                return null;
+
+            //MD5加密(16位)
+            result = CryptHelper.MD5(result, 16);
+
+            //Des加密
+            result = CryptHelper.EncryptByDes(result, "%^&*(YUj", "234rtyu>");
+
+            return result;
+        }
+        #endregion
     }
 }
