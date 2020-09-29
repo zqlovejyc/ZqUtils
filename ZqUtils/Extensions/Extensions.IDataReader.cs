@@ -323,7 +323,10 @@ namespace ZqUtils.Extensions
             var table = new DataTable();
             if (@this?.IsClosed == false)
             {
-                table.Load(@this);
+                using (@this)
+                {
+                    table.Load(@this);
+                }
             }
             return table;
         }
@@ -338,25 +341,28 @@ namespace ZqUtils.Extensions
         public static DataSet ToDataSet(this IDataReader @this)
         {
             var ds = new DataSet();
-            if (@this.IsClosed == false)
+            if (@this?.IsClosed == false)
             {
-                do
+                using (@this)
                 {
-                    var schemaTable = @this.GetSchemaTable();
-                    var dt = new DataTable();
-                    dt.Columns.AddRange(schemaTable.AsEnumerable().Select(o => new DataColumn((string)o["ColumnName"], (Type)o["DataType"])).ToArray());
-                    while (@this.Read())
+                    do
                     {
-                        var dataRow = dt.NewRow();
-                        for (var i = 0; i < @this.FieldCount; i++)
+                        var schemaTable = @this.GetSchemaTable();
+                        var dt = new DataTable();
+                        dt.Columns.AddRange(schemaTable.AsEnumerable().Select(o => new DataColumn((string)o["ColumnName"], (Type)o["DataType"])).ToArray());
+                        while (@this.Read())
                         {
-                            dataRow[i] = @this.GetValue(i);
+                            var dataRow = dt.NewRow();
+                            for (var i = 0; i < @this.FieldCount; i++)
+                            {
+                                dataRow[i] = @this.GetValue(i);
+                            }
+                            dt.Rows.Add(dataRow);
                         }
-                        dt.Rows.Add(dataRow);
+                        ds.Tables.Add(dt);
                     }
-                    ds.Tables.Add(dt);
+                    while (@this.NextResult());
                 }
-                while (@this.NextResult());
             }
             return ds;
         }
