@@ -864,7 +864,7 @@ namespace ZqUtils.Helpers
             DeleteOptions options = null)
         {
             var collection = this.Database.GetCollection<T>(collectionName);
-            return collection.DeleteOne(filter, options).DeletedCount > 0;
+            return collection.DeleteOne<T>(filter, options).DeletedCount > 0;
         }
 
         /// <summary>
@@ -930,7 +930,7 @@ namespace ZqUtils.Helpers
             DeleteOptions options = null)
         {
             var collection = this.Database.GetCollection<T>(collectionName);
-            return collection.DeleteMany(filter, options).DeletedCount > 0;
+            return collection.DeleteMany<T>(filter, options).DeletedCount > 0;
         }
 
         /// <summary>
@@ -1020,7 +1020,7 @@ namespace ZqUtils.Helpers
             DeleteOptions options = null)
         {
             var collection = this.Database.GetCollection<T>(collectionName);
-            return await collection.DeleteOneAsync(filter, options);
+            return await collection.DeleteOneAsync<T>(filter, options);
         }
 
         /// <summary>
@@ -1086,7 +1086,7 @@ namespace ZqUtils.Helpers
             DeleteOptions options = null)
         {
             var collection = this.Database.GetCollection<T>(collectionName);
-            return await collection.DeleteManyAsync(filter, options);
+            return await collection.DeleteManyAsync<T>(filter, options);
         }
 
         /// <summary>
@@ -1693,7 +1693,7 @@ namespace ZqUtils.Helpers
             FindOptions options = null)
         {
             var collection = this.Database.GetCollection<T>(collectionName);
-            return collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip(0).Limit(1).FirstOrDefault();
+            return collection.Find(filter, options).Skip(0).Limit(1).FirstOrDefault();
         }
 
         /// <summary>
@@ -1725,7 +1725,7 @@ namespace ZqUtils.Helpers
             FindOptions options = null)
         {
             var collection = this.Database.GetCollection<T>(collectionName);
-            return collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip(0).Limit(1).FirstOrDefault();
+            return collection.Find(filter, options).Skip(0).Limit(1).FirstOrDefault();
         }
         #endregion
 
@@ -1778,14 +1778,14 @@ namespace ZqUtils.Helpers
             //是否分页
             if (pageIndex != null && pageSize != null)
             {
-                var total = collection.CountDocuments(filter ?? FilterDefinition<T>.Empty);
+                var total = collection.CountDocuments<T>(filter);
                 var list = sort != null ?
                     (
                         !isDesc ?
-                        collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortBy(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToList() :
-                        collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortByDescending(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToList()
+                        collection.Find(filter, options).SortBy(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToList() :
+                        collection.Find(filter, options).SortByDescending(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToList()
                     ) :
-                    collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToList();
+                    collection.Find(filter, options).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToList();
                 return (list, total);
             }
             else
@@ -1793,10 +1793,10 @@ namespace ZqUtils.Helpers
                 var list = sort != null ?
                     (
                         !isDesc ?
-                        collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortBy(sort).ToList() :
-                        collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortByDescending(sort).ToList()
+                        collection.Find(filter, options).SortBy(sort).ToList() :
+                        collection.Find(filter, options).SortByDescending(sort).ToList()
                     ) :
-                    collection.Find(filter ?? FilterDefinition<T>.Empty, options).ToList();
+                    collection.Find(filter, options).ToList();
                 return (list, 0);
             }
         }
@@ -1845,17 +1845,17 @@ namespace ZqUtils.Helpers
             //是否分页
             if (pageIndex != null && pageSize != null)
             {
-                var total = collection.CountDocuments(filter ?? FilterDefinition<T>.Empty);
+                var total = collection.CountDocuments(filter);
                 var list = sort != null ?
-                    collection.Find(filter ?? FilterDefinition<T>.Empty, options).Sort(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToList() :
-                    collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToList();
+                    collection.Find(filter, options).Sort(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToList() :
+                    collection.Find(filter, options).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToList();
                 return (list, total);
             }
             else
             {
                 var list = sort != null ?
-                    collection.Find(filter ?? FilterDefinition<T>.Empty, options).Sort(sort).ToList() :
-                    collection.Find(filter ?? FilterDefinition<T>.Empty, options).ToList();
+                    collection.Find(filter, options).Sort(sort).ToList() :
+                    collection.Find(filter, options).ToList();
                 return (list, 0);
             }
         }
@@ -1893,7 +1893,7 @@ namespace ZqUtils.Helpers
             FindOptions options = null)
         {
             var collection = this.Database.GetCollection<T>(collectionName);
-            return await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip(0).Limit(1).FirstOrDefaultAsync();
+            return await collection.Find(filter, options).Skip(0).Limit(1).FirstOrDefaultAsync();
         }
 
         /// <summary>
@@ -1925,7 +1925,7 @@ namespace ZqUtils.Helpers
             FindOptions options = null)
         {
             var collection = this.Database.GetCollection<T>(collectionName);
-            return await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip(0).Limit(1).FirstOrDefaultAsync();
+            return await collection.Find(filter, options).Skip(0).Limit(1).FirstOrDefaultAsync();
         }
         #endregion
 
@@ -1978,14 +1978,14 @@ namespace ZqUtils.Helpers
             //是否分页
             if (pageIndex != null && pageSize != null)
             {
-                var total = await collection.CountDocumentsAsync(filter ?? FilterDefinition<T>.Empty);
+                var total = await collection.CountDocumentsAsync<T>(filter);
                 var list = sort != null ?
                     (
                         !isDesc ?
-                        await collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortBy(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToListAsync() :
-                        await collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortByDescending(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToListAsync()
+                        await collection.Find(filter, options).SortBy(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToListAsync() :
+                        await collection.Find(filter, options).SortByDescending(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToListAsync()
                     ) :
-                    await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToListAsync();
+                    await collection.Find(filter, options).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToListAsync();
                 return (list, total);
             }
             else
@@ -1993,10 +1993,10 @@ namespace ZqUtils.Helpers
                 var list = sort != null ?
                     (
                         !isDesc ?
-                        await collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortBy(sort).ToListAsync() :
-                        await collection.Find(filter ?? FilterDefinition<T>.Empty, options).SortByDescending(sort).ToListAsync()
+                        await collection.Find(filter, options).SortBy(sort).ToListAsync() :
+                        await collection.Find(filter, options).SortByDescending(sort).ToListAsync()
                     ) :
-                    await collection.Find(filter ?? FilterDefinition<T>.Empty, options).ToListAsync();
+                    await collection.Find(filter, options).ToListAsync();
                 return (list, 0);
             }
         }
@@ -2045,17 +2045,17 @@ namespace ZqUtils.Helpers
             //是否分页
             if (pageIndex != null && pageSize != null)
             {
-                var total = await collection.CountDocumentsAsync(filter ?? FilterDefinition<T>.Empty);
+                var total = await collection.CountDocumentsAsync(filter);
                 var list = sort != null ?
-                    await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Sort(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToListAsync() :
-                    await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToListAsync();
+                    await collection.Find(filter, options).Sort(sort).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToListAsync() :
+                    await collection.Find(filter, options).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToListAsync();
                 return (list, total);
             }
             else
             {
                 var list = sort != null ?
-                    await collection.Find(filter ?? FilterDefinition<T>.Empty, options).Sort(sort).ToListAsync() :
-                    await collection.Find(filter ?? FilterDefinition<T>.Empty, options).ToListAsync();
+                    await collection.Find(filter, options).Sort(sort).ToListAsync() :
+                    await collection.Find(filter, options).ToListAsync();
                 return (list, 0);
             }
         }
