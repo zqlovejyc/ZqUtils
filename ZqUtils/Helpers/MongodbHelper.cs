@@ -1797,7 +1797,7 @@ namespace ZqUtils.Helpers
                         collection.Find(filter, options).SortByDescending(sort).ToList()
                     ) :
                     collection.Find(filter, options).ToList();
-                return (list, 0);
+                return (list, list.Count);
             }
         }
 
@@ -1856,7 +1856,7 @@ namespace ZqUtils.Helpers
                 var list = sort != null ?
                     collection.Find(filter, options).Sort(sort).ToList() :
                     collection.Find(filter, options).ToList();
-                return (list, 0);
+                return (list, list.Count);
             }
         }
         #endregion
@@ -1997,7 +1997,7 @@ namespace ZqUtils.Helpers
                         await collection.Find(filter, options).SortByDescending(sort).ToListAsync()
                     ) :
                     await collection.Find(filter, options).ToListAsync();
-                return (list, 0);
+                return (list, list.Count);
             }
         }
 
@@ -2056,7 +2056,7 @@ namespace ZqUtils.Helpers
                 var list = sort != null ?
                     await collection.Find(filter, options).Sort(sort).ToListAsync() :
                     await collection.Find(filter, options).ToListAsync();
-                return (list, 0);
+                return (list, list.Count);
             }
         }
         #endregion
