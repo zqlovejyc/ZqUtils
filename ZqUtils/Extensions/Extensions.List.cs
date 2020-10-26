@@ -37,6 +37,19 @@ namespace ZqUtils.Extensions
     /// </summary>
     public static class ListExtensions
     {
+        #region Default
+        /// <summary>
+        /// 若当前集合为null时，返回空集合；若不为null时，返回集合本身；
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <returns></returns>
+        public static IEnumerable<T> Default<T>(this IEnumerable<T> @this)
+        {
+            return @this ?? new List<T>();
+        }
+        #endregion
+
         #region ToList
         /// <summary>
         /// IList转成List
