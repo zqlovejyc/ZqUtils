@@ -190,12 +190,13 @@ namespace ZqUtils.Helpers
                         if (match >= score) return true;
                     }
                 }
+
+                return false;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
-            return false;
         }
 
         /// <summary>

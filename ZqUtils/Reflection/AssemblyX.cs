@@ -307,14 +307,17 @@ namespace ZqUtils.Reflection
         internal List<Type> FindPlugins(Type baseType)
         {
             // 如果type是null，则返回所有类型
-            if (_plugins.TryGetValue(baseType, out var list)) return list;
+            if (_plugins.TryGetValue(baseType, out var list))
+                return list;
             list = new List<Type>();
             foreach (var item in Types)
             {
-                if (item.IsInterface || item.IsAbstract || item.IsGenericType) continue;
+                if (item.IsInterface || item.IsAbstract || item.IsGenericType)
+                    continue;
                 if (item != baseType && item.As(baseType)) list.Add(item);
             }
-            if (list.Count <= 0) list = null;
+            if (list.Count <= 0)
+                list = null;
             _plugins.TryAdd(baseType, list);
             return list;
         }
@@ -341,11 +344,14 @@ namespace ZqUtils.Reflection
             foreach (var item in GetAssemblies())
             {
                 signs = item.Asm.GetName().GetPublicKey();
-                if (hasNotSign && signs != null && signs.Length > 0) continue;
+                if (hasNotSign && signs != null && signs.Length > 0)
+                    continue;
                 // 如果excludeGlobalTypes为true，则指检查来自非GAC引用的程序集
-                if (excludeGlobalTypes && item.Asm.GlobalAssemblyCache) continue;
+                if (excludeGlobalTypes && item.Asm.GlobalAssemblyCache)
+                    continue;
                 // 不搜索系统程序集，不搜索未引用基类所在程序集的程序集，优化性能
-                if (item.IsSystemAssembly || !IsReferencedFrom(item.Asm, baseAssemblyName)) continue;
+                if (item.IsSystemAssembly || !IsReferencedFrom(item.Asm, baseAssemblyName))
+                    continue;
                 var ts = item.FindPlugins(baseType);
                 if (ts != null && ts.Count > 0)
                 {
@@ -364,9 +370,11 @@ namespace ZqUtils.Reflection
                 foreach (var item in ReflectionOnlyGetAssemblies())
                 {
                     // 如果excludeGlobalTypes为true，则指检查来自非GAC引用的程序集
-                    if (excludeGlobalTypes && item.Asm.GlobalAssemblyCache) continue;
+                    if (excludeGlobalTypes && item.Asm.GlobalAssemblyCache)
+                        continue;
                     // 不搜索系统程序集，不搜索未引用基类所在程序集的程序集，优化性能
-                    if (item.IsSystemAssembly || !IsReferencedFrom(item.Asm, baseAssemblyName)) continue;
+                    if (item.IsSystemAssembly || !IsReferencedFrom(item.Asm, baseAssemblyName))
+                        continue;
                     var ts = item.FindPlugins(baseType);
                     if (ts != null && ts.Count > 0)
                     {
@@ -396,10 +404,12 @@ namespace ZqUtils.Reflection
         /// <returns></returns>
         private static bool IsReferencedFrom(Assembly asm, string baseAsmName)
         {
-            if (asm.GetName().Name.EqualIgnoreCase(baseAsmName)) return true;
+            if (asm.GetName().Name.EqualIgnoreCase(baseAsmName))
+                return true;
             foreach (var item in asm.GetReferencedAssemblies())
             {
-                if (item.Name.EqualIgnoreCase(baseAsmName)) return true;
+                if (item.Name.EqualIgnoreCase(baseAsmName))
+                    return true;
             }
             return false;
         }
@@ -413,7 +423,8 @@ namespace ZqUtils.Reflection
         internal static Type GetType(string typeName, bool isLoadAssembly)
         {
             var type = Type.GetType(typeName);
-            if (type != null) return type;
+            if (type != null)
+                return type;
             // 加速基础类型识别，忽略大小写
             if (!typeName.Contains("."))
             {
@@ -422,7 +433,8 @@ namespace ZqUtils.Reflection
                     if (typeName.EqualIgnoreCase(item))
                     {
                         type = Type.GetType("System." + item);
-                        if (type != null) return type;
+                        if (type != null)
+                            return type;
                     }
                 }
             }
@@ -436,21 +448,26 @@ namespace ZqUtils.Reflection
             var loads = new List<AssemblyX>();
             foreach (var asm in asms)
             {
-                if (asm == null || loads.Contains(asm)) continue;
+                if (asm == null || loads.Contains(asm))
+                    continue;
                 loads.Add(asm);
                 type = asm.GetType(typeName);
-                if (type != null) return type;
+                if (type != null)
+                    return type;
             }
             // 尝试所有程序集
             foreach (var asm in GetAssemblies())
             {
-                if (loads.Contains(asm)) continue;
+                if (loads.Contains(asm))
+                    continue;
                 loads.Add(asm);
                 type = asm.GetType(typeName);
-                if (type != null) return type;
+                if (type != null)
+                    return type;
             }
             // 尝试加载只读程序集
-            if (!isLoadAssembly) return null;
+            if (!isLoadAssembly)
+                return null;
             foreach (var asm in ReflectionOnlyGetAssemblies())
             {
                 type = asm.GetType(typeName);
@@ -463,12 +480,13 @@ namespace ZqUtils.Reflection
                         type = null;
                         var asm2 = Assembly.LoadFile(file);
                         var type2 = Create(asm2).GetType(typeName);
-                        if (type2 == null) continue;
+                        if (type2 == null)
+                            continue;
                         type = type2;
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
-                        throw ex;
+                        throw;
                     }
                     return type;
                 }
@@ -485,9 +503,11 @@ namespace ZqUtils.Reflection
         /// <returns></returns>
         public static IEnumerable<AssemblyX> GetAssemblies(AppDomain domain = null)
         {
-            if (domain == null) domain = AppDomain.CurrentDomain;
+            if (domain == null)
+                domain = AppDomain.CurrentDomain;
             var asms = domain.GetAssemblies();
-            if (asms == null || asms.Length < 1) return Enumerable.Empty<AssemblyX>();
+            if (asms == null || asms.Length < 1)
+                return Enumerable.Empty<AssemblyX>();
             return from e in asms select Create(e);
         }
 
@@ -531,12 +551,14 @@ namespace ZqUtils.Reflection
             var loadeds2 = AppDomain.CurrentDomain.ReflectionOnlyGetAssemblies().Select(e => Create(e)).ToList();
             foreach (var item in loadeds2)
             {
-                if (loadeds.Any(e => e.Location.EqualIgnoreCase(item.Location))) continue;
+                if (loadeds.Any(e => e.Location.EqualIgnoreCase(item.Location)))
+                    continue;
                 // 尽管目录不一样，但这两个可能是相同的程序集
                 // 这里导致加载了不同目录的同一个程序集，然后导致对象容器频繁报错
                 //if (loadeds.Any(e => e.Asm.FullName.EqualIgnoreCase(item.Asm.FullName))) continue;
                 // 相同程序集不同版本，全名不想等
-                if (loadeds.Any(e => e.Asm.GetName().Name.EqualIgnoreCase(item.Asm.GetName().Name))) continue;
+                if (loadeds.Any(e => e.Asm.GetName().Name.EqualIgnoreCase(item.Asm.GetName().Name)))
+                    continue;
                 yield return item;
             }
             foreach (var item in AssemblyPaths)
@@ -552,20 +574,24 @@ namespace ZqUtils.Reflection
         /// <returns></returns>
         public static IEnumerable<AssemblyX> ReflectionOnlyLoad(string path)
         {
-            if (!Directory.Exists(path)) yield break;
+            if (!Directory.Exists(path))
+                yield break;
             // 先返回已加载的只加载程序集
             var loadeds2 = AppDomain.CurrentDomain.ReflectionOnlyGetAssemblies().Select(e => Create(e)).ToList();
             // 再去遍历目录
             var ss = Directory.GetFiles(path, "*.*", SearchOption.TopDirectoryOnly);
-            if (ss == null || ss.Length < 1) yield break;
+            if (ss == null || ss.Length < 1)
+                yield break;
             var loadeds = GetAssemblies().ToList();
             var ver = new Version(Assembly.GetExecutingAssembly().ImageRuntimeVersion.TrimStart('v'));
             foreach (var item in ss)
             {
                 // 仅尝试加载dll和exe，不加载vshost文件
-                if (!item.EndsWithIgnoreCase(".dll", ".exe") || item.EndsWithIgnoreCase(".vshost.exe")) continue;
+                if (!item.EndsWithIgnoreCase(".dll", ".exe") || item.EndsWithIgnoreCase(".vshost.exe"))
+                    continue;
                 if (loadeds.Any(e => e.Location.EqualIgnoreCase(item)) ||
-                    loadeds2.Any(e => e.Location.EqualIgnoreCase(item))) continue;
+                    loadeds2.Any(e => e.Location.EqualIgnoreCase(item)))
+                    continue;
 
 #if !__MOBILE__ && !__CORE__
                 var asm = ReflectionOnlyLoadFrom(item, ver);
@@ -576,14 +602,16 @@ namespace ZqUtils.Reflection
 #endif
 
                 // 不搜索系统程序集，优化性能
-                if (CheckSystem(asm)) continue;
+                if (CheckSystem(asm))
+                    continue;
                 // 尽管目录不一样，但这两个可能是相同的程序集
                 // 这里导致加载了不同目录的同一个程序集，然后导致对象容器频繁报错
                 //if (loadeds.Any(e => e.Asm.FullName.EqualIgnoreCase(asm.FullName)) ||
                 //    loadeds2.Any(e => e.Asm.FullName.EqualIgnoreCase(asm.FullName))) continue;
                 // 相同程序集不同版本，全名不想等
                 if (loadeds.Any(e => e.Asm.GetName().Name.EqualIgnoreCase(asm.GetName().Name)) ||
-                    loadeds2.Any(e => e.Asm.GetName().Name.EqualIgnoreCase(asm.GetName().Name))) continue;
+                    loadeds2.Any(e => e.Asm.GetName().Name.EqualIgnoreCase(asm.GetName().Name)))
+                    continue;
                 var asmx = Create(asm);
                 if (asmx != null) yield return asmx;
             }
@@ -599,7 +627,8 @@ namespace ZqUtils.Reflection
         public static Assembly ReflectionOnlyLoadFrom(string file, Version ver = null)
         {
             // 仅加载.Net文件，并且小于等于当前版本
-            if (!PEImage.CanLoad(file, ver, false)) return null;
+            if (!PEImage.CanLoad(file, ver, false))
+                return null;
             try
             {
                 return Assembly.ReflectionOnlyLoadFrom(file);
@@ -681,9 +710,9 @@ namespace ZqUtils.Reflection
                         var asm = Assembly.LoadFile(item.Asm.Location);
                         if (asm != null) return asm;
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
-                        throw ex;
+                        throw;
                     }
                 }
             }
@@ -706,9 +735,9 @@ namespace ZqUtils.Reflection
                             var asm = Assembly.LoadFile(item.Asm.Location);
                             if (asm != null) return asm;
                         }
-                        catch (Exception ex)
+                        catch (Exception)
                         {
-                            throw ex;
+                            throw;
                         }
                     }
                 }

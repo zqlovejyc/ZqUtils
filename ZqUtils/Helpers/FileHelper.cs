@@ -435,9 +435,9 @@ namespace ZqUtils.Helpers
                 }
                 return null;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
             finally
             {
@@ -502,9 +502,9 @@ namespace ZqUtils.Helpers
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
             finally
             {
@@ -574,13 +574,14 @@ namespace ZqUtils.Helpers
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
             finally
             {
-                if (isDeleteFile) if (File.Exists(fullPath)) File.Delete(fullPath);
+                if (isDeleteFile)
+                    if (File.Exists(fullPath)) File.Delete(fullPath);
                 HttpContext.Current.Response.End();
             }
         }
@@ -767,9 +768,9 @@ namespace ZqUtils.Helpers
                 }
                 return null;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
             finally
             {

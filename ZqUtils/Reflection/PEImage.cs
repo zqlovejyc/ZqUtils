@@ -84,9 +84,9 @@ namespace ZqUtils.Reflection
                     return Read(fs);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -352,7 +352,7 @@ namespace ZqUtils.Reflection
             // 只判断主次版本，只要这两个相同，后面可以兼容
             var pv = pe.Version;
             if (pv.Major > ver.Major || pv.Major == ver.Major && pv.Minor > ver.Minor)
-            {                
+            {
                 return false;
             }
             // 必须加强过滤，下面一旦只读加载，就再也不能删除文件
@@ -364,7 +364,7 @@ namespace ZqUtils.Reflection
                 //var x64 = pe.Machine == ImageFileMachine.AMD64;
                 var x64 = pe.Machine == ImageFileMachine.AMD64;
                 if (Runtime.Is64BitProcess ^ x64)
-                {                   
+                {
                     return false;
                 }
             }

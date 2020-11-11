@@ -81,10 +81,10 @@ namespace ZqUtils.Helpers
                 default:
                     break;
             }
-            if (dir.IsNullOrEmpty()) 
-                return Path.GetFullPath(path);
+            if (dir.IsNullOrEmpty()) return
+                    Path.GetFullPath(path);
             // 处理网络路径
-            if (path.StartsWith(@"\\")) 
+            if (path.StartsWith(@"\\"))
                 return Path.GetFullPath(path);
             // 考虑兼容Linux
             if (!Runtime.Mono)
@@ -123,7 +123,7 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public static string GetFullPath(this string path)
         {
-            if (string.IsNullOrEmpty(path)) 
+            if (string.IsNullOrEmpty(path))
                 return path;
 
             return GetPath(path, 1);
@@ -156,7 +156,7 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public static string GetCurrentPath(this string path)
         {
-            if (string.IsNullOrEmpty(path)) 
+            if (string.IsNullOrEmpty(path))
                 return path;
 
             return GetPath(path, 3);
@@ -175,7 +175,7 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public static string EnsureDirectory(this string path, bool isfile = true)
         {
-            if (string.IsNullOrEmpty(path)) 
+            if (string.IsNullOrEmpty(path))
                 return path;
             path = path.GetFullPath();
             if (File.Exists(path) || Directory.Exists(path))
@@ -186,7 +186,7 @@ namespace ZqUtils.Helpers
                 dir = Path.GetDirectoryName(path);
             else if (isfile)
                 dir = Path.GetDirectoryName(path);
-            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir)) 
+            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
             return path;
         }
@@ -199,13 +199,13 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public static string CombinePath(this string path, params string[] ps)
         {
-            if (ps == null || ps.Length < 1) 
+            if (ps == null || ps.Length < 1)
                 return path;
-            if (path == null) 
+            if (path == null)
                 path = string.Empty;
             foreach (var item in ps)
             {
-                if (!item.IsNullOrEmpty()) 
+                if (!item.IsNullOrEmpty())
                     path = Path.Combine(path, item);
             }
             return path;
@@ -232,7 +232,7 @@ namespace ZqUtils.Helpers
             using (var fs = file.OpenRead())
             {
                 fs.Position = offset;
-                if (count <= 0) 
+                if (count <= 0)
                     count = (int)(fs.Length - offset);
                 return fs.ReadBytes(count);
             }
@@ -307,7 +307,7 @@ namespace ZqUtils.Helpers
         public static bool CopyToIfNewer(this FileInfo fi, string destFileName)
         {
             // 源文件必须存在
-            if (fi == null || !fi.Exists) 
+            if (fi == null || !fi.Exists)
                 return false;
             var dest = destFileName.AsFile();
             // 目标文件必须存在且源文件较新
@@ -386,7 +386,7 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public static string[] CopyTo(this DirectoryInfo di, string destDirName, string exts = null, bool allSub = false, Action<string> callback = null)
         {
-            if (!di.Exists) 
+            if (!di.Exists)
                 return new string[0];
             var list = new List<string>();
             // 来源目录根，用于截断
@@ -414,7 +414,7 @@ namespace ZqUtils.Helpers
         public static string[] CopyToIfNewer(this DirectoryInfo di, string destDirName, string exts = null, bool allSub = false, Action<string> callback = null)
         {
             var dest = destDirName.AsDirectory();
-            if (!dest.Exists) 
+            if (!dest.Exists)
                 return new string[0];
             var list = new List<string>();
             // 目标目录根，用于截断
@@ -461,8 +461,7 @@ namespace ZqUtils.Helpers
                         Console.WriteLine("\t{1}\t{0}", name, item.CombinePath(name).AsFile().LastWriteTime.ToDateTimeString());
                         Console.ResetColor();
                     });
-                    if (rs != null && rs.Length > 0)
-                        list.AddRange(rs);
+                    if (rs != null && rs.Length > 0) list.AddRange(rs);
                 }
                 catch (Exception)
                 {
