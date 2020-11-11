@@ -16,6 +16,7 @@
  */
 #endregion
 
+using FastExpressionCompiler;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -860,7 +861,7 @@ namespace ZqUtils.Extensions
         {
             var type = typeof(T);
             var parameter = Expression.Parameter(type, "t");
-            var condition = Expression.Equal(parameter.Property(down ? parentId : primaryKey), Expression.Constant(id)).ToLambda<Predicate<T>>(parameter).Compile();
+            var condition = Expression.Equal(parameter.Property(down ? parentId : primaryKey), Expression.Constant(id)).ToLambda<Predicate<T>>(parameter).CompileFast();
             var entities = @this?.ToList().FindAll(condition);
             if (entities?.Count > 0 && treeList?.Count > 0)
             {
@@ -947,7 +948,7 @@ namespace ZqUtils.Extensions
         {
             var type = typeof(T);
             var parameter = Expression.Parameter(type, "t");
-            var condition = Expression.Equal(parameter.Property(parentId), Expression.Constant(pid)).ToLambda<Predicate<T>>(parameter).Compile();
+            var condition = Expression.Equal(parameter.Property(parentId), Expression.Constant(pid)).ToLambda<Predicate<T>>(parameter).CompileFast();
             var entities = @this?.ToList().FindAll(condition);
             var list = new List<Dictionary<string, object>>();
             if (entities?.Count > 0)

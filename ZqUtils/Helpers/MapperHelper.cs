@@ -16,6 +16,7 @@
  */
 #endregion
 
+using FastExpressionCompiler;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -56,7 +57,7 @@ namespace ZqUtils.Helpers
             }
             var memberInitExpression = Expression.MemberInit(Expression.New(typeof(F)), memberBindingList.ToArray());
             var lambda = Expression.Lambda<Func<T, F>>(memberInitExpression, new ParameterExpression[] { parameterExpression });
-            return lambda.Compile();
+            return lambda.CompileFast();
         }
 
         /// <summary>
