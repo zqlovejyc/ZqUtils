@@ -499,27 +499,27 @@ namespace ZqUtils.Extensions
         }
         #endregion
 
-        #region IsAssignableFrom
+        #region AssignableFrom
         /// <summary>
-        /// IsAssignableFrom
+        /// Determines whether the other can be assigned from current type
         /// </summary>
         /// <param name="this"></param>
         /// <param name="other"></param>
         /// <returns></returns>
-        public static bool IsAssignableFrom(this Type @this, Type other)
+        public static bool AssignableFrom(this Type @this, Type other)
         {
             return @this.GetTypeInfo().IsAssignableFrom(other.GetTypeInfo());
         }
         #endregion
 
-        #region IsAssignableTo
+        #region AssignableTo
         /// <summary>
-        /// IsAssignableTo
+        /// Determines whether the current type can be assigned from base type
         /// </summary>
         /// <param name="type"></param>
         /// <param name="baseType"></param>
         /// <returns></returns>
-        public static bool IsAssignableTo(this Type type, Type baseType)
+        public static bool AssignableTo(this Type type, Type baseType)
         {
             var typeInfo = type.GetTypeInfo();
             var baseTypeInfo = baseType.GetTypeInfo();
