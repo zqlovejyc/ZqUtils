@@ -17,13 +17,11 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
 using ZqUtils.Extensions;
 /****************************
 * [Author] 张强
@@ -155,18 +153,16 @@ namespace ZqUtils.Helpers
         public static async Task<(string result, HttpStatusCode code)> GetAsync(string url, Dictionary<string, string> parameters, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", Dictionary<string, string> headers = null)
         {
             if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
-            {
-                ServicePointManager.ServerCertificateValidationCallback = (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) => true;
-            }
+                ServicePointManager.ServerCertificateValidationCallback = (request, certificate, chain, errors) => true;
+
             using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
             {
                 httpClient.CancelPendingRequests();
                 httpClient.DefaultRequestHeaders.Clear();
                 httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
                 if (!accept.IsNullOrEmpty())
-                {
                     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
-                }
+
                 if (headers?.Count > 0)
                 {
                     foreach (var item in headers)
@@ -174,13 +170,13 @@ namespace ZqUtils.Helpers
                         httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
+
                 using (var response = await httpClient.GetAsync(url + parameters.ToUrl("?", false, false)))
                 {
                     var httpStatusCode = response.StatusCode;
                     if (response.IsSuccessStatusCode)
-                    {
                         return (await response.Content.ReadAsStringAsync(), httpStatusCode);
-                    }
+
                     return (null, httpStatusCode);
                 }
             }
@@ -199,18 +195,16 @@ namespace ZqUtils.Helpers
         public static async Task<(T result, HttpStatusCode code)> GetAsync<T>(string url, Dictionary<string, string> parameters, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", Dictionary<string, string> headers = null)
         {
             if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
-            {
-                ServicePointManager.ServerCertificateValidationCallback = (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) => true;
-            }
+                ServicePointManager.ServerCertificateValidationCallback = (request, certificate, chain, errors) => true;
+
             using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
             {
                 httpClient.CancelPendingRequests();
                 httpClient.DefaultRequestHeaders.Clear();
                 httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
                 if (!accept.IsNullOrEmpty())
-                {
                     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
-                }
+
                 if (headers?.Count > 0)
                 {
                     foreach (var item in headers)
@@ -218,13 +212,13 @@ namespace ZqUtils.Helpers
                         httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
+
                 using (var response = await httpClient.GetAsync(url + parameters.ToUrl("?", false, false)))
                 {
                     var httpStatusCode = response.StatusCode;
                     if (response.IsSuccessStatusCode)
-                    {
                         return ((await response.Content.ReadAsStringAsync()).ToObject<T>(), httpStatusCode);
-                    }
+
                     return (default(T), httpStatusCode);
                 }
             }
@@ -244,18 +238,16 @@ namespace ZqUtils.Helpers
         public static async Task<(string result, HttpStatusCode code)> PostAsync(string url, HttpContent content, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", Dictionary<string, string> headers = null)
         {
             if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
-            {
-                ServicePointManager.ServerCertificateValidationCallback = (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) => true;
-            }
+                ServicePointManager.ServerCertificateValidationCallback = (request, certificate, chain, errors) => true;
+
             using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
             {
                 httpClient.CancelPendingRequests();
                 httpClient.DefaultRequestHeaders.Clear();
                 httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
                 if (!accept.IsNullOrEmpty())
-                {
                     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
-                }
+
                 if (headers?.Count > 0)
                 {
                     foreach (var item in headers)
@@ -263,13 +255,13 @@ namespace ZqUtils.Helpers
                         httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
+
                 using (var response = await httpClient.PostAsync(url, content))
                 {
                     var httpStatusCode = response.StatusCode;
                     if (response.IsSuccessStatusCode)
-                    {
                         return (await response.Content.ReadAsStringAsync(), httpStatusCode);
-                    }
+
                     return (null, httpStatusCode);
                 }
             }
@@ -288,18 +280,16 @@ namespace ZqUtils.Helpers
         public static async Task<(string result, HttpStatusCode code)> PostAsync(string url, object data, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", string contentType = "application/json", Dictionary<string, string> headers = null)
         {
             if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
-            {
-                ServicePointManager.ServerCertificateValidationCallback = (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) => true;
-            }
+                ServicePointManager.ServerCertificateValidationCallback = (request, certificate, chain, errors) => true;
+
             using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
             {
                 httpClient.CancelPendingRequests();
                 httpClient.DefaultRequestHeaders.Clear();
                 httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
                 if (!accept.IsNullOrEmpty())
-                {
                     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
-                }
+
                 if (headers?.Count > 0)
                 {
                     foreach (var item in headers)
@@ -307,18 +297,17 @@ namespace ZqUtils.Helpers
                         httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
+
                 var content = new StringContent((data?.GetType() == typeof(string) ? data?.ToString() : data?.ToJson()) ?? "");
                 if (!contentType.IsNullOrEmpty())
-                {
                     content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
-                }
+
                 using (var response = await httpClient.PostAsync(url, content))
                 {
                     var httpStatusCode = response.StatusCode;
                     if (response.IsSuccessStatusCode)
-                    {
                         return (await response.Content.ReadAsStringAsync(), httpStatusCode);
-                    }
+
                     return (null, httpStatusCode);
                 }
             }
@@ -337,18 +326,16 @@ namespace ZqUtils.Helpers
         public static async Task<(T result, HttpStatusCode code)> PostAsync<T>(string url, HttpContent content, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", Dictionary<string, string> headers = null)
         {
             if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
-            {
-                ServicePointManager.ServerCertificateValidationCallback = (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) => true;
-            }
+                ServicePointManager.ServerCertificateValidationCallback = (request, certificate, chain, errors) => true;
+
             using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
             {
                 httpClient.CancelPendingRequests();
                 httpClient.DefaultRequestHeaders.Clear();
                 httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
                 if (!accept.IsNullOrEmpty())
-                {
                     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
-                }
+
                 if (headers?.Count > 0)
                 {
                     foreach (var item in headers)
@@ -356,13 +343,13 @@ namespace ZqUtils.Helpers
                         httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
+
                 using (var response = await httpClient.PostAsync(url, content))
                 {
                     var httpStatusCode = response.StatusCode;
                     if (response.IsSuccessStatusCode)
-                    {
                         return ((await response.Content.ReadAsStringAsync()).ToObject<T>(), httpStatusCode);
-                    }
+
                     return (default(T), httpStatusCode);
                 }
             }
@@ -382,18 +369,16 @@ namespace ZqUtils.Helpers
         public static async Task<(T result, HttpStatusCode code)> PostAsync<T>(string url, object data, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", string contentType = "application/json", Dictionary<string, string> headers = null)
         {
             if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
-            {
-                ServicePointManager.ServerCertificateValidationCallback = (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) => true;
-            }
+                ServicePointManager.ServerCertificateValidationCallback = (request, certificate, chain, errors) => true;
+
             using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
             {
                 httpClient.CancelPendingRequests();
                 httpClient.DefaultRequestHeaders.Clear();
                 httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
                 if (!accept.IsNullOrEmpty())
-                {
                     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
-                }
+
                 if (headers?.Count > 0)
                 {
                     foreach (var item in headers)
@@ -401,18 +386,17 @@ namespace ZqUtils.Helpers
                         httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
+
                 var content = new StringContent((data?.GetType() == typeof(string) ? data?.ToString() : data?.ToJson()) ?? "");
                 if (!contentType.IsNullOrEmpty())
-                {
                     content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
-                }
+
                 using (var response = await httpClient.PostAsync(url, content))
                 {
                     var httpStatusCode = response.StatusCode;
                     if (response.IsSuccessStatusCode)
-                    {
                         return ((await response.Content.ReadAsStringAsync()).ToObject<T>(), httpStatusCode);
-                    }
+
                     return (default(T), httpStatusCode);
                 }
             }
@@ -433,18 +417,16 @@ namespace ZqUtils.Helpers
         public static async Task<(string result, HttpStatusCode code)> SendAsync(string url, HttpContent content, HttpMethod method, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", Dictionary<string, string> headers = null)
         {
             if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
-            {
-                ServicePointManager.ServerCertificateValidationCallback = (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) => true;
-            }
+                ServicePointManager.ServerCertificateValidationCallback = (request, certificate, chain, errors) => true;
+
             using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
             {
                 httpClient.CancelPendingRequests();
                 httpClient.DefaultRequestHeaders.Clear();
                 httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
                 if (!accept.IsNullOrEmpty())
-                {
                     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
-                }
+
                 if (headers?.Count > 0)
                 {
                     foreach (var item in headers)
@@ -452,18 +434,17 @@ namespace ZqUtils.Helpers
                         httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
+
                 var req = new HttpRequestMessage(method, url);
                 if (content != null)
-                {
                     req.Content = content;
-                }
+
                 using (var response = await httpClient.SendAsync(req))
                 {
                     var httpStatusCode = response.StatusCode;
                     if (response.IsSuccessStatusCode)
-                    {
                         return (await response.Content.ReadAsStringAsync(), httpStatusCode);
-                    }
+
                     return (null, httpStatusCode);
                 }
             }
@@ -483,18 +464,16 @@ namespace ZqUtils.Helpers
         public static async Task<(string result, HttpStatusCode code)> SendAsync(string url, object data, HttpMethod method, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", string contentType = "application/json", Dictionary<string, string> headers = null)
         {
             if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
-            {
-                ServicePointManager.ServerCertificateValidationCallback = (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) => true;
-            }
+                ServicePointManager.ServerCertificateValidationCallback = (request, certificate, chain, errors) => true;
+
             using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
             {
                 httpClient.CancelPendingRequests();
                 httpClient.DefaultRequestHeaders.Clear();
                 httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
                 if (!accept.IsNullOrEmpty())
-                {
                     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
-                }
+
                 if (headers?.Count > 0)
                 {
                     foreach (var item in headers)
@@ -502,22 +481,20 @@ namespace ZqUtils.Helpers
                         httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
+
                 var req = new HttpRequestMessage(method, url);
                 if (data != null)
-                {
                     req.Content = new StringContent((data?.GetType() == typeof(string) ? data?.ToString() : data?.ToJson()) ?? "");
-                }
+
                 if (!contentType.IsNullOrEmpty() && req.Content != null)
-                {
                     req.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
-                }
+
                 using (var response = await httpClient.SendAsync(req))
                 {
                     var httpStatusCode = response.StatusCode;
                     if (response.IsSuccessStatusCode)
-                    {
                         return (await response.Content.ReadAsStringAsync(), httpStatusCode);
-                    }
+
                     return (null, httpStatusCode);
                 }
             }
@@ -537,18 +514,16 @@ namespace ZqUtils.Helpers
         public static async Task<(T result, HttpStatusCode code)> SendAsync<T>(string url, HttpContent content, HttpMethod method, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", Dictionary<string, string> headers = null)
         {
             if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
-            {
-                ServicePointManager.ServerCertificateValidationCallback = (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) => true;
-            }
+                ServicePointManager.ServerCertificateValidationCallback = (request, certificate, chain, errors) => true;
+
             using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
             {
                 httpClient.CancelPendingRequests();
                 httpClient.DefaultRequestHeaders.Clear();
                 httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
                 if (!accept.IsNullOrEmpty())
-                {
                     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
-                }
+
                 if (headers?.Count > 0)
                 {
                     foreach (var item in headers)
@@ -556,18 +531,17 @@ namespace ZqUtils.Helpers
                         httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
+
                 var req = new HttpRequestMessage(method, url);
                 if (content != null)
-                {
                     req.Content = content;
-                }
+
                 using (var response = await httpClient.SendAsync(req))
                 {
                     var httpStatusCode = response.StatusCode;
                     if (response.IsSuccessStatusCode)
-                    {
                         return ((await response.Content.ReadAsStringAsync()).ToObject<T>(), httpStatusCode);
-                    }
+
                     return (default(T), httpStatusCode);
                 }
             }
@@ -588,18 +562,16 @@ namespace ZqUtils.Helpers
         public static async Task<(T result, HttpStatusCode code)> SendAsync<T>(string url, object data, HttpMethod method, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", string contentType = "application/json", Dictionary<string, string> headers = null)
         {
             if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
-            {
-                ServicePointManager.ServerCertificateValidationCallback = (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) => true;
-            }
+                ServicePointManager.ServerCertificateValidationCallback = (request, certificate, chain, errors) => true;
+
             using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
             {
                 httpClient.CancelPendingRequests();
                 httpClient.DefaultRequestHeaders.Clear();
                 httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
                 if (!accept.IsNullOrEmpty())
-                {
                     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
-                }
+
                 if (headers?.Count > 0)
                 {
                     foreach (var item in headers)
@@ -607,22 +579,20 @@ namespace ZqUtils.Helpers
                         httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
                     }
                 }
+
                 var req = new HttpRequestMessage(method, url);
                 if (data != null)
-                {
                     req.Content = new StringContent((data?.GetType() == typeof(string) ? data?.ToString() : data?.ToJson()) ?? "");
-                }
+
                 if (!contentType.IsNullOrEmpty() && req.Content != null)
-                {
                     req.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
-                }
+
                 using (var response = await httpClient.SendAsync(req))
                 {
                     var httpStatusCode = response.StatusCode;
                     if (response.IsSuccessStatusCode)
-                    {
                         return ((await response.Content.ReadAsStringAsync()).ToObject<T>(), httpStatusCode);
-                    }
+
                     return (default(T), httpStatusCode);
                 }
             }
