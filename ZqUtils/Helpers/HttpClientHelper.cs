@@ -140,6 +140,50 @@ namespace ZqUtils.Helpers
         }
         #endregion
 
+        #region CreateHttpClient
+        /// <summary>
+        /// 创建HttpClient
+        /// </summary>
+        /// <param name="url">请求地址</param>
+        /// <param name="decompressionMethods">解压缩方式，默认：GZip</param>
+        /// <param name="accept">客户端希望接收的数据类型</param>
+        /// <param name="headers">头部信息</param>
+        /// <param name="delegate">自定义委托</param>
+        /// <returns>返回HttpClient</returns>
+        public static HttpClient CreateHttpClient(
+            string url,
+            DecompressionMethods decompressionMethods = DecompressionMethods.GZip,
+            string accept = "application/json",
+            Dictionary<string, string> headers = null,
+            Action<HttpClient> @delegate = null)
+        {
+            if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
+                ServicePointManager.ServerCertificateValidationCallback = (request, certificate, chain, errors) => true;
+
+            var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods });
+
+            httpClient.CancelPendingRequests();
+            httpClient.DefaultRequestHeaders.Clear();
+            httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
+
+            if (!accept.IsNullOrEmpty())
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
+
+            if (headers?.Count > 0)
+            {
+                foreach (var item in headers)
+                {
+                    httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
+                }
+            }
+
+            //自定义委托处理HttpClient
+            @delegate?.Invoke(httpClient);
+
+            return httpClient;
+        }
+        #endregion
+
         #region GetAsync
         /// <summary>
         /// 根据Url地址Get请求返回数据
@@ -149,28 +193,18 @@ namespace ZqUtils.Helpers
         /// <param name="decompressionMethods">解压缩方式，默认：GZip</param>
         /// <param name="accept">客户端希望接收的数据类型</param>
         /// <param name="headers">头部信息</param>
+        /// <param name="delegate">自定义委托</param>
         /// <returns>返回请求结果和状态结果</returns>
-        public static async Task<(string result, HttpStatusCode code)> GetAsync(string url, Dictionary<string, string> parameters, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", Dictionary<string, string> headers = null)
+        public static async Task<(string result, HttpStatusCode code)> GetAsync(
+            string url,
+            Dictionary<string, string> parameters,
+            DecompressionMethods decompressionMethods = DecompressionMethods.GZip,
+            string accept = "application/json",
+            Dictionary<string, string> headers = null,
+            Action<HttpClient> @delegate = null)
         {
-            if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
-                ServicePointManager.ServerCertificateValidationCallback = (request, certificate, chain, errors) => true;
-
-            using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
+            using (var httpClient = CreateHttpClient(url, decompressionMethods, accept, headers, @delegate))
             {
-                httpClient.CancelPendingRequests();
-                httpClient.DefaultRequestHeaders.Clear();
-                httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
-                if (!accept.IsNullOrEmpty())
-                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
-
-                if (headers?.Count > 0)
-                {
-                    foreach (var item in headers)
-                    {
-                        httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
-                    }
-                }
-
                 using (var response = await httpClient.GetAsync(url + parameters.ToUrl("?", false, false)))
                 {
                     var httpStatusCode = response.StatusCode;
@@ -191,28 +225,18 @@ namespace ZqUtils.Helpers
         /// <param name="decompressionMethods">解压缩方式，默认：GZip</param>
         /// <param name="accept">客户端希望接收的数据类型</param>
         /// <param name="headers">头部信息</param>
+        /// <param name="delegate">自定义委托</param>
         /// <returns>返回请求结果和状态结果</returns>
-        public static async Task<(T result, HttpStatusCode code)> GetAsync<T>(string url, Dictionary<string, string> parameters, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", Dictionary<string, string> headers = null)
+        public static async Task<(T result, HttpStatusCode code)> GetAsync<T>(
+            string url,
+            Dictionary<string, string> parameters,
+            DecompressionMethods decompressionMethods = DecompressionMethods.GZip,
+            string accept = "application/json",
+            Dictionary<string, string> headers = null,
+            Action<HttpClient> @delegate = null)
         {
-            if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
-                ServicePointManager.ServerCertificateValidationCallback = (request, certificate, chain, errors) => true;
-
-            using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
+            using (var httpClient = CreateHttpClient(url, decompressionMethods, accept, headers, @delegate))
             {
-                httpClient.CancelPendingRequests();
-                httpClient.DefaultRequestHeaders.Clear();
-                httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
-                if (!accept.IsNullOrEmpty())
-                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
-
-                if (headers?.Count > 0)
-                {
-                    foreach (var item in headers)
-                    {
-                        httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
-                    }
-                }
-
                 using (var response = await httpClient.GetAsync(url + parameters.ToUrl("?", false, false)))
                 {
                     var httpStatusCode = response.StatusCode;
@@ -234,28 +258,18 @@ namespace ZqUtils.Helpers
         /// <param name="decompressionMethods">解压缩方式，默认：GZip</param>
         /// <param name="accept">客户端希望接收的数据类型</param>
         /// <param name="headers">头部信息</param>
+        /// <param name="delegate">自定义委托</param>
         /// <returns>返回请求结果和状态结果</returns>
-        public static async Task<(string result, HttpStatusCode code)> PostAsync(string url, HttpContent content, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", Dictionary<string, string> headers = null)
+        public static async Task<(string result, HttpStatusCode code)> PostAsync(
+            string url,
+            HttpContent content,
+            DecompressionMethods decompressionMethods = DecompressionMethods.GZip,
+            string accept = "application/json",
+            Dictionary<string, string> headers = null,
+            Action<HttpClient> @delegate = null)
         {
-            if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
-                ServicePointManager.ServerCertificateValidationCallback = (request, certificate, chain, errors) => true;
-
-            using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
+            using (var httpClient = CreateHttpClient(url, decompressionMethods, accept, headers, @delegate))
             {
-                httpClient.CancelPendingRequests();
-                httpClient.DefaultRequestHeaders.Clear();
-                httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
-                if (!accept.IsNullOrEmpty())
-                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
-
-                if (headers?.Count > 0)
-                {
-                    foreach (var item in headers)
-                    {
-                        httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
-                    }
-                }
-
                 using (var response = await httpClient.PostAsync(url, content))
                 {
                     var httpStatusCode = response.StatusCode;
@@ -276,28 +290,19 @@ namespace ZqUtils.Helpers
         /// <param name="accept">客户端希望接收的数据类型</param>
         /// <param name="contentType">客户端发送的数据类型</param>
         /// <param name="headers">头部信息</param>
+        /// <param name="delegate">自定义委托</param>
         /// <returns>返回请求结果和状态结果</returns>
-        public static async Task<(string result, HttpStatusCode code)> PostAsync(string url, object data, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", string contentType = "application/json", Dictionary<string, string> headers = null)
+        public static async Task<(string result, HttpStatusCode code)> PostAsync(
+            string url,
+            object data,
+            DecompressionMethods decompressionMethods = DecompressionMethods.GZip,
+            string accept = "application/json",
+            string contentType = "application/json",
+            Dictionary<string, string> headers = null,
+            Action<HttpClient> @delegate = null)
         {
-            if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
-                ServicePointManager.ServerCertificateValidationCallback = (request, certificate, chain, errors) => true;
-
-            using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
+            using (var httpClient = CreateHttpClient(url, decompressionMethods, accept, headers, @delegate))
             {
-                httpClient.CancelPendingRequests();
-                httpClient.DefaultRequestHeaders.Clear();
-                httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
-                if (!accept.IsNullOrEmpty())
-                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
-
-                if (headers?.Count > 0)
-                {
-                    foreach (var item in headers)
-                    {
-                        httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
-                    }
-                }
-
                 var content = new StringContent((data?.GetType() == typeof(string) ? data?.ToString() : data?.ToJson()) ?? "");
                 if (!contentType.IsNullOrEmpty())
                     content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
@@ -322,28 +327,18 @@ namespace ZqUtils.Helpers
         /// <param name="decompressionMethods">解压缩方式，默认：GZip</param>
         /// <param name="accept">客户端希望接收的数据类型</param>
         /// <param name="headers">头部信息</param>
+        /// <param name="delegate">自定义委托</param>
         /// <returns>返回请求结果和状态结果</returns>
-        public static async Task<(T result, HttpStatusCode code)> PostAsync<T>(string url, HttpContent content, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", Dictionary<string, string> headers = null)
+        public static async Task<(T result, HttpStatusCode code)> PostAsync<T>(
+            string url,
+            HttpContent content,
+            DecompressionMethods decompressionMethods = DecompressionMethods.GZip,
+            string accept = "application/json",
+            Dictionary<string, string> headers = null,
+            Action<HttpClient> @delegate = null)
         {
-            if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
-                ServicePointManager.ServerCertificateValidationCallback = (request, certificate, chain, errors) => true;
-
-            using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
+            using (var httpClient = CreateHttpClient(url, decompressionMethods, accept, headers, @delegate))
             {
-                httpClient.CancelPendingRequests();
-                httpClient.DefaultRequestHeaders.Clear();
-                httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
-                if (!accept.IsNullOrEmpty())
-                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
-
-                if (headers?.Count > 0)
-                {
-                    foreach (var item in headers)
-                    {
-                        httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
-                    }
-                }
-
                 using (var response = await httpClient.PostAsync(url, content))
                 {
                     var httpStatusCode = response.StatusCode;
@@ -365,28 +360,19 @@ namespace ZqUtils.Helpers
         /// <param name="accept">客户端希望接收的数据类型</param>
         /// <param name="contentType">客户端发送的数据类型</param>
         /// <param name="headers">头部信息</param>
+        /// <param name="delegate">自定义委托</param>
         /// <returns>返回请求结果和状态结果</returns>
-        public static async Task<(T result, HttpStatusCode code)> PostAsync<T>(string url, object data, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", string contentType = "application/json", Dictionary<string, string> headers = null)
+        public static async Task<(T result, HttpStatusCode code)> PostAsync<T>(
+            string url,
+            object data,
+            DecompressionMethods decompressionMethods = DecompressionMethods.GZip,
+            string accept = "application/json",
+            string contentType = "application/json",
+            Dictionary<string, string> headers = null,
+            Action<HttpClient> @delegate = null)
         {
-            if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
-                ServicePointManager.ServerCertificateValidationCallback = (request, certificate, chain, errors) => true;
-
-            using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
+            using (var httpClient = CreateHttpClient(url, decompressionMethods, accept, headers, @delegate))
             {
-                httpClient.CancelPendingRequests();
-                httpClient.DefaultRequestHeaders.Clear();
-                httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
-                if (!accept.IsNullOrEmpty())
-                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
-
-                if (headers?.Count > 0)
-                {
-                    foreach (var item in headers)
-                    {
-                        httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
-                    }
-                }
-
                 var content = new StringContent((data?.GetType() == typeof(string) ? data?.ToString() : data?.ToJson()) ?? "");
                 if (!contentType.IsNullOrEmpty())
                     content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
@@ -413,28 +399,19 @@ namespace ZqUtils.Helpers
         /// <param name="decompressionMethods">解压缩方式，默认：GZip</param>
         /// <param name="accept">客户端希望接收的数据类型</param>
         /// <param name="headers">头部信息</param>
+        /// <param name="delegate">自定义委托</param>
         /// <returns>返回请求结果和状态结果</returns>
-        public static async Task<(string result, HttpStatusCode code)> SendAsync(string url, HttpContent content, HttpMethod method, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", Dictionary<string, string> headers = null)
+        public static async Task<(string result, HttpStatusCode code)> SendAsync(
+            string url,
+            HttpContent content,
+            HttpMethod method,
+            DecompressionMethods decompressionMethods = DecompressionMethods.GZip,
+            string accept = "application/json",
+            Dictionary<string, string> headers = null,
+            Action<HttpClient> @delegate = null)
         {
-            if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
-                ServicePointManager.ServerCertificateValidationCallback = (request, certificate, chain, errors) => true;
-
-            using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
+            using (var httpClient = CreateHttpClient(url, decompressionMethods, accept, headers, @delegate))
             {
-                httpClient.CancelPendingRequests();
-                httpClient.DefaultRequestHeaders.Clear();
-                httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
-                if (!accept.IsNullOrEmpty())
-                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
-
-                if (headers?.Count > 0)
-                {
-                    foreach (var item in headers)
-                    {
-                        httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
-                    }
-                }
-
                 var req = new HttpRequestMessage(method, url);
                 if (content != null)
                     req.Content = content;
@@ -460,28 +437,20 @@ namespace ZqUtils.Helpers
         /// <param name="accept">客户端希望接收的数据类型</param>
         /// <param name="contentType">客户端发送的数据类型</param>
         /// <param name="headers">头部信息</param>
+        /// <param name="delegate">自定义委托</param>
         /// <returns>返回请求结果和状态结果</returns>
-        public static async Task<(string result, HttpStatusCode code)> SendAsync(string url, object data, HttpMethod method, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", string contentType = "application/json", Dictionary<string, string> headers = null)
+        public static async Task<(string result, HttpStatusCode code)> SendAsync(
+            string url,
+            object data,
+            HttpMethod method,
+            DecompressionMethods decompressionMethods = DecompressionMethods.GZip,
+            string accept = "application/json",
+            string contentType = "application/json",
+            Dictionary<string, string> headers = null,
+            Action<HttpClient> @delegate = null)
         {
-            if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
-                ServicePointManager.ServerCertificateValidationCallback = (request, certificate, chain, errors) => true;
-
-            using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
+            using (var httpClient = CreateHttpClient(url, decompressionMethods, accept, headers, @delegate))
             {
-                httpClient.CancelPendingRequests();
-                httpClient.DefaultRequestHeaders.Clear();
-                httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
-                if (!accept.IsNullOrEmpty())
-                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
-
-                if (headers?.Count > 0)
-                {
-                    foreach (var item in headers)
-                    {
-                        httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
-                    }
-                }
-
                 var req = new HttpRequestMessage(method, url);
                 if (data != null)
                     req.Content = new StringContent((data?.GetType() == typeof(string) ? data?.ToString() : data?.ToJson()) ?? "");
@@ -510,28 +479,19 @@ namespace ZqUtils.Helpers
         /// <param name="decompressionMethods">解压缩方式，默认：GZip</param>
         /// <param name="accept">客户端希望接收的数据类型</param>
         /// <param name="headers">头部信息</param>
+        /// <param name="delegate">自定义委托</param>
         /// <returns>返回请求结果和状态结果</returns>
-        public static async Task<(T result, HttpStatusCode code)> SendAsync<T>(string url, HttpContent content, HttpMethod method, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", Dictionary<string, string> headers = null)
+        public static async Task<(T result, HttpStatusCode code)> SendAsync<T>(
+            string url,
+            HttpContent content,
+            HttpMethod method,
+            DecompressionMethods decompressionMethods = DecompressionMethods.GZip,
+            string accept = "application/json",
+            Dictionary<string, string> headers = null,
+            Action<HttpClient> @delegate = null)
         {
-            if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
-                ServicePointManager.ServerCertificateValidationCallback = (request, certificate, chain, errors) => true;
-
-            using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
+            using (var httpClient = CreateHttpClient(url, decompressionMethods, accept, headers, @delegate))
             {
-                httpClient.CancelPendingRequests();
-                httpClient.DefaultRequestHeaders.Clear();
-                httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
-                if (!accept.IsNullOrEmpty())
-                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
-
-                if (headers?.Count > 0)
-                {
-                    foreach (var item in headers)
-                    {
-                        httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
-                    }
-                }
-
                 var req = new HttpRequestMessage(method, url);
                 if (content != null)
                     req.Content = content;
@@ -558,28 +518,20 @@ namespace ZqUtils.Helpers
         /// <param name="accept">客户端希望接收的数据类型</param>
         /// <param name="contentType">客户端发送的数据类型</param>
         /// <param name="headers">头部信息</param>
+        /// <param name="delegate">自定义委托</param>
         /// <returns>返回请求结果和状态结果</returns>
-        public static async Task<(T result, HttpStatusCode code)> SendAsync<T>(string url, object data, HttpMethod method, DecompressionMethods decompressionMethods = DecompressionMethods.GZip, string accept = "application/json", string contentType = "application/json", Dictionary<string, string> headers = null)
+        public static async Task<(T result, HttpStatusCode code)> SendAsync<T>(
+            string url,
+            object data,
+            HttpMethod method,
+            DecompressionMethods decompressionMethods = DecompressionMethods.GZip,
+            string accept = "application/json",
+            string contentType = "application/json",
+            Dictionary<string, string> headers = null,
+            Action<HttpClient> @delegate = null)
         {
-            if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
-                ServicePointManager.ServerCertificateValidationCallback = (request, certificate, chain, errors) => true;
-
-            using (var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods }))
+            using (var httpClient = CreateHttpClient(url, decompressionMethods, accept, headers, @delegate))
             {
-                httpClient.CancelPendingRequests();
-                httpClient.DefaultRequestHeaders.Clear();
-                httpClient.DefaultRequestHeaders.Add("user-agent", UserAgent);
-                if (!accept.IsNullOrEmpty())
-                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
-
-                if (headers?.Count > 0)
-                {
-                    foreach (var item in headers)
-                    {
-                        httpClient.DefaultRequestHeaders.TryAddWithoutValidation(item.Key, item.Value);
-                    }
-                }
-
                 var req = new HttpRequestMessage(method, url);
                 if (data != null)
                     req.Content = new StringContent((data?.GetType() == typeof(string) ? data?.ToString() : data?.ToJson()) ?? "");
