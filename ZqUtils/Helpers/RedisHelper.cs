@@ -16,12 +16,13 @@
  */
 #endregion
 
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Collections.Concurrent;
 using StackExchange.Redis;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using ZqUtils.Extensions;
 /****************************
 * [Author] 张强
@@ -39,7 +40,8 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 对象池
         /// </summary>
-        private static readonly ConcurrentDictionary<string, Lazy<ObjectPoolHelper<RedisHelper>>> _pool = new ConcurrentDictionary<string, Lazy<ObjectPoolHelper<RedisHelper>>>();
+        private static readonly ConcurrentDictionary<string, Lazy<ObjectPoolHelper<RedisHelper>>> _pool =
+            new ConcurrentDictionary<string, Lazy<ObjectPoolHelper<RedisHelper>>>();
 
         /// <summary>
         /// 默认的key值（用来当作RedisKey的前缀）
@@ -47,9 +49,9 @@ namespace ZqUtils.Helpers
         private static readonly string defaultKey = ConfigHelper.GetAppSettings<string>("Redis.DefaultKey");
 
         /// <summary>
-        /// 线程对象，线程锁使用
+        /// 线程锁
         /// </summary>
-        private static readonly object locker = new object();
+        private static readonly SemaphoreSlim locker = new SemaphoreSlim(1, 1);
 
         /// <summary>
         /// redis连接对象
@@ -107,35 +109,92 @@ namespace ZqUtils.Helpers
         {
             if (connMultiplexer == null || !connMultiplexer.IsConnected)
             {
-                lock (locker)
+                try
                 {
+                    locker.Wait();
+
                     if (connMultiplexer == null || !connMultiplexer.IsConnected)
                     {
                         if (configurationOptions != null)
-                        {
                             connMultiplexer = ConnectionMultiplexer.Connect(configurationOptions);
-                        }
                         else
                         {
                             var connectionStr = ConfigHelper.GetConnectionString("RedisConnectionString");
                             if (string.IsNullOrEmpty(connectionStr))
-                            {
                                 connectionStr = ConfigHelper.GetAppSettings<string>("RedisConnectionString");
-                            }
                             if (!string.IsNullOrEmpty(connectionStr))
-                            {
                                 connMultiplexer = ConnectionMultiplexer.Connect(connectionStr);
-                            }
                             else
-                            {
                                 throw new ArgumentNullException("RedisConnectionString和configOptions不能同时为null");
-                            }
                         }
+
                         AddRegisterEvent();
                     }
                 }
+                catch (Exception)
+                {
+                    throw;
+                }
+                finally
+                {
+                    locker.Release();
+                }
             }
             return connMultiplexer;
+        }
+
+        /// <summary>
+        /// 获取redis连接对象
+        /// </summary>
+        /// <param name="configurationOptions">连接配置</param>
+        /// <returns>返回IConnectionMultiplexer</returns>
+        public static async Task<IConnectionMultiplexer> GetConnectionRedisMultiplexerAsync(ConfigurationOptions configurationOptions = null)
+        {
+            if (connMultiplexer == null || !connMultiplexer.IsConnected)
+            {
+                try
+                {
+                    await locker.WaitAsync().ConfigureAwait(false);
+
+                    if (connMultiplexer == null || !connMultiplexer.IsConnected)
+                    {
+                        if (configurationOptions != null)
+                            connMultiplexer = await ConnectionMultiplexer.ConnectAsync(configurationOptions);
+                        else
+                        {
+                            var connectionStr = ConfigHelper.GetConnectionString("RedisConnectionString");
+                            if (string.IsNullOrEmpty(connectionStr))
+                                connectionStr = ConfigHelper.GetAppSettings<string>("RedisConnectionString");
+                            if (!string.IsNullOrEmpty(connectionStr))
+                                connMultiplexer = await ConnectionMultiplexer.ConnectAsync(connectionStr);
+                            else
+                                throw new ArgumentNullException("RedisConnectionString和configOptions不能同时为null");
+                        }
+
+                        AddRegisterEvent();
+                    }
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+                finally
+                {
+                    locker.Release();
+                }
+            }
+
+            return connMultiplexer;
+        }
+
+        /// <summary>
+        /// 初始化IConnectionMultiplexer
+        /// </summary>
+        /// <param name="configurationOptions"></param>
+        /// <returns></returns>
+        public static async Task SetConnectionRedisMultiplexerAsync(ConfigurationOptions configurationOptions = null)
+        {
+            connMultiplexer = await GetConnectionRedisMultiplexerAsync(configurationOptions);
         }
         #endregion
 
@@ -891,7 +950,7 @@ namespace ZqUtils.Helpers
         #region Queue
         /// <summary>
         /// 队列入队
-        /// </summary>       
+        /// </summary>
         /// <param name="redisKey">redis存储key</param>
         /// <param name="redisValue">redis存储value</param>
         /// <returns>返回入队后队列的长度</returns>
@@ -914,7 +973,7 @@ namespace ZqUtils.Helpers
 
         /// <summary>
         /// 队列出队
-        /// </summary>        
+        /// </summary>
         /// <param name="redisKey">redis存储key</param>
         /// <returns>返回出队元素的值</returns>
         public string DequeueItemFromList(string redisKey)
@@ -1088,7 +1147,7 @@ namespace ZqUtils.Helpers
         #region QueueAsync
         /// <summary>
         /// 队列入队
-        /// </summary>        
+        /// </summary>
         /// <param name="redisKey">redis存储key</param>
         /// <param name="redisValue">redis存储value</param>
         /// <returns>返回入队后队列的长度</returns>
@@ -1111,7 +1170,7 @@ namespace ZqUtils.Helpers
 
         /// <summary>
         /// 队列出队
-        /// </summary>        
+        /// </summary>
         /// <param name="redisKey">redis存储key</param>
         /// <returns>返回出队元素的值</returns>
         public async Task<string> DequeueItemFromListAsync(string redisKey)
