@@ -44,10 +44,23 @@ namespace ZqUtils.Extensions
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="this"></param>
+        /// <param name="defaultValue"></param>
         /// <returns></returns>
-        public static IEnumerable<T> Default<T>(this IEnumerable<T> @this)
+        public static List<T> Default<T>(this List<T> @this, List<T> defaultValue = null)
         {
-            return @this ?? new List<T>();
+            return @this ?? defaultValue ?? new List<T>();
+        }
+
+        /// <summary>
+        /// 若当前集合为null时，返回空集合；若不为null时，返回集合本身；
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="defaultValue"></param>
+        /// <returns></returns>
+        public static IEnumerable<T> Default<T>(this IEnumerable<T> @this, IEnumerable<T> defaultValue = null)
+        {
+            return @this ?? defaultValue ?? new List<T>();
         }
         #endregion
 
