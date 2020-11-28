@@ -51,22 +51,18 @@ namespace ZqUtils.Extensions
             StringBuilder appendStringBuilder = null)
         {
             if (hasWhere)
-            {
                 @this.Append(sqlKeywordOfAnd);
-            }
             else
             {
                 @this.Append(sqlKeywordOfWhere);
                 hasWhere = true;
             }
+
             if (!appendSql.IsNullOrEmpty())
-            {
                 @this.Append(appendSql);
-            }
+
             if (appendStringBuilder != null)
-            {
                 @this.Append(appendStringBuilder);
-            }
 
             return hasWhere;
         }
@@ -90,22 +86,18 @@ namespace ZqUtils.Extensions
             StringBuilder appendStringBuilder = null)
         {
             if (hasWhere)
-            {
                 @this.Append(sqlKeywordOfAnd);
-            }
             else
             {
                 @this.Append(sqlKeywordOfWhere);
                 hasWhere = true;
             }
+
             if (!appendSql.IsNullOrEmpty())
-            {
                 @this.Append(appendSql);
-            }
+
             if (appendStringBuilder != null)
-            {
                 @this.Append(appendStringBuilder);
-            }
 
             return @this;
         }
@@ -133,22 +125,59 @@ namespace ZqUtils.Extensions
             if (condition)
             {
                 if (hasWhere)
-                {
                     @this.Append(sqlKeywordOfAnd);
-                }
                 else
                 {
                     @this.Append(sqlKeywordOfWhere);
                     hasWhere = true;
                 }
+
                 if (!appendSql.IsNullOrEmpty())
-                {
                     @this.Append(appendSql);
-                }
+
                 if (appendStringBuilder != null)
-                {
                     @this.Append(appendStringBuilder);
+            }
+
+            return @this;
+        }
+
+        /// <summary>
+        /// sql拼接where或者and
+        /// </summary>
+        /// <param name="this">当前sql拼接对象</param>
+        /// <param name="condition">自定义条件，当条件满足时才进行拼接</param>
+        /// <param name="hasWhere">是否有where</param>
+        /// <param name="appendSql">拼接sql字符串委托</param>
+        /// <param name="sqlKeywordOfAnd">sql关键字and</param>
+        /// <param name="sqlKeywordOfWhere">sql关键字where</param>
+        /// <param name="appendStringBuilder">拼接StringBuilder对象</param>
+        /// <returns>StringBuilder</returns>
+        public static StringBuilder AppendWhereOrAndIf(
+            this StringBuilder @this,
+            bool condition,
+            ref bool hasWhere,
+            Func<string> appendSql,
+            string sqlKeywordOfAnd = " AND ",
+            string sqlKeywordOfWhere = " WHERE ",
+            StringBuilder appendStringBuilder = null)
+        {
+            if (condition)
+            {
+                if (hasWhere)
+                    @this.Append(sqlKeywordOfAnd);
+                else
+                {
+                    @this.Append(sqlKeywordOfWhere);
+                    hasWhere = true;
                 }
+
+                var sql = appendSql();
+                if (!sql.IsNullOrEmpty())
+                    @this.Append(sql);
+
+                if (appendStringBuilder != null)
+                    @this.Append(appendStringBuilder);
             }
 
             return @this;
@@ -179,22 +208,63 @@ namespace ZqUtils.Extensions
             if (condition)
             {
                 if (hasWhere)
-                {
                     @this.Append(sqlKeywordOfAnd);
-                }
                 else
                 {
                     @this.Append(sqlKeywordOfWhere);
                     hasWhere = true;
                 }
+
                 if (!appendSql.IsNullOrEmpty())
-                {
                     @this.Append(appendSql);
-                }
+
                 if (appendStringBuilder != null)
-                {
                     @this.Append(appendStringBuilder);
+
+                callback?.Invoke();
+            }
+
+            return @this;
+        }
+
+        /// <summary>
+        /// sql拼接where或者and
+        /// </summary>
+        /// <param name="this">当前sql拼接对象</param>
+        /// <param name="condition">自定义条件，当条件满足时才进行拼接</param>
+        /// <param name="hasWhere">是否有where</param>
+        /// <param name="appendSql">拼接sql字符串委托</param>
+        /// <param name="callback">当自定义条件满足时，执行完拼接后回调委托</param>
+        /// <param name="sqlKeywordOfAnd">sql关键字and</param>
+        /// <param name="sqlKeywordOfWhere">sql关键字where</param>
+        /// <param name="appendStringBuilder">拼接StringBuilder对象</param>
+        /// <returns>StringBuilder</returns>
+        public static StringBuilder AppendWhereOrAndIf(
+            this StringBuilder @this,
+            bool condition,
+            ref bool hasWhere,
+            Func<string> appendSql,
+            Action callback,
+            string sqlKeywordOfAnd = " AND ",
+            string sqlKeywordOfWhere = " WHERE ",
+            StringBuilder appendStringBuilder = null)
+        {
+            if (condition)
+            {
+                if (hasWhere)
+                    @this.Append(sqlKeywordOfAnd);
+                else
+                {
+                    @this.Append(sqlKeywordOfWhere);
+                    hasWhere = true;
                 }
+
+                var sql = appendSql();
+                if (!sql.IsNullOrEmpty())
+                    @this.Append(sql);
+
+                if (appendStringBuilder != null)
+                    @this.Append(appendStringBuilder);
 
                 callback?.Invoke();
             }
