@@ -16,16 +16,17 @@
  */
 #endregion
 
-using System;
-using System.IO;
-using System.Text;
-using System.Web;
-using System.Linq;
-using System.Globalization;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Web;
+using ZqUtils.Helpers;
 /****************************
 * [Author] 张强
 * [Date] 2015-10-26
@@ -1889,6 +1890,18 @@ namespace ZqUtils.Extensions
         public static string DecodeUnicode(this string @this)
         {
             return new Regex(@"\\u([0-9A-F]{4})", RegexOptions.IgnoreCase | RegexOptions.Compiled).Replace(@this, x => string.Empty + Convert.ToChar(Convert.ToUInt16(x.Result("$1"), 16)));
+        }
+        #endregion
+
+        #region Cmd命令
+        /// <summary>
+        /// 执行Windows命令
+        /// </summary>
+        /// <param name="this"></param>
+        /// <returns></returns>
+        public static CmdResult Execute(this string @this)
+        {
+            return CmdHelper.Execute(@this);
         }
         #endregion
     }
