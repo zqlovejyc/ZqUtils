@@ -58,6 +58,9 @@
     <Reference Include="FastExpressionCompiler, Version=2.0.0.0, Culture=neutral, PublicKeyToken=dfbf2bd50fcf7768, processorArchitecture=MSIL">
       <HintPath>..\packages\FastExpressionCompiler.2.0.0\lib\net45\FastExpressionCompiler.dll</HintPath>
     </Reference>
+    <Reference Include="FreeRedis, Version=0.1.8.0, Culture=neutral, PublicKeyToken=9aa6a3079358d437, processorArchitecture=MSIL">
+      <HintPath>..\packages\FreeRedis.0.1.8\lib\net45\FreeRedis.dll</HintPath>
+    </Reference>
     <Reference Include="ICSharpCode.SharpZipLib, Version=1.3.1.9, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpZipLib.1.3.1\lib\net45\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
@@ -193,6 +196,7 @@
     <Compile Include="Helpers\EnvironmentHelper.cs" />
     <Compile Include="Helpers\ExcelHelper.cs" />
     <Compile Include="Helpers\FileHelper.cs" />
+    <Compile Include="Helpers\FreeRedisHelper.cs" />
     <Compile Include="Helpers\GpsHelper.cs" />
     <Compile Include="Helpers\HttpHelper.cs" />
     <Compile Include="Helpers\IEqualityComparerHelper.cs" />
