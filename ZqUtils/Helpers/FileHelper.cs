@@ -78,6 +78,76 @@ namespace ZqUtils.Helpers
 
         #region 创建文件
         /// <summary>
+        /// 创建文件
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="fileBytes"></param>
+        public static void Create(string filePath, params byte[] fileBytes)
+        {
+            using (var fs = File.Create(filePath))
+            {
+                fs.Write(fileBytes);
+            }
+        }
+
+        /// <summary>
+        /// 创建文件
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="fileStream"></param>
+        public static void Create(string filePath, Stream fileStream)
+        {
+            using (fileStream)
+            {
+                using (var fs = File.Create(filePath))
+                {
+                    var buffer = new byte[2048];
+                    var count = 0;
+                    //每次读取2kb数据，然后写入文件
+                    while ((count = fileStream.Read(buffer, 0, buffer.Length)) != 0)
+                    {
+                        fs.Write(buffer, 0, count);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 创建文件
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="fileBytes"></param>
+        public static async Task CreateAsync(string filePath, params byte[] fileBytes)
+        {
+            using (var fs = File.Create(filePath))
+            {
+                await fs.WriteAsync(fileBytes, 0, fileBytes.Length);
+            }
+        }
+
+        /// <summary>
+        /// 创建文件
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="fileStream"></param>
+        public static async Task CreateAsync(string filePath, Stream fileStream)
+        {
+            using (fileStream)
+            {
+                using (var fs = File.Create(filePath))
+                {
+                    var buffer = new byte[2048];
+                    var count = 0;
+                    //每次读取2kb数据，然后写入文件
+                    while ((count = fileStream.Read(buffer, 0, buffer.Length)) != 0)
+                    {
+                        await fs.WriteAsync(buffer, 0, count);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// 读取嵌入资源创建指定文件
         /// </summary>
         /// <param name="assembly">程序集</param>
