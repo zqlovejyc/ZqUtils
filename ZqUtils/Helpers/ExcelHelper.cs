@@ -50,37 +50,9 @@ namespace ZqUtils.Helpers
         /// <returns>DataTable集合</returns>
         public static List<DataTable> EPPlusReadExcel(string fullPath)
         {
-            var list = new List<DataTable>();
-            using (var package = new ExcelPackage(new FileInfo(fullPath)))
-            {
-                for (var sheetIndex = 0; sheetIndex < package.Workbook.Worksheets.Count; sheetIndex++)
-                {
-                    var table = new DataTable();
-                    using (var sheet = package.Workbook.Worksheets[sheetIndex])
-                    {
-                        if (sheet.Dimension == null)
-                            continue;
-
-                        var colCount = sheet.Dimension.End.Column;
-                        var rowCount = sheet.Dimension.End.Row;
-                        for (var j = 1; j <= colCount; j++)
-                        {
-                            table.Columns.Add(new DataColumn(sheet.Cells[1, j].Value.ToString()));
-                        }
-                        for (var i = 2; i <= rowCount; i++)
-                        {
-                            var row = table.NewRow();
-                            for (var j = 1; j <= colCount; j++)
-                            {
-                                row[j - 1] = sheet.Cells[i, j].Value;
-                            }
-                            table.Rows.Add(row);
-                        }
-                    }
-                    list.Add(table);
-                }
-            }
-            return list;
+            var file = new FileInfo(fullPath);
+            var package = new ExcelPackage(file);
+            return EPPlusReadExcel(package);
         }
 
         /// <summary>
@@ -90,8 +62,19 @@ namespace ZqUtils.Helpers
         /// <returns>DataTable集合</returns>
         public static List<DataTable> EPPlusReadExcel(Stream fileStream)
         {
+            var package = new ExcelPackage(fileStream);
+            return EPPlusReadExcel(package);
+        }
+
+        /// <summary>
+        /// EPPlus读取Excel(2003/2007)
+        /// </summary>
+        /// <param name="package">ExcelPackage</param>
+        /// <returns>DataTable集合</returns>
+        public static List<DataTable> EPPlusReadExcel(ExcelPackage package)
+        {
             var list = new List<DataTable>();
-            using (var package = new ExcelPackage(fileStream))
+            using (package)
             {
                 for (var sheetIndex = 0; sheetIndex < package.Workbook.Worksheets.Count; sheetIndex++)
                 {
@@ -131,84 +114,9 @@ namespace ZqUtils.Helpers
         /// <returns>泛型集合</returns>
         public static List<List<T>> EPPlusReadExcel<T>(string fullPath) where T : class, new()
         {
-            var lists = new List<List<T>>();
-            var headers = new Dictionary<string, int>();
             var file = new FileInfo(fullPath);
-            using (var package = new ExcelPackage(file))
-            {
-                for (var sheetIndex = 0; sheetIndex < package.Workbook.Worksheets.Count; sheetIndex++)
-                {
-                    var list = new List<T>();
-                    using (var sheet = package.Workbook.Worksheets[sheetIndex])
-                    {
-                        if (sheet.Dimension == null)
-                            continue;
-
-                        var colStart = sheet.Dimension.Start.Column;//工作区开始列
-                        var colEnd = sheet.Dimension.End.Column;//工作区结束列
-                        var rowStart = sheet.Dimension.Start.Row;//工作区开始行号
-                        var rowEnd = sheet.Dimension.End.Row;//工作区结束行号
-                                                             //将每列标题添加到字典中                                               
-                        for (int i = colStart; i <= colEnd; i++)
-                        {
-                            headers[sheet.Cells[rowStart, i].Value.ToString()] = i;
-                        }
-                        var propertyInfoList = new List<PropertyInfo>(typeof(T).GetProperties());
-                        for (int row = rowStart + 1; row <= rowEnd; row++)
-                        {
-                            var result = new T();
-                            //为对象T的各属性赋值
-                            foreach (var p in propertyInfoList)
-                            {
-                                //与属性名对应的单元格
-                                var cell = sheet.Cells[row, headers[p.GetExcelColumn()]];
-                                if (cell.Value == null) continue;
-                                switch (p.PropertyType.GetCoreType().Name.ToLower())
-                                {
-                                    case "string":
-                                        p.SetValue(result, cell.GetValue<string>(), null);
-                                        break;
-                                    case "int16":
-                                        p.SetValue(result, cell.GetValue<short>(), null);
-                                        break;
-                                    case "int32":
-                                        p.SetValue(result, cell.GetValue<int>(), null);
-                                        break;
-                                    case "int64":
-                                        p.SetValue(result, cell.GetValue<int>(), null);
-                                        break;
-                                    case "decimal":
-                                        p.SetValue(result, cell.GetValue<decimal>(), null);
-                                        break;
-                                    case "double":
-                                        p.SetValue(result, cell.GetValue<double>(), null);
-                                        break;
-                                    case "datetime":
-                                        p.SetValue(result, cell.GetValue<DateTime>(), null);
-                                        break;
-                                    case "boolean":
-                                        p.SetValue(result, cell.GetValue<bool>(), null);
-                                        break;
-                                    case "byte":
-                                        p.SetValue(result, cell.GetValue<byte>(), null);
-                                        break;
-                                    case "char":
-                                        p.SetValue(result, cell.GetValue<char>(), null);
-                                        break;
-                                    case "single":
-                                        p.SetValue(result, cell.GetValue<float>(), null);
-                                        break;
-                                    default:
-                                        break;
-                                }
-                            }
-                            list.Add(result);
-                        }
-                    }
-                    lists.Add(list);
-                }
-            }
-            return lists;
+            var package = new ExcelPackage(file);
+            return EPPlusReadExcel<T>(package);
         }
 
         /// <summary>
@@ -219,26 +127,38 @@ namespace ZqUtils.Helpers
         /// <returns>泛型集合</returns>
         public static List<List<T>> EPPlusReadExcel<T>(Stream fileStream) where T : class, new()
         {
+            var package = new ExcelPackage(fileStream);
+            return EPPlusReadExcel<T>(package);
+        }
+
+        /// <summary>
+        /// EPPlus读取Excel(2003/2007)
+        /// </summary>
+        /// <typeparam name="T">泛型类型</typeparam>
+        /// <param name="package">ExcelPackage</param>
+        /// <returns>泛型集合</returns>
+        public static List<List<T>> EPPlusReadExcel<T>(ExcelPackage package) where T : class, new()
+        {
             var lists = new List<List<T>>();
-            var headers = new Dictionary<string, int>();
-            using (var package = new ExcelPackage(fileStream))
+            using (package)
             {
                 for (var sheetIndex = 0; sheetIndex < package.Workbook.Worksheets.Count; sheetIndex++)
                 {
+                    var headers = new Dictionary<string, int>();
                     var list = new List<T>();
-                    using (var sheet = package.Workbook.Worksheets[sheetIndex])
+                    using (var worksheet = package.Workbook.Worksheets[sheetIndex])
                     {
-                        if (sheet.Dimension == null)
+                        if (worksheet.Dimension == null)
                             continue;
 
-                        var colStart = sheet.Dimension.Start.Column;//工作区开始列
-                        var colEnd = sheet.Dimension.End.Column;//工作区结束列
-                        var rowStart = sheet.Dimension.Start.Row;//工作区开始行号
-                        var rowEnd = sheet.Dimension.End.Row;//工作区结束行号
-                                                             //将每列标题添加到字典中                                               
+                        var colStart = worksheet.Dimension.Start.Column;//工作区开始列
+                        var colEnd = worksheet.Dimension.End.Column;//工作区结束列
+                        var rowStart = worksheet.Dimension.Start.Row;//工作区开始行号
+                        var rowEnd = worksheet.Dimension.End.Row;//工作区结束行号
+                                                                 //将每列标题添加到字典中                                               
                         for (int i = colStart; i <= colEnd; i++)
                         {
-                            headers[sheet.Cells[rowStart, i].Value.ToString()] = i;
+                            headers[worksheet.Cells[rowStart, i].Value.ToString()] = i;
                         }
                         var propertyInfoList = new List<PropertyInfo>(typeof(T).GetProperties());
                         for (int row = rowStart + 1; row <= rowEnd; row++)
@@ -248,7 +168,11 @@ namespace ZqUtils.Helpers
                             foreach (var p in propertyInfoList)
                             {
                                 //与属性名对应的单元格
-                                var cell = sheet.Cells[row, headers[p.GetExcelColumn()]];
+                                var columnName = p.GetExcelColumn();
+                                if (!headers.Keys.Contains(columnName))
+                                    continue;
+
+                                var cell = worksheet.Cells[row, headers[columnName]];
                                 if (cell.Value == null) continue;
                                 switch (p.PropertyType.GetCoreType().Name.ToLower())
                                 {
