@@ -124,7 +124,7 @@ namespace ZqUtils.Helpers
         /// <param name="actionException">最后抛出异常处理委托</param>
         /// <param name="sleepDurations">延迟时间</param>
         /// <param name="onRetry">重试事件</param>
-        public static void WaitAndRetry<TException, TResult>(Func<TResult> action, Func<TResult, bool> resultPredicate, Action<Exception> actionException, IEnumerable<TimeSpan> sleepDurations, Action<DelegateResult<TResult>, TimeSpan, int, Context> onRetry = null) where TException : Exception
+        public static TResult WaitAndRetry<TException, TResult>(Func<TResult> action, Func<TResult, bool> resultPredicate, Action<Exception> actionException, IEnumerable<TimeSpan> sleepDurations, Action<DelegateResult<TResult>, TimeSpan, int, Context> onRetry = null) where TException : Exception
         {
             try
             {
@@ -134,7 +134,7 @@ namespace ZqUtils.Helpers
                     void OnRetry(DelegateResult<TResult> delegateResult, TimeSpan time, int count, Context context) => LogHelper.Error(delegateResult.Exception, $"异常：{delegateResult.Exception?.Message}，结果：{delegateResult.Result.ToJson()}，时间：{time}，重试次数：{count}，内容：{context.ToJson()}");
                     onRetry = OnRetry;
                 }
-                Policy
+                return Policy
                     .Handle<TException>()
                     .OrResult(resultPredicate)
                     .WaitAndRetry(sleepDurations, onRetry)
@@ -151,6 +151,8 @@ namespace ZqUtils.Helpers
                     LogHelper.Error(ex, "WaitAndRetry");
                 }
             }
+
+            return default;
         }
 
         /// <summary>
@@ -164,7 +166,7 @@ namespace ZqUtils.Helpers
         /// <param name="actionException">最后抛出异常处理委托</param>
         /// <param name="sleepDurationProvider">延迟时间委托</param>
         /// <param name="onRetry">重试事件</param>
-        public static void WaitAndRetry<TException, TResult>(int retryCount, Func<TResult> action, Func<TResult, bool> resultPredicate, Action<Exception> actionException, Func<int, TimeSpan> sleepDurationProvider = null, Action<DelegateResult<TResult>, TimeSpan, int, Context> onRetry = null) where TException : Exception
+        public static TResult WaitAndRetry<TException, TResult>(int retryCount, Func<TResult> action, Func<TResult, bool> resultPredicate, Action<Exception> actionException, Func<int, TimeSpan> sleepDurationProvider = null, Action<DelegateResult<TResult>, TimeSpan, int, Context> onRetry = null) where TException : Exception
         {
             try
             {
@@ -180,7 +182,7 @@ namespace ZqUtils.Helpers
                     void OnRetry(DelegateResult<TResult> delegateResult, TimeSpan time, int count, Context context) => LogHelper.Error(delegateResult.Exception, $"异常：{delegateResult.Exception?.Message}，结果：{delegateResult.Result.ToJson()}，时间：{time}，重试次数：{count}，内容：{context.ToJson()}");
                     onRetry = OnRetry;
                 }
-                Policy
+                return Policy
                     .Handle<TException>()
                     .OrResult(resultPredicate)
                     .WaitAndRetry(retryCount, sleepDurationProvider, onRetry)
@@ -197,6 +199,8 @@ namespace ZqUtils.Helpers
                     LogHelper.Error(ex, "WaitAndRetry");
                 }
             }
+
+            return default;
         }
         #endregion
 
@@ -292,7 +296,7 @@ namespace ZqUtils.Helpers
         /// <param name="actionException">最后抛出异常处理委托</param>
         /// <param name="sleepDurations">延迟时间</param>
         /// <param name="onRetry">重试事件</param>
-        public static async Task WaitAndRetryAsync<TException, TResult>(Func<Task<TResult>> action, Func<TResult, bool> resultPredicate, Action<Exception> actionException, IEnumerable<TimeSpan> sleepDurations, Action<DelegateResult<TResult>, TimeSpan, int, Context> onRetry = null) where TException : Exception
+        public static async Task<TResult> WaitAndRetryAsync<TException, TResult>(Func<Task<TResult>> action, Func<TResult, bool> resultPredicate, Action<Exception> actionException, IEnumerable<TimeSpan> sleepDurations, Action<DelegateResult<TResult>, TimeSpan, int, Context> onRetry = null) where TException : Exception
         {
             try
             {
@@ -302,7 +306,7 @@ namespace ZqUtils.Helpers
                     void OnRetry(DelegateResult<TResult> delegateResult, TimeSpan time, int count, Context context) => LogHelper.Error(delegateResult.Exception, $"异常：{delegateResult.Exception?.Message}，结果：{delegateResult.Result.ToJson()}，时间：{time}，重试次数：{count}，内容：{context.ToJson()}");
                     onRetry = OnRetry;
                 }
-                await Policy
+                return await Policy
                         .Handle<TException>()
                         .OrResult(resultPredicate)
                         .WaitAndRetryAsync(sleepDurations, onRetry)
@@ -319,6 +323,8 @@ namespace ZqUtils.Helpers
                     LogHelper.Error(ex, "WaitAndRetry");
                 }
             }
+
+            return default;
         }
 
         /// <summary>
@@ -332,7 +338,7 @@ namespace ZqUtils.Helpers
         /// <param name="actionException">最后抛出异常处理委托</param>
         /// <param name="sleepDurationProvider">延迟时间委托</param>
         /// <param name="onRetry">重试事件</param>
-        public static async Task WaitAndRetryAsync<TException, TResult>(int retryCount, Func<Task<TResult>> action, Func<TResult, bool> resultPredicate, Action<Exception> actionException, Func<int, TimeSpan> sleepDurationProvider = null, Action<DelegateResult<TResult>, TimeSpan, int, Context> onRetry = null) where TException : Exception
+        public static async Task<TResult> WaitAndRetryAsync<TException, TResult>(int retryCount, Func<Task<TResult>> action, Func<TResult, bool> resultPredicate, Action<Exception> actionException, Func<int, TimeSpan> sleepDurationProvider = null, Action<DelegateResult<TResult>, TimeSpan, int, Context> onRetry = null) where TException : Exception
         {
             try
             {
@@ -348,7 +354,7 @@ namespace ZqUtils.Helpers
                     void OnRetry(DelegateResult<TResult> delegateResult, TimeSpan time, int count, Context context) => LogHelper.Error(delegateResult.Exception, $"异常：{delegateResult.Exception?.Message}，结果：{delegateResult.Result.ToJson()}，时间：{time}，重试次数：{count}，内容：{context.ToJson()}");
                     onRetry = OnRetry;
                 }
-                await Policy
+                return await Policy
                         .Handle<TException>()
                         .OrResult(resultPredicate)
                         .WaitAndRetryAsync(retryCount, sleepDurationProvider, onRetry)
@@ -365,6 +371,8 @@ namespace ZqUtils.Helpers
                     LogHelper.Error(ex, "WaitAndRetry");
                 }
             }
+
+            return default;
         }
         #endregion
         #endregion
@@ -407,7 +415,7 @@ namespace ZqUtils.Helpers
         /// <param name="resultPredicate">返回值委托</param>
         /// <param name="sleepDurationProvider">延迟时间委托</param>
         /// <param name="onRetry">重试事件</param>
-        public static void WaitAndRetryForever<TException, TResult>(Func<TResult> action, Func<TResult, bool> resultPredicate, Func<int, DelegateResult<TResult>, Context, TimeSpan> sleepDurationProvider = null, Action<DelegateResult<TResult>, TimeSpan, Context> onRetry = null) where TException : Exception
+        public static TResult WaitAndRetryForever<TException, TResult>(Func<TResult> action, Func<TResult, bool> resultPredicate, Func<int, DelegateResult<TResult>, Context, TimeSpan> sleepDurationProvider = null, Action<DelegateResult<TResult>, TimeSpan, Context> onRetry = null) where TException : Exception
         {
             //延迟机制，默认为2s+当前重试次数；
             if (sleepDurationProvider == null)
@@ -421,7 +429,7 @@ namespace ZqUtils.Helpers
                 void OnRetry(DelegateResult<TResult> delegateResult, TimeSpan time, Context context) => LogHelper.Error(delegateResult.Exception, $"异常：{delegateResult.Exception?.Message}，结果：{delegateResult.Result.ToJson()}，时间：{time}，内容：{context.ToJson()}");
                 onRetry = OnRetry;
             }
-            Policy
+            return Policy
                .Handle<TException>()
                .OrResult(resultPredicate)
                .WaitAndRetryForever(sleepDurationProvider, onRetry)
@@ -471,7 +479,7 @@ namespace ZqUtils.Helpers
         /// <param name="resultPredicate">返回值委托</param>
         /// <param name="sleepDurationProvider">延迟时间委托</param>
         /// <param name="onRetryAsync">重试事件</param>
-        public static async Task WaitAndRetryForeverAsync<TException, TResult>(Func<Task<TResult>> action, Func<TResult, bool> resultPredicate, Func<int, DelegateResult<TResult>, Context, TimeSpan> sleepDurationProvider = null, Func<DelegateResult<TResult>, TimeSpan, Context, Task> onRetryAsync = null) where TException : Exception
+        public static async Task<TResult> WaitAndRetryForeverAsync<TException, TResult>(Func<Task<TResult>> action, Func<TResult, bool> resultPredicate, Func<int, DelegateResult<TResult>, Context, TimeSpan> sleepDurationProvider = null, Func<DelegateResult<TResult>, TimeSpan, Context, Task> onRetryAsync = null) where TException : Exception
         {
             //延迟机制，默认为2s+当前重试次数；
             if (sleepDurationProvider == null)
@@ -489,7 +497,7 @@ namespace ZqUtils.Helpers
                 }
                 onRetryAsync = OnRetryAsync;
             }
-            await Policy
+            return await Policy
                     .Handle<TException>()
                     .OrResult(resultPredicate)
                     .WaitAndRetryForeverAsync(sleepDurationProvider, onRetryAsync)
