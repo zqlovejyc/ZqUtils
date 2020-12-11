@@ -95,7 +95,11 @@ namespace ZqUtils.Helpers
                             var row = table.NewRow();
                             for (var j = 1; j <= colCount; j++)
                             {
-                                row[j - 1] = sheet.Cells[i, j].Value;
+                                var cellValue = sheet.Cells[i, j].Value;
+                                if (cellValue?.GetType() == typeof(string))
+                                    cellValue = cellValue?.ToString().Trim(' ', '\n', '\t', '\r');
+
+                                row[j - 1] = cellValue;
                             }
                             table.Rows.Add(row);
                         }
@@ -173,11 +177,13 @@ namespace ZqUtils.Helpers
                                     continue;
 
                                 var cell = worksheet.Cells[row, headers[columnName]];
-                                if (cell.Value == null) continue;
+                                if (cell.Value == null)
+                                    continue;
+
                                 switch (p.PropertyType.GetCoreType().Name.ToLower())
                                 {
                                     case "string":
-                                        p.SetValue(result, cell.GetValue<string>(), null);
+                                        p.SetValue(result, cell.GetValue<string>()?.Trim(' ', '\n', '\t', '\r'), null);
                                         break;
                                     case "int16":
                                         p.SetValue(result, cell.GetValue<short>(), null);
