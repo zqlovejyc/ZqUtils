@@ -44,11 +44,6 @@ namespace ZqUtils.Helpers
             new ConcurrentDictionary<string, Lazy<ObjectPoolHelper<RedisHelper>>>();
 
         /// <summary>
-        /// 默认的key值（用来当作RedisKey的前缀）
-        /// </summary>
-        private static readonly string defaultKey = ConfigHelper.GetAppSettings<string>("Redis.DefaultKey");
-
-        /// <summary>
         /// 线程锁
         /// </summary>
         private static readonly SemaphoreSlim locker = new SemaphoreSlim(1, 1);
@@ -56,12 +51,12 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// redis连接对象
         /// </summary>
-        private static IConnectionMultiplexer connMultiplexer;
+        private static IConnectionMultiplexer connectionMultiplexer;
 
         /// <summary>
         /// 数据库，不能为静态字段，多个实例情况下会被覆盖
         /// </summary>
-        private readonly IDatabase database;
+        private IDatabase database;
         #endregion
 
         #region 公有属性
@@ -69,6 +64,16 @@ namespace ZqUtils.Helpers
         /// 静态单例
         /// </summary>
         public static RedisHelper Instance => SingletonHelper<RedisHelper>.GetInstance();
+
+        /// <summary>
+        /// IConnectionMultiplexer对象
+        /// </summary>
+        public IConnectionMultiplexer IConnectionMultiplexer => connectionMultiplexer;
+
+        /// <summary>
+        /// 默认的key值（用来当作RedisKey的前缀）
+        /// </summary>
+        public string DefaultKey { get; set; } = ConfigHelper.GetAppSettings<string>("Redis.DefaultKey");
         #endregion
 
         #region 构造函数
@@ -91,6 +96,25 @@ namespace ZqUtils.Helpers
 
         /// <summary>
         /// 构造函数
+        /// </summary>
+        /// <param name="redisConnectionString">redis连接字符串</param>
+        public RedisHelper(string redisConnectionString)
+        {
+            this.database = GetConnectionRedisMultiplexer(redisConnectionString).GetDatabase();
+        }
+
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="redisConnectionString">redis连接字符串</param>
+        ///  <param name="defaultDatabase">数据库索引</param>
+        public RedisHelper(string redisConnectionString, int defaultDatabase)
+        {
+            this.database = GetConnectionRedisMultiplexer(redisConnectionString).GetDatabase(defaultDatabase);
+        }
+
+        /// <summary>
+        /// 构造函数
         /// </summary>        
         /// <param name="configurationOptions">连接配置</param>
         public RedisHelper(ConfigurationOptions configurationOptions)
@@ -100,33 +124,31 @@ namespace ZqUtils.Helpers
         #endregion 构造函数
 
         #region 连接对象
+        #region GetConnectionRedisMultiplexer
         /// <summary>
         /// 获取redis连接对象
         /// </summary>
-        /// <param name="configurationOptions">连接配置</param>
         /// <returns>返回IConnectionMultiplexer</returns>
-        public static IConnectionMultiplexer GetConnectionRedisMultiplexer(ConfigurationOptions configurationOptions = null)
+        public static IConnectionMultiplexer GetConnectionRedisMultiplexer()
         {
-            if (connMultiplexer == null || !connMultiplexer.IsConnected)
+            if (connectionMultiplexer == null || !connectionMultiplexer.IsConnected)
             {
                 try
                 {
                     locker.Wait();
 
-                    if (connMultiplexer == null || !connMultiplexer.IsConnected)
+                    if (connectionMultiplexer == null || !connectionMultiplexer.IsConnected)
                     {
-                        if (configurationOptions != null)
-                            connMultiplexer = ConnectionMultiplexer.Connect(configurationOptions);
-                        else
-                        {
-                            var connectionStr = ConfigHelper.GetConnectionString("RedisConnectionString");
-                            if (string.IsNullOrEmpty(connectionStr))
-                                connectionStr = ConfigHelper.GetAppSettings<string>("RedisConnectionString");
-                            if (!string.IsNullOrEmpty(connectionStr))
-                                connMultiplexer = ConnectionMultiplexer.Connect(connectionStr);
-                            else
-                                throw new ArgumentNullException("RedisConnectionString和configOptions不能同时为null");
-                        }
+                        var connectionStr = ConfigHelper.GetConnectionString("RedisConnectionString");
+
+                        if (string.IsNullOrEmpty(connectionStr))
+                            connectionStr = ConfigHelper.GetAppSettings<string>("RedisConnectionString");
+
+                        if (!string.IsNullOrEmpty(connectionStr))
+                            connectionMultiplexer = ConnectionMultiplexer.Connect(connectionStr);
+
+                        if (string.IsNullOrEmpty(connectionStr))
+                            throw new ArgumentNullException("Redis连接字符串配置为null");
 
                         AddRegisterEvent();
                     }
@@ -140,7 +162,39 @@ namespace ZqUtils.Helpers
                     locker.Release();
                 }
             }
-            return connMultiplexer;
+            return connectionMultiplexer;
+        }
+
+        /// <summary>
+        /// 获取redis连接对象
+        /// </summary>
+        /// <param name="redisConnectionString">redis连接字符串</param>
+        /// <returns>返回IConnectionMultiplexer</returns>
+        public static IConnectionMultiplexer GetConnectionRedisMultiplexer(string redisConnectionString)
+        {
+            if (connectionMultiplexer == null || !connectionMultiplexer.IsConnected)
+            {
+                try
+                {
+                    locker.Wait();
+
+                    if (connectionMultiplexer == null || !connectionMultiplexer.IsConnected)
+                    {
+                        connectionMultiplexer = ConnectionMultiplexer.Connect(redisConnectionString);
+
+                        AddRegisterEvent();
+                    }
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+                finally
+                {
+                    locker.Release();
+                }
+            }
+            return connectionMultiplexer;
         }
 
         /// <summary>
@@ -148,28 +202,59 @@ namespace ZqUtils.Helpers
         /// </summary>
         /// <param name="configurationOptions">连接配置</param>
         /// <returns>返回IConnectionMultiplexer</returns>
-        public static async Task<IConnectionMultiplexer> GetConnectionRedisMultiplexerAsync(ConfigurationOptions configurationOptions = null)
+        public static IConnectionMultiplexer GetConnectionRedisMultiplexer(ConfigurationOptions configurationOptions)
         {
-            if (connMultiplexer == null || !connMultiplexer.IsConnected)
+            if (connectionMultiplexer == null || !connectionMultiplexer.IsConnected)
+            {
+                try
+                {
+                    locker.Wait();
+
+                    if (connectionMultiplexer == null || !connectionMultiplexer.IsConnected)
+                    {
+                        connectionMultiplexer = ConnectionMultiplexer.Connect(configurationOptions);
+
+                        AddRegisterEvent();
+                    }
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+                finally
+                {
+                    locker.Release();
+                }
+            }
+            return connectionMultiplexer;
+        }
+        #endregion
+
+        #region GetConnectionRedisMultiplexerAsync
+        /// <summary>
+        /// 获取redis连接对象
+        /// </summary>
+        /// <returns>返回IConnectionMultiplexer</returns>
+        public static async Task<IConnectionMultiplexer> GetConnectionRedisMultiplexerAsync()
+        {
+            if (connectionMultiplexer == null || !connectionMultiplexer.IsConnected)
             {
                 try
                 {
                     await locker.WaitAsync().ConfigureAwait(false);
 
-                    if (connMultiplexer == null || !connMultiplexer.IsConnected)
+                    if (connectionMultiplexer == null || !connectionMultiplexer.IsConnected)
                     {
-                        if (configurationOptions != null)
-                            connMultiplexer = await ConnectionMultiplexer.ConnectAsync(configurationOptions);
-                        else
-                        {
-                            var connectionStr = ConfigHelper.GetConnectionString("RedisConnectionString");
-                            if (string.IsNullOrEmpty(connectionStr))
-                                connectionStr = ConfigHelper.GetAppSettings<string>("RedisConnectionString");
-                            if (!string.IsNullOrEmpty(connectionStr))
-                                connMultiplexer = await ConnectionMultiplexer.ConnectAsync(connectionStr);
-                            else
-                                throw new ArgumentNullException("RedisConnectionString和configOptions不能同时为null");
-                        }
+                        var connectionStr = ConfigHelper.GetConnectionString("RedisConnectionString");
+
+                        if (string.IsNullOrEmpty(connectionStr))
+                            connectionStr = ConfigHelper.GetAppSettings<string>("RedisConnectionString");
+
+                        if (!string.IsNullOrEmpty(connectionStr))
+                            connectionMultiplexer = await ConnectionMultiplexer.ConnectAsync(connectionStr);
+
+                        if (string.IsNullOrEmpty(connectionStr))
+                            throw new ArgumentNullException("Redis连接字符串配置为null");
 
                         AddRegisterEvent();
                     }
@@ -184,7 +269,94 @@ namespace ZqUtils.Helpers
                 }
             }
 
-            return connMultiplexer;
+            return connectionMultiplexer;
+        }
+
+        /// <summary>
+        /// 获取redis连接对象
+        /// </summary>
+        /// <param name="redisConnectionString">redis连接字符串</param>
+        /// <returns>返回IConnectionMultiplexer</returns>
+        public static async Task<IConnectionMultiplexer> GetConnectionRedisMultiplexerAsync(string redisConnectionString)
+        {
+            if (connectionMultiplexer == null || !connectionMultiplexer.IsConnected)
+            {
+                try
+                {
+                    await locker.WaitAsync().ConfigureAwait(false);
+
+                    if (connectionMultiplexer == null || !connectionMultiplexer.IsConnected)
+                    {
+                        connectionMultiplexer = await ConnectionMultiplexer.ConnectAsync(redisConnectionString);
+
+                        AddRegisterEvent();
+                    }
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+                finally
+                {
+                    locker.Release();
+                }
+            }
+
+            return connectionMultiplexer;
+        }
+
+        /// <summary>
+        /// 获取redis连接对象
+        /// </summary>
+        /// <param name="configurationOptions">连接配置</param>
+        /// <returns>返回IConnectionMultiplexer</returns>
+        public static async Task<IConnectionMultiplexer> GetConnectionRedisMultiplexerAsync(ConfigurationOptions configurationOptions)
+        {
+            if (connectionMultiplexer == null || !connectionMultiplexer.IsConnected)
+            {
+                try
+                {
+                    await locker.WaitAsync().ConfigureAwait(false);
+
+                    if (connectionMultiplexer == null || !connectionMultiplexer.IsConnected)
+                    {
+                        connectionMultiplexer = await ConnectionMultiplexer.ConnectAsync(configurationOptions);
+
+                        AddRegisterEvent();
+                    }
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+                finally
+                {
+                    locker.Release();
+                }
+            }
+
+            return connectionMultiplexer;
+        }
+        #endregion
+
+        #region SetConnectionRedisMultiplexerAsync
+        /// <summary>
+        /// 初始化IConnectionMultiplexer
+        /// </summary>
+        /// <returns></returns>
+        public static async Task SetConnectionRedisMultiplexerAsync()
+        {
+            connectionMultiplexer = await GetConnectionRedisMultiplexerAsync();
+        }
+
+        /// <summary>
+        /// 初始化IConnectionMultiplexer
+        /// </summary>
+        /// <param name="redisConnectionString"></param>
+        /// <returns></returns>
+        public static async Task SetConnectionRedisMultiplexerAsync(string redisConnectionString)
+        {
+            connectionMultiplexer = await GetConnectionRedisMultiplexerAsync(redisConnectionString);
         }
 
         /// <summary>
@@ -192,10 +364,11 @@ namespace ZqUtils.Helpers
         /// </summary>
         /// <param name="configurationOptions"></param>
         /// <returns></returns>
-        public static async Task SetConnectionRedisMultiplexerAsync(ConfigurationOptions configurationOptions = null)
+        public static async Task SetConnectionRedisMultiplexerAsync(ConfigurationOptions configurationOptions)
         {
-            connMultiplexer = await GetConnectionRedisMultiplexerAsync(configurationOptions);
+            connectionMultiplexer = await GetConnectionRedisMultiplexerAsync(configurationOptions);
         }
+        #endregion
         #endregion
 
         #region Redis事务
@@ -215,13 +388,13 @@ namespace ZqUtils.Helpers
         /// </summary>
         private static void AddRegisterEvent()
         {
-            connMultiplexer.ConnectionRestored += ConnMultiplexer_ConnectionRestored;
-            connMultiplexer.ConnectionFailed += ConnMultiplexer_ConnectionFailed;
-            connMultiplexer.ErrorMessage += ConnMultiplexer_ErrorMessage;
-            connMultiplexer.ConfigurationChanged += ConnMultiplexer_ConfigurationChanged;
-            connMultiplexer.HashSlotMoved += ConnMultiplexer_HashSlotMoved;
-            connMultiplexer.InternalError += ConnMultiplexer_InternalError;
-            connMultiplexer.ConfigurationChangedBroadcast += ConnMultiplexer_ConfigurationChangedBroadcast;
+            connectionMultiplexer.ConnectionRestored += ConnMultiplexer_ConnectionRestored;
+            connectionMultiplexer.ConnectionFailed += ConnMultiplexer_ConnectionFailed;
+            connectionMultiplexer.ErrorMessage += ConnMultiplexer_ErrorMessage;
+            connectionMultiplexer.ConfigurationChanged += ConnMultiplexer_ConfigurationChanged;
+            connectionMultiplexer.HashSlotMoved += ConnMultiplexer_HashSlotMoved;
+            connectionMultiplexer.InternalError += ConnMultiplexer_InternalError;
+            connectionMultiplexer.ConfigurationChangedBroadcast += ConnMultiplexer_ConfigurationChangedBroadcast;
         }
 
         /// <summary>
@@ -303,7 +476,7 @@ namespace ZqUtils.Helpers
         /// <returns>返回添加前缀后的key</returns>
         private string AddKeyPrefix(string key)
         {
-            return string.IsNullOrEmpty(defaultKey) ? key : $"{defaultKey}:{key}";
+            return string.IsNullOrEmpty(DefaultKey) ? key : $"{DefaultKey}:{key}";
         }
         #endregion
 
@@ -326,6 +499,21 @@ namespace ZqUtils.Helpers
             {
                 return _pool[database.ToString()].Value.GetObject();
             }
+        }
+        #endregion
+
+        #region 切换IDatabase
+        /// <summary>
+        /// 切换数据库
+        /// </summary>
+        /// <param name="database">数据库索引</param>
+        /// <returns></returns>
+        public RedisHelper UseDatabase(int database)
+        {
+            if (connectionMultiplexer != null && connectionMultiplexer.IsConnected)
+                this.database = connectionMultiplexer.GetDatabase(database);
+
+            return this;
         }
         #endregion
 
@@ -1991,12 +2179,12 @@ namespace ZqUtils.Helpers
         public bool KeyDeleteByPattern(string pattern, int database = 0, bool configuredOnly = false)
         {
             var result = true;
-            var points = connMultiplexer.GetEndPoints(configuredOnly);
+            var points = connectionMultiplexer.GetEndPoints(configuredOnly);
             if (points?.Length > 0)
             {
                 foreach (var point in points)
                 {
-                    var server = connMultiplexer.GetServer(point);
+                    var server = connectionMultiplexer.GetServer(point);
                     var keys = server.Keys(database: database, pattern: $"*{pattern}*");
                     foreach (var key in keys)
                     {
@@ -2091,12 +2279,12 @@ namespace ZqUtils.Helpers
         public async Task<bool> KeyDeleteByPatternAsync(string pattern, int database = 0, bool configuredOnly = false)
         {
             var result = true;
-            var points = connMultiplexer.GetEndPoints(configuredOnly);
+            var points = connectionMultiplexer.GetEndPoints(configuredOnly);
             if (points?.Length > 0)
             {
                 foreach (var point in points)
                 {
-                    var server = connMultiplexer.GetServer(point);
+                    var server = connectionMultiplexer.GetServer(point);
                     var keys = server.Keys(database: database, pattern: $"*{pattern}*");
                     foreach (var key in keys)
                     {
@@ -2166,10 +2354,10 @@ namespace ZqUtils.Helpers
         /// <param name="configuredOnly">默认：false</param>
         public void Clear(bool configuredOnly = false)
         {
-            var points = connMultiplexer.GetEndPoints(configuredOnly);
+            var points = connectionMultiplexer.GetEndPoints(configuredOnly);
             foreach (var point in points)
             {
-                var server = connMultiplexer.GetServer(point);
+                var server = connectionMultiplexer.GetServer(point);
                 server.FlushAllDatabases();
             }
         }
@@ -2181,7 +2369,7 @@ namespace ZqUtils.Helpers
         /// <param name="port">端口号</param>
         public void Clear(string host, int port)
         {
-            var server = connMultiplexer.GetServer(host, port);
+            var server = connectionMultiplexer.GetServer(host, port);
             server.FlushAllDatabases();
         }
 
@@ -2193,7 +2381,7 @@ namespace ZqUtils.Helpers
         /// <param name="database">数据库</param>
         public void Clear(string host, int port, int database)
         {
-            var server = connMultiplexer.GetServer(host, port);
+            var server = connectionMultiplexer.GetServer(host, port);
             server.FlushDatabase(database);
         }
         #endregion
@@ -2205,10 +2393,10 @@ namespace ZqUtils.Helpers
         /// <param name="configuredOnly">默认：false</param>
         public async Task ClearAsync(bool configuredOnly = false)
         {
-            var points = connMultiplexer.GetEndPoints(configuredOnly);
+            var points = connectionMultiplexer.GetEndPoints(configuredOnly);
             foreach (var point in points)
             {
-                var server = connMultiplexer.GetServer(point);
+                var server = connectionMultiplexer.GetServer(point);
                 await server.FlushAllDatabasesAsync();
             }
         }
@@ -2220,7 +2408,7 @@ namespace ZqUtils.Helpers
         /// <param name="port">端口号</param>
         public async Task ClearAsync(string host, int port)
         {
-            var server = connMultiplexer.GetServer(host, port);
+            var server = connectionMultiplexer.GetServer(host, port);
             await server.FlushAllDatabasesAsync();
         }
 
@@ -2232,7 +2420,7 @@ namespace ZqUtils.Helpers
         /// <param name="database">数据库</param>
         public async Task ClearAsync(string host, int port, int database)
         {
-            var server = connMultiplexer.GetServer(host, port);
+            var server = connectionMultiplexer.GetServer(host, port);
             await server.FlushDatabaseAsync(database);
         }
         #endregion
