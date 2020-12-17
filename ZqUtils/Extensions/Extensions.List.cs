@@ -924,19 +924,19 @@ namespace ZqUtils.Extensions
         /// <typeparam name="T">泛型类型</typeparam>
         /// <param name="this">数据源</param>
         /// <param name="primaryKey">实体主键</param>
-        /// <param name="pid">父级字段值，默认0</param>
+        /// <param name="pids">父级字段值数组，默认: new[]{"0"}</param>
         /// <param name="parentId">树形父级字段，默认ParentId</param>
         /// <param name="childName">子集节点命名</param>
         /// <returns>返回树形Json</returns>
         public static string TreeToJson<T>(
             this IEnumerable<T> @this,
             string primaryKey,
-            string pid = "0",
+            string[] pids = null,
             string parentId = "ParentId",
             string childName = "ChildNodes")
             where T : class
         {
-            return @this.TreeToDictionary(primaryKey, pid, parentId, childName).ToJson();
+            return @this.TreeToDictionary(primaryKey, pids, parentId, childName).ToJson();
         }
         #endregion
 
@@ -947,24 +947,33 @@ namespace ZqUtils.Extensions
         /// <typeparam name="T">泛型类型</typeparam>
         /// <param name="this">数据源</param>
         /// <param name="primaryKey">实体主键</param>
-        /// <param name="pid">父级字段值，默认0</param>
+        /// <param name="pids">父级字段值数组，默认: new[]{"0"}</param>
         /// <param name="parentId">树形父级字段，默认ParentId</param>
         /// <param name="childName">子集节点命名</param>
         /// <returns>返回树形Json</returns>
         public static IEnumerable<Dictionary<string, object>> TreeToDictionary<T>(
             this IEnumerable<T> @this,
             string primaryKey,
-            string pid = "0",
+            string[] pids = null,
             string parentId = "ParentId",
             string childName = "ChildNodes")
             where T : class
         {
             var type = typeof(T);
-            var parameter = Expression.Parameter(type, "t");
-            var condition = Expression.Equal(parameter.Property(parentId), Expression.Constant(pid)).ToLambda<Predicate<T>>(parameter).CompileFast();
-            var entities = @this?.ToList().FindAll(condition);
+            var entities = new List<T>();
             var list = new List<Dictionary<string, object>>();
-            if (entities?.Count > 0)
+            pids ??= new[] { "0" };
+
+            foreach (var pid in pids)
+            {
+                var parameter = Expression.Parameter(type, "t");
+                var condition = Expression.Equal(parameter.Property(parentId), Expression.Constant(pid)).ToLambda<Predicate<T>>(parameter).CompileFast();
+                var result = @this?.ToList().FindAll(condition);
+                if (result.IsNotNullOrEmpty())
+                    entities.AddRangeIfNotContains(result.ToArray());
+            }
+
+            if (entities.Count > 0)
             {
                 var props = type.GetProperties(BindingFlags.GetProperty | BindingFlags.Public | BindingFlags.Instance);
                 foreach (var entity in entities)
@@ -974,7 +983,7 @@ namespace ZqUtils.Extensions
                     {
                         dic[p.Name] = p.GetValue(entity, null);
                     }
-                    dic[childName] = @this.TreeToDictionary(primaryKey, dic[primaryKey].ToString(), parentId, childName);
+                    dic[childName] = @this.TreeToDictionary(primaryKey, new[] { dic[primaryKey].ToString() }, parentId, childName);
                     list.Add(dic);
                 }
             }
