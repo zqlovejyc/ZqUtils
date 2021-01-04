@@ -241,9 +241,6 @@ namespace ZqUtils.Helpers
         /// <returns>解压结果</returns>   
         public static bool UnZip(string fileToUnZip, string zipedFolder, string password = null)
         {
-            ZipEntry ent = null;
-            string fileName;
-
             if (!File.Exists(fileToUnZip))
                 return false;
 
@@ -255,13 +252,14 @@ namespace ZqUtils.Helpers
                 if (!string.IsNullOrEmpty(password))
                     zipStream.Password = password;
 
+                ZipEntry ent;
                 while ((ent = zipStream.GetNextEntry()) != null)
                 {
                     if (!string.IsNullOrEmpty(ent.Name))
                     {
-                        fileName = Path.Combine(zipedFolder, ent.Name);
-                        fileName = fileName.Replace('/', '\\');
-                        if (fileName.EndsWith("\\"))
+                        var fileName = Path.Combine(zipedFolder, ent.Name);
+                        fileName = PathHelper.ConvertToCurrentOsPath(fileName);
+                        if (fileName.EndsWith(PathHelper.CurrentOsDirectorySeparator.ToString()))
                         {
                             Directory.CreateDirectory(fileName);
                             continue;
