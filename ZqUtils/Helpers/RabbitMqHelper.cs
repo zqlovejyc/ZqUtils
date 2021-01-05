@@ -39,17 +39,17 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// RabbitMQ建议客户端线程之间不要共用Model，至少要保证共用Model的线程发送消息必须是串行的，但是建议尽量共用Connection。
         /// </summary>
-        private static readonly ConcurrentDictionary<string, IModel> ChannelDic = new ConcurrentDictionary<string, IModel>();
+        private static readonly ConcurrentDictionary<string, IModel> _channelDic = new ConcurrentDictionary<string, IModel>();
 
         /// <summary>
         /// RabbitMq连接
         /// </summary>
-        private static IConnection _conn;
+        private static IConnection _connection;
 
         /// <summary>
         /// 线程对象，线程锁使用
         /// </summary>
-        private static readonly object locker = new object();
+        private static readonly object _locker = new object();
         #endregion
 
         #region 公有属性
@@ -71,10 +71,12 @@ namespace ZqUtils.Helpers
         /// <param name="config">RabbitMq配置</param>
         public RabbitMqHelper(MqConfig config)
         {
-            if (_conn != null) return;
-            lock (locker)
+            if (_connection != null)
+                return;
+
+            lock (_locker)
             {
-                var factory = new ConnectionFactory
+                _connection ??= new ConnectionFactory
                 {
                     //设置主机名
                     HostName = config.HostName,
@@ -96,8 +98,7 @@ namespace ZqUtils.Helpers
 
                     //密码
                     Password = config.Password
-                };
-                _conn = _conn ?? factory.CreateConnection();
+                }.CreateConnection();
             }
         }
 
@@ -107,11 +108,12 @@ namespace ZqUtils.Helpers
         /// <param name="factory">RabbitMq连接工厂</param>
         public RabbitMqHelper(ConnectionFactory factory)
         {
-            if (_conn != null || factory == null)
+            if (_connection != null || factory == null)
                 return;
-            lock (locker)
+
+            lock (_locker)
             {
-                _conn = _conn ?? factory.CreateConnection();
+                _connection ??= factory.CreateConnection();
             }
         }
         #endregion
@@ -127,14 +129,14 @@ namespace ZqUtils.Helpers
             IModel channel = null;
             if (!queue.IsNullOrEmpty())
             {
-                channel = ChannelDic.GetOrAdd(queue, x =>
+                channel = _channelDic.GetOrAdd(queue, x =>
                 {
-                    channel = _conn.CreateModel();
-                    ChannelDic[x] = channel;
+                    channel = _connection.CreateModel();
+                    _channelDic[x] = channel;
                     return channel;
                 });
             }
-            channel = channel ?? _conn.CreateModel();
+            channel ??= _connection.CreateModel();
             return EnsureOpened(channel);
         }
 
@@ -145,14 +147,14 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public IModel EnsureOpened(IModel channel)
         {
-            channel = channel ?? GetChannel();
+            channel ??= GetChannel();
             if (channel.IsClosed)
             {
-                var data = ChannelDic.Where(x => x.Value == channel)?.FirstOrDefault();
+                var data = _channelDic.Where(x => x.Value == channel)?.FirstOrDefault();
                 if (data != null && data.Value.Key != null)
                 {
                     //移除已关闭的管道
-                    ChannelDic.TryRemove(data.Value.Key, out var model);
+                    _channelDic.TryRemove(data.Value.Key, out var model);
                     //重新获取管道
                     channel = GetChannel(data.Value.Key);
                 }
@@ -170,11 +172,11 @@ namespace ZqUtils.Helpers
         /// <param name="channel"></param>
         public void RemoveIfNotExist(IModel channel)
         {
-            var data = ChannelDic.Where(x => x.Value == channel)?.FirstOrDefault();
+            var data = _channelDic.Where(x => x.Value == channel)?.FirstOrDefault();
             if (data != null && data.Value.Key != null)
             {
                 //移除已关闭的管道
-                ChannelDic.TryRemove(data.Value.Key, out var model);
+                _channelDic.TryRemove(data.Value.Key, out var model);
                 channel = null;
             }
         }
@@ -201,16 +203,16 @@ namespace ZqUtils.Helpers
             IDictionary<string, object> queueArguments = null,
             IDictionary<string, object> exchangeArguments = null)
         {
-            return ChannelDic.GetOrAdd(queue, key =>
+            return _channelDic.GetOrAdd(queue, key =>
             {
-                channel = channel ?? GetChannel();
+                channel ??= GetChannel();
                 //声明交换机
                 ExchangeDeclare(channel, exchange, exchangeType, durable, arguments: exchangeArguments);
                 //声明队列
                 QueueDeclare(channel, queue, durable, arguments: queueArguments);
                 //绑定队列
                 QueueBind(channel, exchange, queue, routingKey);
-                ChannelDic[queue] = EnsureOpened(channel);
+                _channelDic[queue] = EnsureOpened(channel);
                 return channel;
             });
         }
@@ -1135,12 +1137,12 @@ namespace ZqUtils.Helpers
         /// </summary>
         public void Dispose()
         {
-            foreach (var item in ChannelDic)
+            foreach (var item in _channelDic)
             {
                 item.Value?.Dispose();
             }
-            _conn?.Dispose();
-            ChannelDic?.Clear();
+            _connection?.Dispose();
+            _channelDic?.Clear();
         }
         #endregion
     }
