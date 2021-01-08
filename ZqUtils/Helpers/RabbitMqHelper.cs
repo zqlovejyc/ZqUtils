@@ -682,7 +682,7 @@ namespace ZqUtils.Helpers
             //消息内容
             var body = command.ToJson();
 
-            //自定义参数
+            //自定义队列参数
             var arguments = new Dictionary<string, object>();
 
             //设置队列消息过期时间，指整个队列的所有消息
@@ -746,7 +746,7 @@ namespace ZqUtils.Helpers
             }
 
             //发送消息
-            return Publish(attribute.Exchange, attribute.Queue, attribute.RoutingKey, body, attribute.ExchangeType, attribute.Durable, confirm, expiration, priority, arguments);
+            return Publish(attribute.Exchange, attribute.Queue, attribute.RoutingKey, body, attribute.ExchangeType, attribute.Durable, confirm, expiration, priority, arguments, null, attribute.Headers);
         }
 
         /// <summary>
@@ -766,7 +766,7 @@ namespace ZqUtils.Helpers
             //消息内容
             var body = command.Select(x => x.ToJson());
 
-            //自定义参数
+            //自定义队列参数
             var arguments = new Dictionary<string, object>();
 
             //设置队列消息过期时间，指整个队列的所有消息
@@ -830,7 +830,7 @@ namespace ZqUtils.Helpers
             }
 
             //发送消息
-            return Publish(attribute.Exchange, attribute.Queue, attribute.RoutingKey, body, attribute.ExchangeType, attribute.Durable, confirm, expiration, priority, arguments);
+            return Publish(attribute.Exchange, attribute.Queue, attribute.RoutingKey, body, attribute.ExchangeType, attribute.Durable, confirm, expiration, priority, arguments, null, attribute.Headers);
         }
 
         /// <summary>
@@ -847,6 +847,7 @@ namespace ZqUtils.Helpers
         /// <param name="priority">单个消息优先级，数值越大优先级越高，取值范围：0-9</param>
         /// <param name="queueArguments">队列参数</param>
         /// <param name="exchangeArguments">交换机参数</param>
+        /// <param name="headers">消息头部</param>
         /// <returns></returns>
         public bool Publish(
             string exchange,
@@ -859,7 +860,8 @@ namespace ZqUtils.Helpers
             string expiration = null,
             byte? priority = null,
             IDictionary<string, object> queueArguments = null,
-            IDictionary<string, object> exchangeArguments = null)
+            IDictionary<string, object> exchangeArguments = null,
+            IDictionary<string, object> headers = null)
         {
             //获取管道
             var channel = GetChannel(queue);
@@ -895,6 +897,12 @@ namespace ZqUtils.Helpers
             if (priority >= 0 && priority <= 9)
             {
                 props.Priority = priority.Value;
+            }
+
+            //消息头部
+            if (headers != null)
+            {
+                props.Headers = headers;
             }
 
             //是否启用消息发送确认机制
@@ -929,6 +937,7 @@ namespace ZqUtils.Helpers
         /// <param name="priority">单个消息优先级，数值越大优先级越高，取值范围：0-9</param>
         /// <param name="queueArguments">队列参数</param>
         /// <param name="exchangeArguments">交换机参数</param>
+        /// <param name="headers">消息头部</param>
         /// <returns></returns>
         public bool Publish(
             string exchange,
@@ -941,7 +950,8 @@ namespace ZqUtils.Helpers
             string expiration = null,
             byte? priority = null,
             IDictionary<string, object> queueArguments = null,
-            IDictionary<string, object> exchangeArguments = null)
+            IDictionary<string, object> exchangeArguments = null,
+            IDictionary<string, object> headers = null)
         {
             //获取管道
             var channel = GetChannel(queue);
@@ -977,6 +987,12 @@ namespace ZqUtils.Helpers
             if (priority >= 0 && priority <= 9)
             {
                 props.Priority = priority.Value;
+            }
+
+            //消息头部
+            if (headers != null)
+            {
+                props.Headers = headers;
             }
 
             //是否启用消息发送确认机制
@@ -1408,6 +1424,11 @@ namespace ZqUtils.Helpers
         /// 消息过期时间，过期后队列中消息自动被删除，单位ms
         /// </summary>
         public int MessageTTL { get; set; }
+
+        /// <summary>
+        /// 消息头部
+        /// </summary>
+        public IDictionary<string, object> Headers { get; set; }
 
         /// <summary>
         /// 队列过期时间，过期后队列自动被删除，单位ms
