@@ -17,8 +17,10 @@
 #endregion
 
 using System;
+using System.Collections.Concurrent;
 using System.Reflection;
 using System.Threading.Tasks;
+using ZqUtils.ObjectMethodExecutors;
 /****************************
 * [Author] 张强
 * [Date] 2020-09-08
@@ -31,8 +33,29 @@ namespace ZqUtils.Extensions
     /// </summary>
     public static class MethodInfoExtensions
     {
+        #region Field
         /// <summary>
-        /// 调用异步方法
+        /// 缓存ObjectMethodExecutor
+        /// </summary>
+        private static readonly ConcurrentDictionary<string, ObjectMethodExecutor> _executors =
+            new ConcurrentDictionary<string, ObjectMethodExecutor>();
+        #endregion
+
+        #region InvokeAsync
+        /// <summary>
+        /// 调用方法，仅支持异步方法
+        /// </summary>
+        /// <param name="this">实例</param>
+        /// <param name="methodName">方法名称</param>
+        /// <param name="parameters">参数</param>
+        /// <returns></returns>
+        public static async Task<object> InvokeAsync(this object @this, string methodName, params object[] parameters)
+        {
+            return await @this.GetType().InvokeAsync(methodName, @this, parameters);
+        }
+
+        /// <summary>
+        /// 调用方法，仅支持异步方法
         /// </summary>
         /// <param name="this">方法信息</param>
         /// <param name="obj">实例</param>
@@ -49,7 +72,7 @@ namespace ZqUtils.Extensions
         }
 
         /// <summary>
-        /// 调用异步方法
+        /// 调用方法，仅支持异步方法
         /// </summary>
         /// <param name="this">方法所属类型</param>
         /// <param name="methodName">方法名称</param>
@@ -61,5 +84,108 @@ namespace ZqUtils.Extensions
             var method = @this.GetMethod(methodName);
             return await method.InvokeAsync(obj, parameters);
         }
+        #endregion
+
+        #region Execute
+        /// <summary>
+        /// 执行方法，仅支持同步方法
+        /// <para>采用微软的 <see cref="ObjectMethodExecutor" /> </para>
+        /// <para>https://github.com/dotnet/aspnetcore/blob/master/src/Shared/ObjectMethodExecutor/ObjectMethodExecutor.cs </para>
+        /// </summary>
+        /// <param name="this">实例</param>
+        /// <param name="methodName">方法名称</param>
+        /// <param name="parameters">参数</param>
+        /// <returns></returns>
+        public static object Execute(this object @this, string methodName, params object[] parameters)
+        {
+            return @this.GetType().Execute(methodName, @this, parameters);
+        }
+
+        /// <summary>
+        /// 执行方法，仅支持同步方法
+        /// <para>采用微软的 <see cref="ObjectMethodExecutor" /> </para>
+        /// <para>https://github.com/dotnet/aspnetcore/blob/master/src/Shared/ObjectMethodExecutor/ObjectMethodExecutor.cs </para>
+        /// </summary>
+        /// <param name="this">方法信息</param>
+        /// <param name="obj">实例</param>
+        /// <param name="parameters">参数</param>
+        /// <returns></returns>
+        public static object Execute(this MethodInfo @this, object obj, params object[] parameters)
+        {
+            var key = $"{@this.Module.Name}_{@this.ReflectedType.Name}_{@this.MetadataToken}";
+            var executor = _executors.GetOrAdd(key, x => ObjectMethodExecutor.Create(@this, @this.ReflectedType.GetTypeInfo()));
+
+            if (!executor.IsMethodAsync)
+                return executor.Execute(obj, parameters);
+
+            throw new Exception($"Not supported async method:{@this.Name}");
+        }
+
+        /// <summary>
+        /// 执行方法，仅支持同步方法
+        /// <para>采用微软的 <see cref="ObjectMethodExecutor" /> </para>
+        /// <para>https://github.com/dotnet/aspnetcore/blob/master/src/Shared/ObjectMethodExecutor/ObjectMethodExecutor.cs </para>
+        /// </summary>
+        /// <param name="this">方法所属类型</param>
+        /// <param name="methodName">方法名称</param>
+        /// <param name="obj">实例</param>
+        /// <param name="parameters">参数</param>
+        /// <returns></returns>
+        public static object Execute(this Type @this, string methodName, object obj, params object[] parameters)
+        {
+            return @this.GetTypeInfo().GetMethod(methodName).Execute(obj, parameters);
+        }
+        #endregion
+
+        #region ExecuteAsync
+        /// <summary>
+        /// 执行方法，同时支持同步和异步方法
+        /// <para>采用微软的 <see cref="ObjectMethodExecutor" /> </para>
+        /// <para>https://github.com/dotnet/aspnetcore/blob/master/src/Shared/ObjectMethodExecutor/ObjectMethodExecutor.cs </para>
+        /// </summary>
+        /// <param name="this">实例</param>
+        /// <param name="methodName">方法名称</param>
+        /// <param name="parameters">参数</param>
+        /// <returns></returns>
+        public static async Task<object> ExecuteAsync(this object @this, string methodName, params object[] parameters)
+        {
+            return await @this.GetType().ExecuteAsync(methodName, @this, parameters);
+        }
+
+        /// <summary>
+        /// 执行方法，同时支持同步和异步方法
+        /// <para>采用微软的 <see cref="ObjectMethodExecutor" /> </para>
+        /// <para>https://github.com/dotnet/aspnetcore/blob/master/src/Shared/ObjectMethodExecutor/ObjectMethodExecutor.cs </para>
+        /// </summary>
+        /// <param name="this">方法信息</param>
+        /// <param name="obj">实例</param>
+        /// <param name="parameters">参数</param>
+        /// <returns></returns>
+        public static async Task<object> ExecuteAsync(this MethodInfo @this, object obj, params object[] parameters)
+        {
+            var key = $"{@this.Module.Name}_{@this.ReflectedType.Name}_{@this.MetadataToken}";
+            var executor = _executors.GetOrAdd(key, x => ObjectMethodExecutor.Create(@this, @this.ReflectedType.GetTypeInfo()));
+
+            if (executor.IsMethodAsync)
+                return await executor.ExecuteAsync(obj, parameters);
+
+            return executor.Execute(obj, parameters);
+        }
+
+        /// <summary>
+        /// 执行方法，同时支持同步和异步方法
+        /// <para>采用微软的 <see cref="ObjectMethodExecutor" /> </para>
+        /// <para>https://github.com/dotnet/aspnetcore/blob/master/src/Shared/ObjectMethodExecutor/ObjectMethodExecutor.cs </para>
+        /// </summary>
+        /// <param name="this">方法所属类型</param>
+        /// <param name="methodName">方法名称</param>
+        /// <param name="obj">实例</param>
+        /// <param name="parameters">参数</param>
+        /// <returns></returns>
+        public static async Task<object> ExecuteAsync(this Type @this, string methodName, object obj, params object[] parameters)
+        {
+            return await @this.GetTypeInfo().GetMethod(methodName).ExecuteAsync(obj, parameters);
+        }
+        #endregion
     }
 }

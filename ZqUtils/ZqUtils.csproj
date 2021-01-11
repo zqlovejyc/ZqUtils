@@ -230,6 +230,11 @@
     <Compile Include="Helpers\XmlHelper.cs" />
     <Compile Include="Helpers\ZipHelper.cs" />
     <Compile Include="Helpers\HttpClientHelper.cs" />
+    <Compile Include="ObjectMethodExecutors\AwaitableInfo.cs" />
+    <Compile Include="ObjectMethodExecutors\CoercedAwaitableInfo.cs" />
+    <Compile Include="ObjectMethodExecutors\ObjectMethodExecutor.cs" />
+    <Compile Include="ObjectMethodExecutors\ObjectMethodExecutorAwaitable.cs" />
+    <Compile Include="ObjectMethodExecutors\ObjectMethodExecutorFSharpSupport.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Reflection\AssemblyX.cs" />
     <Compile Include="Reflection\AttributeX.cs" />
