@@ -26,6 +26,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 /****************************
 * [Author] 张强
 * [Date] 2018-05-15
@@ -732,7 +733,9 @@ namespace ZqUtils.Extensions
             return @this;
         }
 
-        /// <summary>Enumerates for each in this collection.</summary>
+        /// <summary>
+        /// Enumerates for each in this collection.
+        /// </summary>
         /// <typeparam name="T">Generic type parameter.</typeparam>
         /// <param name="this">The @this to act on.</param>
         /// <param name="action">The action.</param>
@@ -743,6 +746,41 @@ namespace ZqUtils.Extensions
             for (int i = 0; i < array.Length; i++)
             {
                 action(array[i], i);
+            }
+            return array;
+        }
+        #endregion
+
+        #region ForEachAsync
+        /// <summary>
+        /// Enumerates for each in this collection.
+        /// </summary>
+        /// <typeparam name="T">Generic type parameter.</typeparam>
+        /// <param name="this">The @this to act on.</param>
+        /// <param name="func">The func.</param>
+        /// <returns>An enumerator that allows foreach to be used to process for each in this collection.</returns>
+        public static async Task<IEnumerable<T>> ForEachAsync<T>(this IEnumerable<T> @this, Func<T, Task> func)
+        {
+            foreach (var item in @this)
+            {
+                await func(item);
+            }
+            return @this;
+        }
+
+        /// <summary>
+        /// Enumerates for each in this collection.
+        /// </summary>
+        /// <typeparam name="T">Generic type parameter.</typeparam>
+        /// <param name="this">The @this to act on.</param>
+        /// <param name="func">The func.</param>
+        /// <returns>An enumerator that allows foreach to be used to process for each in this collection.</returns>
+        public static async Task<IEnumerable<T>> ForEachAsync<T>(this IEnumerable<T> @this, Func<T, int, Task> func)
+        {
+            var array = @this.ToArray();
+            for (int i = 0; i < array.Length; i++)
+            {
+                await func(array[i], i);
             }
             return array;
         }
