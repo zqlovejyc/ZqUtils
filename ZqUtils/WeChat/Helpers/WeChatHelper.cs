@@ -17,11 +17,12 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
-using System.Collections.Generic;
-using ZqUtils.Helpers;
 using ZqUtils.Extensions;
+using ZqUtils.Helpers;
 using ZqUtils.WeChat.Models;
 /****************************
 * [Author] 张强
@@ -154,6 +155,23 @@ namespace ZqUtils.WeChat.Helpers
         }
         #endregion
 
+        #region 创建HttpRequest
+        /// <summary>
+        /// 创建HttpRequest请求对象
+        /// </summary>
+        private HttpRequest CreateHttpRequest(string url, string method, string contentType = "application/x-www-form-urlencoded") =>
+            new HttpRequest
+            {
+                Url = url,
+                Method = method,
+                ContentType = contentType,
+                Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
+                Referer = url.Substring(0, url.LastIndexOf("/") + 1),
+                KeepAlive = true
+            };
+        #endregion
+
         #region 微信公众号
         #region 获取AccessToken
         /// <summary>
@@ -163,7 +181,8 @@ namespace ZqUtils.WeChat.Helpers
         public string GetAccessToken()
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={wxConfig.AppId}&secret={wxConfig.AppSecret}";
-            var res = HttpHelper.Get(url);
+            using var http = new HttpHelper(CreateHttpRequest(url, "GET"));
+            var res = http.GetResult().ResultString;
             if (!string.IsNullOrEmpty(res))
             {
                 var obj = res.ToObject<AccessToken>();
@@ -181,7 +200,8 @@ namespace ZqUtils.WeChat.Helpers
         public string GetJsApiTicket()
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token={accessToken}&type=jsapi";
-            var res = HttpHelper.Get(url);
+            using var http = new HttpHelper(CreateHttpRequest(url, "GET"));
+            var res = http.GetResult().ResultString;
             if (!string.IsNullOrEmpty(res))
             {
                 var obj = res.ToObject<JsApiTicket>();
@@ -233,7 +253,10 @@ namespace ZqUtils.WeChat.Helpers
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/shorturl?access_token={accessToken}";
             var postJson = $"{{\"action\":\"long2short\",\"long_url\":\"{longUrl}\"}}";
-            return HttpHelper.Post(url, postJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = postJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -260,7 +283,10 @@ namespace ZqUtils.WeChat.Helpers
             var sign = CryptHelper.MD5($"{asciiSort}&key={wxConfig.AppKey}").ToUpper();
             dic.Add("sign", sign);
             //发送请求       
-            var responseXml = HttpHelper.Post(url, dic.ToXml());
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = dic.ToXml();
+            using var http = new HttpHelper(req);
+            var responseXml = http.GetResult().ResultString;
             var dicXml = XmlHelper.XmlToDictionary(responseXml);
             if
             (
@@ -291,7 +317,10 @@ namespace ZqUtils.WeChat.Helpers
         public string CreateQRCode(string postJson)
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token={accessToken}";
-            return HttpHelper.Post(url, postJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = postJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -378,7 +407,10 @@ namespace ZqUtils.WeChat.Helpers
             var sign = CryptHelper.MD5($"{asciiSort}&key={wxConfig.AppKey}").ToUpper();
             dic.Add("sign", sign);
             //发送请求       
-            var responseXml = HttpHelper.Post(url, dic.ToXml());
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = dic.ToXml();
+            using var http = new HttpHelper(req);
+            var responseXml = http.GetResult().ResultString;
             var dicXml = XmlHelper.XmlToDictionary(responseXml);
             if (dicXml.Count > 0 && dicXml.Keys.Contains("prepay_id"))
             {
@@ -530,7 +562,10 @@ namespace ZqUtils.WeChat.Helpers
             var sign = CryptHelper.MD5($"{asciiSort}&key={wxConfig.AppKey}").ToUpper();
             dic.Add("sign", sign);
             //请求微信，查询订单信息
-            var responseXml = HttpHelper.Post(url, dic.ToXml());
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = dic.ToXml();
+            using var http = new HttpHelper(req);
+            var responseXml = http.GetResult().ResultString;
             return XmlHelper.XmlToDictionary(responseXml).ToJson();
         }
 
@@ -555,7 +590,10 @@ namespace ZqUtils.WeChat.Helpers
             var sign = CryptHelper.MD5($"{asciiSort}&key={wxConfig.AppKey}").ToUpper();
             dic.Add("sign", sign);
             //请求微信，查询订单信息
-            var responseXml = HttpHelper.Post(url, dic.ToXml());
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = dic.ToXml();
+            using var http = new HttpHelper(req);
+            var responseXml = http.GetResult().ResultString;
             var dicXml = XmlHelper.XmlToDictionary(responseXml);
             //判断订单是否有效并校验签名是否正确
             if
@@ -608,7 +646,10 @@ namespace ZqUtils.WeChat.Helpers
             var sign = CryptHelper.MD5($"{asciiSort}&key={wxConfig.AppKey}").ToUpper();
             dic.Add("sign", sign);
             //请求微信，查询订单信息
-            var responseXml = HttpHelper.Post(url, dic.ToXml());
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = dic.ToXml();
+            using var http = new HttpHelper(req);
+            var responseXml = http.GetResult().ResultString;
             var dicXml = XmlHelper.XmlToDictionary(responseXml);
             //判断订单是否有效并校验签名是否正确
             if
@@ -670,7 +711,14 @@ namespace ZqUtils.WeChat.Helpers
             var sign = CryptHelper.MD5($"{asciiSort}&key={wxConfig.AppKey}").ToUpper();
             //添加签名
             dic.Add("sign", sign);
-            var responseXml = HttpHelper.Post(url, dic.ToXml(), sslCertPath: sslCertPath, sslPassword: sslCertPassword);
+
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = dic.ToXml();
+            req.CerPath = sslCertPath;
+            req.CerPassword = sslCertPassword;
+            using var http = new HttpHelper(req);
+            var responseXml = http.GetResult().ResultString;
+
             return XmlHelper.XmlToDictionary(responseXml).ToJson();
         }
 
@@ -714,7 +762,14 @@ namespace ZqUtils.WeChat.Helpers
             var sign = CryptHelper.MD5($"{asciiSort}&key={wxConfig.AppKey}").ToUpper();
             //添加签名
             dic.Add("sign", sign);
-            var responseXml = HttpHelper.Post(url, dic.ToXml(), sslCertPath: sslCertPath, sslPassword: sslCertPassword);
+
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = dic.ToXml();
+            req.CerPath = sslCertPath;
+            req.CerPassword = sslCertPassword;
+            using var http = new HttpHelper(req);
+            var responseXml = http.GetResult().ResultString;
+
             return XmlHelper.XmlToDictionary(responseXml).ToJson();
         }
 
@@ -756,7 +811,14 @@ namespace ZqUtils.WeChat.Helpers
             var sign = CryptHelper.MD5($"{asciiSort}&key={wxConfig.AppKey}").ToUpper();
             //添加签名
             dic.Add("sign", sign);
-            var responseXml = HttpHelper.Post(url, dic.ToXml(), sslCertPath: sslCertPath, sslPassword: sslCertPassword);
+
+            var req = CreateHttpRequest(url, "POST");
+            req.CerPassword = sslCertPassword;
+            req.CerPath = sslCertPath;
+            req.PostString = dic.ToXml();
+            using var http = new HttpHelper(req);
+            var responseXml = http.GetResult().ResultString;
+
             return XmlHelper.XmlToDictionary(responseXml).ToJson();
         }
 
@@ -791,7 +853,10 @@ namespace ZqUtils.WeChat.Helpers
             var sign = CryptHelper.MD5($"{asciiSort}&key={wxConfig.AppKey}").ToUpper();
             //添加签名
             dic.Add("sign", sign);
-            var responseXml = HttpHelper.Post(url, dic.ToXml());
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = dic.ToXml();
+            using var http = new HttpHelper(req);
+            var responseXml = http.GetResult().ResultString;
             return XmlHelper.XmlToDictionary(responseXml).ToJson();
         }
 
@@ -832,7 +897,14 @@ namespace ZqUtils.WeChat.Helpers
             var sign = CryptHelper.MD5($"{asciiSort}&key={wxConfig.AppKey}").ToUpper();
             //添加签名
             dic.Add("sign", sign);
-            var responseXml = HttpHelper.Post(url, dic.ToXml(), sslCertPath: sslCertPath, sslPassword: sslCertPassword);
+
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = dic.ToXml();
+            req.CerPath = sslCertPath;
+            req.CerPassword = sslCertPassword;
+            using var http = new HttpHelper(req);
+            var responseXml = http.GetResult().ResultString;
+
             return XmlHelper.XmlToDictionary(responseXml).ToJson();
         }
 
@@ -862,8 +934,13 @@ namespace ZqUtils.WeChat.Helpers
             //签名与支付签名算法一致，大写
             var sign = CryptHelper.MD5($"{asciiSort}&key={wxConfig.AppKey}").ToUpper();
             dic.Add("sign", sign);
-            //发送请求       
-            var responseXml = HttpHelper.Post(url, dic.ToXml());
+
+            //发送请求
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = dic.ToXml();
+            using var http = new HttpHelper(req);
+            var responseXml = http.GetResult().ResultString;
+
             var dicResponse = XmlHelper.XmlToDictionary(responseXml);
             fn(dicResponse);
         }
@@ -898,13 +975,28 @@ namespace ZqUtils.WeChat.Helpers
             var xml = dic.ToXml();
             if (isDownload)
             {
-                if (fileName.IsNull()) fileName = DateTime.Now.ToString("yyyyMMddHHmmssfff");
-                HttpHelper.Download(url, xml, saveDir: saveDir, fileExt: fileExt, fileName: fileName);
-                return AppDomain.CurrentDomain.BaseDirectory + saveDir + fileName + fileExt;
+                if (fileName.IsNull())
+                    fileName = DateTime.Now.ToString("yyyyMMddHHmmssfff");
+
+                var savePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, saveDir, $"{fileName}{fileExt}");
+
+                var req = CreateHttpRequest(url, "POST", "application/octet-stream");
+                req.PostString = xml;
+                req.ResultType = ResultType.File;
+                req.DownloadSaveFilePath = savePath;
+
+                using var http = new HttpHelper(req);
+
+                http.GetResult();
+
+                return savePath;
             }
             else
             {
-                return HttpHelper.Post(url, xml);
+                var req = CreateHttpRequest(url, "POST");
+                req.PostString = xml;
+                using var http = new HttpHelper(req);
+                return http.GetResult().ResultString;
             }
         }
         #endregion
@@ -918,7 +1010,8 @@ namespace ZqUtils.WeChat.Helpers
         public string GetOpenId(string code)
         {
             var url = $"https://api.weixin.qq.com/sns/oauth2/access_token?appid={wxConfig.AppId}&secret={wxConfig.AppSecret}&code={code}&grant_type=authorization_code";
-            var res = HttpHelper.Post(url, string.Empty);
+            using var http = new HttpHelper(CreateHttpRequest(url, "POST"));
+            var res = http.GetResult().ResultString;
             if (!string.IsNullOrEmpty(res))
             {
                 var obj = res.ToObject<OAuthModel>();
@@ -935,7 +1028,8 @@ namespace ZqUtils.WeChat.Helpers
         public string GetUserInfo(string openId)
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/user/info?access_token={accessToken}&openid={openId}&lang=zh_CN";
-            return HttpHelper.Get(url);
+            using var http = new HttpHelper(CreateHttpRequest(url, "GET"));
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -948,20 +1042,26 @@ namespace ZqUtils.WeChat.Helpers
         {
             var user = new WxUserInfo();
             var url = $"https://api.weixin.qq.com/sns/oauth2/access_token?appid={wxConfig.AppId}&secret={wxConfig.AppSecret}&code={code}&grant_type=authorization_code";
-            var res = HttpHelper.Post(url, string.Empty);
-            if (!string.IsNullOrEmpty(res))
+            using (var http = new HttpHelper())
             {
-                var obj = res.ToObject<OAuthModel>();
-                if (obj != null)
+                var req = CreateHttpRequest(url, "POST");
+                var res = http.GetResult(req).ResultString;
+                if (!string.IsNullOrEmpty(res))
                 {
-                    fnOAuthModel?.Invoke(obj);
-                    //根据临时access_token和openid获取用户信息
-                    var link = $"https://api.weixin.qq.com/sns/userinfo?access_token={obj.Access_Token}&openid={obj.OpenId}&lang=zh_CN";
-                    var r = HttpHelper.Post(link, string.Empty);
-                    if (!string.IsNullOrEmpty(r))
-                        user = r.ToObject<WxUserInfo>();
+                    var obj = res.ToObject<OAuthModel>();
+                    if (obj != null)
+                    {
+                        fnOAuthModel?.Invoke(obj);
+                        //根据临时access_token和openid获取用户信息
+                        var link = $"https://api.weixin.qq.com/sns/userinfo?access_token={obj.Access_Token}&openid={obj.OpenId}&lang=zh_CN";
+                        req.Url = link;
+                        var r = http.GetResult(req).ResultString;
+                        if (!string.IsNullOrEmpty(r))
+                            user = r.ToObject<WxUserInfo>();
+                    }
                 }
             }
+
             return user;
         }
 
@@ -975,16 +1075,26 @@ namespace ZqUtils.WeChat.Helpers
         {
             var user = new WxUserInfo();
             var url = $"https://api.weixin.qq.com/sns/oauth2/refresh_token?appid={wxConfig.AppId}&grant_type=refresh_token&refresh_token={refreshToken}";
-            var obj = HttpHelper.Post(url, string.Empty).ToObject<OAuthModel>();
-            if (obj != null)
+            using (var http = new HttpHelper())
             {
-                fnOAuthModel?.Invoke(obj);
-                //根据临时access_token和openid获取用户信息
-                var link = $"https://api.weixin.qq.com/sns/userinfo?access_token={obj.Access_Token}&openid={obj.OpenId}&lang=zh_CN";
-                var res = HttpHelper.Post(link, string.Empty);
-                if (!string.IsNullOrEmpty(res))
-                    user = res.ToObject<WxUserInfo>();
+                var req = CreateHttpRequest(url, "POST");
+                var result = http.GetResult(req).ResultString;
+                if (result.IsNotNullOrEmpty())
+                {
+                    var obj = result.ToObject<OAuthModel>();
+                    if (obj != null)
+                    {
+                        fnOAuthModel?.Invoke(obj);
+                        //根据临时access_token和openid获取用户信息
+                        var link = $"https://api.weixin.qq.com/sns/userinfo?access_token={obj.Access_Token}&openid={obj.OpenId}&lang=zh_CN";
+                        req.Url = link;
+                        var res = http.GetResult(req).ResultString;
+                        if (!string.IsNullOrEmpty(res))
+                            user = res.ToObject<WxUserInfo>();
+                    }
+                }
             }
+
             return user;
         }
 
@@ -996,7 +1106,10 @@ namespace ZqUtils.WeChat.Helpers
         public string BatchGetUserInfo(string postJson)
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/user/info/batchget?access_token={accessToken}";
-            return HttpHelper.Post(url, postJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = postJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1008,7 +1121,10 @@ namespace ZqUtils.WeChat.Helpers
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/tags/create?access_token={accessToken}";
             var postJson = $"{{\"tag\":{{\"name\":\"{name}\"}}}}";
-            return HttpHelper.Post(url, postJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = postJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1021,7 +1137,10 @@ namespace ZqUtils.WeChat.Helpers
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/tags/update?access_token={accessToken}";
             var postJson = $"{{\"tag\":{{\"id\":{id},\"name\":\"{name}\"}}}}";
-            return HttpHelper.Post(url, postJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = postJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1033,7 +1152,10 @@ namespace ZqUtils.WeChat.Helpers
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/tags/delete?access_token={accessToken}";
             var postJson = $"{{\"tag\":{{\"id\":{id}}}}}";
-            return HttpHelper.Post(url, postJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = postJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1043,7 +1165,8 @@ namespace ZqUtils.WeChat.Helpers
         public string GetAllTag()
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/tags/get?access_token={accessToken}";
-            return HttpHelper.Get(url);
+            using var http = new HttpHelper(CreateHttpRequest(url, "GET"));
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1055,7 +1178,10 @@ namespace ZqUtils.WeChat.Helpers
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/tags/getidlist?access_token={accessToken}";
             var postJson = $"{{\"openid\":\"{openId}\"}}";
-            return HttpHelper.Post(url, postJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = postJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1068,7 +1194,10 @@ namespace ZqUtils.WeChat.Helpers
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/user/tag/get?access_token={accessToken}";
             var postJson = $"{{\"tagid\":{id},\"next_openid\":\"{nextOpenId}\"}}";
-            return HttpHelper.Post(url, postJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = postJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1081,7 +1210,10 @@ namespace ZqUtils.WeChat.Helpers
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/tags/members/batchtagging?access_token={accessToken}";
             var postJson = $"{{\"openid_list\":{listOpenId.ToJson()},\"tagid\":{id}}}";
-            return HttpHelper.Post(url, postJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = postJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1094,7 +1226,10 @@ namespace ZqUtils.WeChat.Helpers
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/tags/members/batchuntagging?access_token={accessToken}";
             var postJson = $"{{\"openid_list\":{listOpenId.ToJson()},\"tagid\":{id}}}";
-            return HttpHelper.Post(url, postJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = postJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1107,7 +1242,10 @@ namespace ZqUtils.WeChat.Helpers
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/user/info/updateremark?access_token={accessToken}";
             var postJson = $"{{\"openid\":\"{openId}\",\"remark\":\"{remark}\"}}";
-            return HttpHelper.Post(url, postJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = postJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1118,7 +1256,8 @@ namespace ZqUtils.WeChat.Helpers
         public string GetUserList(string nextOpenId = "")
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/user/get?access_token={accessToken}&next_openid={nextOpenId}";
-            return HttpHelper.Get(url);
+            using var http = new HttpHelper(CreateHttpRequest(url, "GET"));
+            return http.GetResult().ResultString;
         }
         #endregion
 
@@ -1131,10 +1270,16 @@ namespace ZqUtils.WeChat.Helpers
         public string GetTemplateId(string templateNo)
         {
             var wxUrl = $"https://api.weixin.qq.com/cgi-bin/template/api_add_template?access_token={accessToken}";
-            var response = HttpHelper.Post(wxUrl, $"{{\"template_id_short\":\"{templateNo}\"}}");
-            var jo = response.ToJObject();
-            if (jo != null && jo.Value<string>("errmsg").Contains("ok"))
-                return jo.Value<string>("template_id");
+            var req = CreateHttpRequest(wxUrl, "POST");
+            req.PostString = $"{{\"template_id_short\":\"{templateNo}\"}}";
+            using var http = new HttpHelper(req);
+            var response = http.GetResult().ResultString;
+            if (response.IsNotNullOrEmpty())
+            {
+                var jo = response.ToJObject();
+                if (jo != null && jo.Value<string>("errmsg").Contains("ok"))
+                    return jo.Value<string>("template_id");
+            }
 
             throw new Exception($"获取微信模板Id失败，返回信息：{response}");
         }
@@ -1147,7 +1292,10 @@ namespace ZqUtils.WeChat.Helpers
         public string SendTemplateMsg(string jsonContent)
         {
             var wxUrl = $"https://api.weixin.qq.com/cgi-bin/message/template/send?access_token={accessToken}";
-            return HttpHelper.Post(wxUrl, jsonContent);
+            var req = CreateHttpRequest(wxUrl, "POST");
+            req.PostString = jsonContent;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1158,7 +1306,10 @@ namespace ZqUtils.WeChat.Helpers
         public string SendCustomerServiceMsg(string msgJson)
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token={accessToken}";
-            return HttpHelper.Post(url, msgJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = msgJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1169,7 +1320,10 @@ namespace ZqUtils.WeChat.Helpers
         public string SendMsgOfOpenIdList(string msgContent)
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/message/mass/send?access_token={accessToken}";
-            return HttpHelper.Post(url, msgContent);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = msgContent;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1180,7 +1334,10 @@ namespace ZqUtils.WeChat.Helpers
         public string SendMsgOfGroup(string msgContent)
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/message/mass/sendall?access_token={accessToken}";
-            return HttpHelper.Post(url, msgContent);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = msgContent;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1191,7 +1348,10 @@ namespace ZqUtils.WeChat.Helpers
         public string DeleteMsgOfGroup(string msgId)
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/message/mass/delete?access_token={accessToken}";
-            return HttpHelper.Post(url, $"{{\"msg_id\":\"{msgId}\"}}");
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = $"{{\"msg_id\":\"{msgId}\"}}";
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1202,7 +1362,10 @@ namespace ZqUtils.WeChat.Helpers
         public string PreviewMsgOfGroup(string msgJson)
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/message/mass/preview?access_token={accessToken}";
-            return HttpHelper.Post(url, msgJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = msgJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1213,7 +1376,10 @@ namespace ZqUtils.WeChat.Helpers
         public string SearchMsgState(string msgId)
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/message/mass/get?access_token={accessToken}";
-            return HttpHelper.Post(url, $"{{\"msg_id\": \"{msgId}\"}}");
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = $"{{\"msg_id\": \"{msgId}\"}}";
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1223,7 +1389,8 @@ namespace ZqUtils.WeChat.Helpers
         public string GetCurrentAutoReplyInfo()
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/get_current_autoreply_info?access_token={accessToken}";
-            return HttpHelper.Get(url);
+            using var http = new HttpHelper(CreateHttpRequest(url, "GET"));
+            return http.GetResult().ResultString;
         }
         #endregion
 
@@ -1237,7 +1404,10 @@ namespace ZqUtils.WeChat.Helpers
         public string AddTempMaterial(string type, string filePath)
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/media/upload?access_token={accessToken}&type={type}";
-            return HttpHelper.Upload(url, filePath);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostFiles = new Dictionary<string, string> { ["media"] = filePath };
+            var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1250,7 +1420,14 @@ namespace ZqUtils.WeChat.Helpers
         public void GetTempMaterial(string mediaId, string filePath, string fileExt, string fileName)
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/media/get?access_token={accessToken}&media_id={mediaId}";
-            HttpHelper.Download(url, saveDir: filePath, fileExt: fileExt, fileName: fileName);
+
+            var req = CreateHttpRequest(url, "GET", "application/octet-stream");
+            req.ResultType = ResultType.File;
+            req.DownloadSaveFilePath = Path.Combine(filePath, $"{fileName}{fileExt}");
+
+            using var http = new HttpHelper(req);
+
+            http.GetResult();
         }
 
         /// <summary>
@@ -1261,7 +1438,10 @@ namespace ZqUtils.WeChat.Helpers
         public string AddForeverImgTxtMaterial(string imgTxtJson)
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/material/add_news?access_token={accessToken}";
-            return HttpHelper.Post(url, imgTxtJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = imgTxtJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1272,7 +1452,10 @@ namespace ZqUtils.WeChat.Helpers
         public string UpdateForeverImgTxtMaterial(string imgTxtJson)
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/material/update_news?access_token={accessToken}";
-            return HttpHelper.Post(url, imgTxtJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = imgTxtJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1283,7 +1466,12 @@ namespace ZqUtils.WeChat.Helpers
         public string UploadForeverImgTxtMaterialUsedImg(string imgPath)
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/media/uploadimg?access_token={accessToken}";
-            return HttpHelper.Upload(url, imgPath);
+
+            var req = CreateHttpRequest(url, "POST");
+            req.PostFiles = new Dictionary<string, string> { ["media"] = imgPath };
+            var http = new HttpHelper(req);
+
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1298,14 +1486,24 @@ namespace ZqUtils.WeChat.Helpers
             var url = $"https://api.weixin.qq.com/cgi-bin/material/add_material?access_token={accessToken}&type={type}";
             if (type != "video")
             {
-                result = HttpHelper.Upload(url, filePath, formName: "media");
+                var req = CreateHttpRequest(url, "POST");
+                req.PostFiles = new Dictionary<string, string> { ["media"] = filePath };
+                var http = new HttpHelper(req);
+
+                result = http.GetResult().ResultString;
             }
             else
             {
                 //新增永久视频素材
                 var postData = $"{{\"title\":\"{filePath.Substring(".")}\",\"introduction\":\"永久视频素材\"}}";
                 var fileDic = new Dictionary<string, string> { ["description"] = filePath };
-                result = HttpHelper.Upload(url, postData, fileDic);
+
+                var req = CreateHttpRequest(url, "POST");
+                req.PostString = postData;
+                req.PostFiles = fileDic;
+                var http = new HttpHelper(req);
+
+                result = http.GetResult().ResultString;
             }
             return result;
         }
@@ -1318,7 +1516,10 @@ namespace ZqUtils.WeChat.Helpers
         public string GetForeverMaterial(string mediaId)
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/material/get_material?access_token={accessToken}";
-            return HttpHelper.Post(url, $"{{\"media_id\":\"{mediaId}\"}}");
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = $"{{\"media_id\":\"{mediaId}\"}}";
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1331,7 +1532,15 @@ namespace ZqUtils.WeChat.Helpers
         public void GetOtherForeverMaterial(string mediaId, string filePath, string fileExt, string fileName)
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/material/get_material?access_token={accessToken}";
-            HttpHelper.Download(url, $"{{\"media_id\":\"{mediaId}\"}}", filePath, fileExt, fileName);
+
+            var req = CreateHttpRequest(url, "POST", "application/octet-stream");
+            req.PostString = $"{{\"media_id\":\"{mediaId}\"}}";
+            req.ResultType = ResultType.File;
+            req.DownloadSaveFilePath = Path.Combine(filePath, $"{fileName}{fileExt}");
+
+            using var http = new HttpHelper(req);
+
+            http.GetResult();
         }
 
         /// <summary>
@@ -1342,7 +1551,10 @@ namespace ZqUtils.WeChat.Helpers
         public string DeleteForeverMaterial(string mediaId)
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/material/del_material?access_token={accessToken}";
-            return HttpHelper.Post(url, $"{{\"media_id\":\"{mediaId}\"}}");
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = $"{{\"media_id\":\"{mediaId}\"}}";
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1352,7 +1564,8 @@ namespace ZqUtils.WeChat.Helpers
         public string GetForeverMaterialCount()
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/material/get_materialcount?access_token={accessToken}";
-            return HttpHelper.Get(url);
+            using var http = new HttpHelper(CreateHttpRequest(url, "GET"));
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1363,7 +1576,10 @@ namespace ZqUtils.WeChat.Helpers
         public string GetForeverMaterialList(string postJson)
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/material/batchget_material?access_token={accessToken}";
-            return HttpHelper.Post(url, postJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = postJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1374,7 +1590,10 @@ namespace ZqUtils.WeChat.Helpers
         public string UploadImgTxtMaterial(string imgTextJson)
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/media/uploadnews?access_token={accessToken}";
-            return HttpHelper.Post(url, imgTextJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = imgTextJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1385,7 +1604,10 @@ namespace ZqUtils.WeChat.Helpers
         public string GetVideoMediaIdOfImgTxt(string postData)
         {
             var url = $"https://file.api.weixin.qq.com/cgi-bin/media/uploadvideo?access_token={accessToken}";
-            return HttpHelper.Post(url, postData);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = postData;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
         #endregion
 
@@ -1398,7 +1620,10 @@ namespace ZqUtils.WeChat.Helpers
         public string CreateMenu(string menuJson)
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/menu/create?access_token={accessToken}";
-            return HttpHelper.Post(url, menuJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = menuJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1409,7 +1634,10 @@ namespace ZqUtils.WeChat.Helpers
         public string CreatePersonalMenu(string menuJson)
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/menu/addconditional?access_token={accessToken}";
-            return HttpHelper.Post(url, menuJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = menuJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1419,7 +1647,8 @@ namespace ZqUtils.WeChat.Helpers
         public string GetMenuJson()
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/menu/get?access_token={accessToken}";
-            return HttpHelper.Get(url);
+            using var http = new HttpHelper(CreateHttpRequest(url, "GET"));
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1429,7 +1658,8 @@ namespace ZqUtils.WeChat.Helpers
         public string GetMenuApiJson()
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/get_current_selfmenu_info?access_token={accessToken}";
-            return HttpHelper.Get(url);
+            using var http = new HttpHelper(CreateHttpRequest(url, "GET"));
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1439,7 +1669,8 @@ namespace ZqUtils.WeChat.Helpers
         public string DeleteMenu()
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/menu/delete?access_token={accessToken}";
-            return HttpHelper.Get(url);
+            using var http = new HttpHelper(CreateHttpRequest(url, "GET"));
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1450,7 +1681,10 @@ namespace ZqUtils.WeChat.Helpers
         public string DeletePersonalMenu(string menuId)
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/menu/delconditional?access_token={accessToken}";
-            return HttpHelper.Post(url, $"{{\"menuid\":\"{menuId}\"}}");
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = $"{{\"menuid\":\"{menuId}\"}}";
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
         #endregion
 
@@ -1462,7 +1696,8 @@ namespace ZqUtils.WeChat.Helpers
         public string GetKFList()
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/customservice/getkflist?access_token={accessToken}";
-            return HttpHelper.Get(url);
+            using var http = new HttpHelper(CreateHttpRequest(url, "GET"));
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1472,7 +1707,8 @@ namespace ZqUtils.WeChat.Helpers
         public string GetOnLineKFList()
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/customservice/getonlinekflist?access_token={accessToken}";
-            return HttpHelper.Get(url);
+            using var http = new HttpHelper(CreateHttpRequest(url, "GET"));
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1483,7 +1719,10 @@ namespace ZqUtils.WeChat.Helpers
         public string AddKFAccount(string postJson)
         {
             var url = $"https://api.weixin.qq.com/customservice/kfaccount/add?access_token={accessToken}";
-            return HttpHelper.Post(url, postJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = postJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1494,7 +1733,10 @@ namespace ZqUtils.WeChat.Helpers
         public string UpdateKFAccount(string postJson)
         {
             var url = $"https://api.weixin.qq.com/customservice/kfaccount/update?access_token={accessToken}";
-            return HttpHelper.Post(url, postJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = postJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1506,7 +1748,10 @@ namespace ZqUtils.WeChat.Helpers
         public string UploadKFHeadImg(string kfAccount, string filePath)
         {
             var url = $"https://api.weixin.qq.com/customservice/kfaccount/uploadheadimg?access_token={accessToken}&kf_account={kfAccount}";
-            return HttpHelper.Upload(url, filePath);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostFiles = new Dictionary<string, string> { ["media"] = filePath };
+            var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1517,7 +1762,8 @@ namespace ZqUtils.WeChat.Helpers
         public string DeleteKFAccount(string kfAccount)
         {
             var url = $"https://api.weixin.qq.com/customservice/kfaccount/del?access_token={accessToken}&kf_account={kfAccount}";
-            return HttpHelper.Get(url);
+            using var http = new HttpHelper(CreateHttpRequest(url, "GET"));
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1528,7 +1774,10 @@ namespace ZqUtils.WeChat.Helpers
         public string CreateKFSession(string postJson)
         {
             var url = $"https://api.weixin.qq.com/customservice/kfsession/create?access_token={accessToken}";
-            return HttpHelper.Post(url, postJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = postJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1539,7 +1788,10 @@ namespace ZqUtils.WeChat.Helpers
         public string CloseKFSession(string postJson)
         {
             var url = $"https://api.weixin.qq.com/customservice/kfsession/close?access_token={accessToken}";
-            return HttpHelper.Post(url, postJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = postJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1550,7 +1802,8 @@ namespace ZqUtils.WeChat.Helpers
         public string GetCustomerSeeion(string openId)
         {
             var url = $"https://api.weixin.qq.com/customservice/kfsession/getsession?access_token={accessToken}&openid={openId}";
-            return HttpHelper.Get(url);
+            using var http = new HttpHelper(CreateHttpRequest(url, "GET"));
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1561,7 +1814,8 @@ namespace ZqUtils.WeChat.Helpers
         public string GetKFSessionList(string kfAccount)
         {
             var url = $"https://api.weixin.qq.com/customservice/kfsession/getsessionlist?access_token={accessToken}&kf_account={kfAccount}";
-            return HttpHelper.Get(url);
+            using var http = new HttpHelper(CreateHttpRequest(url, "GET"));
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1571,7 +1825,8 @@ namespace ZqUtils.WeChat.Helpers
         public string GetWaitCaseSessionList()
         {
             var url = $"https://api.weixin.qq.com/customservice/kfsession/getwaitcase?access_token={accessToken}";
-            return HttpHelper.Get(url);
+            using var http = new HttpHelper(CreateHttpRequest(url, "GET"));
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1582,7 +1837,10 @@ namespace ZqUtils.WeChat.Helpers
         public string GetKFMsgRecord(string postJson)
         {
             var url = $"https://api.weixin.qq.com/customservice/msgrecord/getrecord?access_token={accessToken}";
-            return HttpHelper.Post(url, postJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = postJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
         #endregion
 
@@ -1595,18 +1853,25 @@ namespace ZqUtils.WeChat.Helpers
         public string GetDecryptCode(string encryptCode)
         {
             var decryptUrl = $"https://api.weixin.qq.com/card/code/decrypt?access_token={accessToken}";
-            var response = HttpHelper.Post(decryptUrl, $"{{\"encrypt_code\":\"{encryptCode}\"}}");
-            var jo = response.ToJObject();
-            if (jo != null)
+            var req = CreateHttpRequest(decryptUrl, "POST");
+            req.PostString = $"{{\"encrypt_code\":\"{encryptCode}\"}}";
+            using var http = new HttpHelper(req);
+            var response = http.GetResult().ResultString;
+            if (response.IsNotNullOrEmpty())
             {
-                var errmsg = jo.Value<string>("errmsg");
-                if (errmsg.Equals("ok"))
+                var jo = response.ToJObject();
+                if (jo != null)
                 {
-                    return jo.Value<string>("code");
-                }
+                    var errmsg = jo.Value<string>("errmsg");
+                    if (errmsg.Equals("ok"))
+                    {
+                        return jo.Value<string>("code");
+                    }
 
-                throw new Exception($"获取卡券原生code失败，返回信息：{response}");
+                    throw new Exception($"获取卡券原生code失败，返回信息：{response}");
+                }
             }
+
             return string.Empty;
         }
 
@@ -1634,7 +1899,10 @@ namespace ZqUtils.WeChat.Helpers
                      .Append($"\"code\":\"{code}\"")
                      .Append("}");
             }
-            return HttpHelper.Post(wxUrl, param.ToString());
+            var req = CreateHttpRequest(wxUrl, "POST");
+            req.PostString = param.ToString();
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
         #endregion
 
@@ -1646,7 +1914,10 @@ namespace ZqUtils.WeChat.Helpers
         public string ClearQuota()
         {
             var url = $"https://api.weixin.qq.com/cgi-bin/clear_quota?access_token={accessToken}";
-            return HttpHelper.Post(url, $"{{\"appid\":\"{wxConfig.AppId}\"}}");
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = $"{{\"appid\":\"{wxConfig.AppId}\"}}";
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
         #endregion
 
@@ -1660,7 +1931,10 @@ namespace ZqUtils.WeChat.Helpers
         public string GetUserSummary(string beginDate, string endDate)
         {
             var url = $"https://api.weixin.qq.com/datacube/getusersummary?access_token={accessToken}";
-            return HttpHelper.Post(url, $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}");
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}";
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1672,7 +1946,10 @@ namespace ZqUtils.WeChat.Helpers
         public string GetUserCumulate(string beginDate, string endDate)
         {
             var url = $"https://api.weixin.qq.com/datacube/getusercumulate?access_token={accessToken}";
-            return HttpHelper.Post(url, $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}");
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}";
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1684,7 +1961,10 @@ namespace ZqUtils.WeChat.Helpers
         public string GetArticleSummary(string beginDate, string endDate)
         {
             var url = $"https://api.weixin.qq.com/datacube/getarticlesummary?access_token={accessToken}";
-            return HttpHelper.Post(url, $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}");
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}";
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1696,7 +1976,10 @@ namespace ZqUtils.WeChat.Helpers
         public string GetArticleTotal(string beginDate, string endDate)
         {
             var url = $"https://api.weixin.qq.com/datacube/getarticletotal?access_token={accessToken}";
-            return HttpHelper.Post(url, $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}");
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}";
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1708,7 +1991,10 @@ namespace ZqUtils.WeChat.Helpers
         public string GetUserRead(string beginDate, string endDate)
         {
             var url = $"https://api.weixin.qq.com/datacube/getuserread?access_token={accessToken}";
-            return HttpHelper.Post(url, $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}");
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}";
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1720,7 +2006,10 @@ namespace ZqUtils.WeChat.Helpers
         public string GetUserReadHour(string beginDate, string endDate)
         {
             var url = $"https://api.weixin.qq.com/datacube/getuserreadhour?access_token={accessToken}";
-            return HttpHelper.Post(url, $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}");
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}";
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1732,7 +2021,10 @@ namespace ZqUtils.WeChat.Helpers
         public string GetUserShare(string beginDate, string endDate)
         {
             var url = $"https://api.weixin.qq.com/datacube/getusershare?access_token={accessToken}";
-            return HttpHelper.Post(url, $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}");
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}";
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1744,7 +2036,10 @@ namespace ZqUtils.WeChat.Helpers
         public string GetUserShareHour(string beginDate, string endDate)
         {
             var url = $"https://api.weixin.qq.com/datacube/getusersharehour?access_token={accessToken}";
-            return HttpHelper.Post(url, $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}");
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}";
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1756,7 +2051,10 @@ namespace ZqUtils.WeChat.Helpers
         public string GetUpStreamMsg(string beginDate, string endDate)
         {
             var url = $"https://api.weixin.qq.com/datacube/getupstreammsg?access_token={accessToken}";
-            return HttpHelper.Post(url, $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}");
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}";
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1768,7 +2066,10 @@ namespace ZqUtils.WeChat.Helpers
         public string GetUpStreamMsgHour(string beginDate, string endDate)
         {
             var url = $"https://api.weixin.qq.com/datacube/getupstreammsghour?access_token={accessToken}";
-            return HttpHelper.Post(url, $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}");
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}";
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1780,7 +2081,10 @@ namespace ZqUtils.WeChat.Helpers
         public string GetUpStreamMsgWeek(string beginDate, string endDate)
         {
             var url = $"https://api.weixin.qq.com/datacube/getupstreammsgweek?access_token={accessToken}";
-            return HttpHelper.Post(url, $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}");
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}";
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1792,7 +2096,10 @@ namespace ZqUtils.WeChat.Helpers
         public string GetUpStreamMsgMonth(string beginDate, string endDate)
         {
             var url = $"https://api.weixin.qq.com/datacube/getupstreammsgmonth?access_token={accessToken}";
-            return HttpHelper.Post(url, $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}");
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}";
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1804,7 +2111,10 @@ namespace ZqUtils.WeChat.Helpers
         public string GetUpStreamMsgDist(string beginDate, string endDate)
         {
             var url = $"https://api.weixin.qq.com/datacube/getupstreammsgdist?access_token={accessToken}";
-            return HttpHelper.Post(url, $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}");
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}";
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1816,7 +2126,10 @@ namespace ZqUtils.WeChat.Helpers
         public string GetUpStreamMsgDistWeek(string beginDate, string endDate)
         {
             var url = $"https://api.weixin.qq.com/datacube/getupstreammsgdistweek?access_token={accessToken}";
-            return HttpHelper.Post(url, $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}");
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}";
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1828,7 +2141,10 @@ namespace ZqUtils.WeChat.Helpers
         public string GetUpStreamMsgDistMonth(string beginDate, string endDate)
         {
             var url = $"https://api.weixin.qq.com/datacube/getupstreammsgdistmonth?access_token={accessToken}";
-            return HttpHelper.Post(url, $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}");
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}";
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1840,7 +2156,10 @@ namespace ZqUtils.WeChat.Helpers
         public string GetInterfaceSummary(string beginDate, string endDate)
         {
             var url = $"https://api.weixin.qq.com/datacube/getinterfacesummary?access_token={accessToken}";
-            return HttpHelper.Post(url, $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}");
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}";
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1852,7 +2171,10 @@ namespace ZqUtils.WeChat.Helpers
         public string GetInterfaceSummaryHour(string beginDate, string endDate)
         {
             var url = $"https://api.weixin.qq.com/datacube/getinterfacesummaryhour?access_token={accessToken}";
-            return HttpHelper.Post(url, $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}");
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = $"{{ \"begin_date\": \"{beginDate}\",\"end_date\": \"{endDate}\"}}";
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
         #endregion
         #endregion
@@ -1866,7 +2188,8 @@ namespace ZqUtils.WeChat.Helpers
         public string GetQyAccessToken()
         {
             var url = $"https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=wxConfig.appid&corpsecret={wxConfig.AppSecret}";
-            var res = HttpHelper.Get(url);
+            using var http = new HttpHelper(CreateHttpRequest(url, "GET"));
+            var res = http.GetResult().ResultString;
             if (!string.IsNullOrEmpty(res))
             {
                 var obj = res.ToObject<AccessToken>();
@@ -1884,7 +2207,8 @@ namespace ZqUtils.WeChat.Helpers
         public string GetQyJsApiTicket()
         {
             var url = $"https://qyapi.weixin.qq.com/cgi-bin/get_jsapi_ticket?access_token={accessToken}";
-            var res = HttpHelper.Get(url);
+            using var http = new HttpHelper(CreateHttpRequest(url, "GET"));
+            var res = http.GetResult().ResultString;
             if (!string.IsNullOrEmpty(res))
             {
                 var obj = res.ToObject<JsApiTicket>();
@@ -1903,7 +2227,8 @@ namespace ZqUtils.WeChat.Helpers
         public string GetQyUserInfo(string code)
         {
             var url = $"https://qyapi.weixin.qq.com/cgi-bin/user/getuserinfo?access_token={accessToken}&code={code}";
-            return HttpHelper.Post(url, string.Empty);
+            using var http = new HttpHelper(CreateHttpRequest(url, "POST"));
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1924,7 +2249,10 @@ namespace ZqUtils.WeChat.Helpers
             {
                 postJson = $"{{\"userid\":\"{userId}\"}}";
             }
-            return HttpHelper.Post(url, postJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = postJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1935,7 +2263,10 @@ namespace ZqUtils.WeChat.Helpers
         public string OpenIdToUserId(string openId)
         {
             var url = $"https://qyapi.weixin.qq.com/cgi-bin/user/convert_to_userid?access_token={accessToken}";
-            return HttpHelper.Post(url, $"{{\"openid\":\"{openId}\"}}");
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = $"{{\"openid\":\"{openId}\"}}";
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
         #endregion
 
@@ -1949,7 +2280,10 @@ namespace ZqUtils.WeChat.Helpers
         public string AddQyTempMaterial(string type, string filePath)
         {
             var url = $"https://qyapi.weixin.qq.com/cgi-bin/media/upload?access_token={accessToken}&type={type}";
-            return HttpHelper.Upload(url, filePath);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostFiles = new Dictionary<string, string> { ["media"] = filePath };
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1962,7 +2296,14 @@ namespace ZqUtils.WeChat.Helpers
         public void GetQyTempMaterial(string mediaId, string filePath, string fileExt, string fileName)
         {
             var url = $"https://qyapi.weixin.qq.com/cgi-bin/media/get?access_token={accessToken}&media_id={mediaId}";
-            HttpHelper.Download(url, saveDir: filePath, fileExt: fileExt, fileName: fileName);
+
+            var req = CreateHttpRequest(url, "GET", "application/octet-stream");
+            req.ResultType = ResultType.File;
+            req.DownloadSaveFilePath = Path.Combine(filePath, $"{fileName}{fileExt}");
+
+            using var http = new HttpHelper(req);
+
+            http.GetResult();
         }
 
         /// <summary>
@@ -1973,7 +2314,10 @@ namespace ZqUtils.WeChat.Helpers
         public string AddQyForeverImgTxtMaterial(string imgTxtJson)
         {
             var url = $"https://qyapi.weixin.qq.com/cgi-bin/material/add_mpnews?access_token={accessToken}";
-            return HttpHelper.Post(url, imgTxtJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = imgTxtJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1985,8 +2329,14 @@ namespace ZqUtils.WeChat.Helpers
         /// <returns>string</returns>
         public string AddQyOtherForeverMaterial(string agentId, string type, string filePath)
         {
-            var url = $"https://api.weixin.qq.com/cgi-bin/material/add_material?access_token={accessToken}&type={type}";
-            return HttpHelper.Upload(url, filePath);
+            var url = $"https://api.weixin.qq.com/cgi-bin/material/add_material?access_token={accessToken}&type={type}&agentid={agentId}";
+
+            var req = CreateHttpRequest(url, "POST");
+            req.PostFiles = new Dictionary<string, string> { ["media"] = filePath };
+
+            using var http = new HttpHelper(req);
+
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -1998,7 +2348,8 @@ namespace ZqUtils.WeChat.Helpers
         public string GetQyForeverMaterial(string mediaId, int agentId)
         {
             var url = $"https://qyapi.weixin.qq.com/cgi-bin/material/get?access_token={accessToken}&media_id={mediaId}&agentid={agentId}";
-            return HttpHelper.Get(url);
+            using var http = new HttpHelper(CreateHttpRequest(url, "GET"));
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -2012,7 +2363,14 @@ namespace ZqUtils.WeChat.Helpers
         public void GetQyOtherForeverMaterial(string mediaId, int agentId, string filePath, string fileExt, string fileName)
         {
             var url = $"https://qyapi.weixin.qq.com/cgi-bin/material/get?access_token={accessToken}&media_id={mediaId}&agentid={agentId}";
-            HttpHelper.Download(url, saveDir: filePath, fileExt: fileExt, fileName: fileName);
+
+            var req = CreateHttpRequest(url, "GET", "application/octet-stream");
+            req.ResultType = ResultType.File;
+            req.DownloadSaveFilePath = Path.Combine(filePath, $"{fileName}{fileExt}");
+
+            using var http = new HttpHelper(req);
+
+            http.GetResult();
         }
 
         /// <summary>
@@ -2024,7 +2382,8 @@ namespace ZqUtils.WeChat.Helpers
         public string DeleteQyForeverMaterial(string mediaId, int agentId)
         {
             var url = $"https://qyapi.weixin.qq.com/cgi-bin/material/del?access_token={accessToken}&agentid={agentId}&media_id={mediaId}";
-            return HttpHelper.Get(url);
+            using var http = new HttpHelper(CreateHttpRequest(url, "GET"));
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -2035,7 +2394,10 @@ namespace ZqUtils.WeChat.Helpers
         public string UpdateQyForeverImgTxtMaterial(string imgTxtJson)
         {
             var url = $"https://qyapi.weixin.qq.com/cgi-bin/material/update_mpnews?access_token={accessToken}";
-            return HttpHelper.Post(url, imgTxtJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = imgTxtJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -2046,7 +2408,8 @@ namespace ZqUtils.WeChat.Helpers
         public string GetQyForeverMaterialCount(int agentId)
         {
             var url = $"https://qyapi.weixin.qq.com/cgi-bin/material/get_count?access_token={accessToken}&agentid={agentId}";
-            return HttpHelper.Get(url);
+            using var http = new HttpHelper(CreateHttpRequest(url, "GET"));
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -2057,7 +2420,10 @@ namespace ZqUtils.WeChat.Helpers
         public string GetQyForeverMaterialList(string postJson)
         {
             var url = $"https://qyapi.weixin.qq.com/cgi-bin/material/batchget?access_token={accessToken}";
-            return HttpHelper.Post(url, postJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = postJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -2068,7 +2434,13 @@ namespace ZqUtils.WeChat.Helpers
         public string UploadQyImgTextUsedImg(string filePath)
         {
             var url = $"https://qyapi.weixin.qq.com/cgi-bin/media/uploadimg?access_token={accessToken}";
-            return HttpHelper.Upload(url, filePath);
+
+            var req = CreateHttpRequest(url, "POST");
+            req.PostFiles = new Dictionary<string, string> { ["media"] = filePath };
+
+            using var http = new HttpHelper(req);
+
+            return http.GetResult().ResultString;
         }
         #endregion
 
@@ -2081,7 +2453,8 @@ namespace ZqUtils.WeChat.Helpers
         public string GetQyAgentInfo(string agentId)
         {
             var url = $"https://qyapi.weixin.qq.com/cgi-bin/agent/get?access_token={accessToken}&agentid={agentId}";
-            return HttpHelper.Get(url);
+            using var http = new HttpHelper(CreateHttpRequest(url, "GET"));
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -2092,7 +2465,10 @@ namespace ZqUtils.WeChat.Helpers
         public string SetQyAgent(string postJson)
         {
             var url = $"https://qyapi.weixin.qq.com/cgi-bin/agent/set?access_token={accessToken}";
-            return HttpHelper.Post(url, postJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = postJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -2102,7 +2478,8 @@ namespace ZqUtils.WeChat.Helpers
         public string GetQyAgentList()
         {
             var url = $"https://qyapi.weixin.qq.com/cgi-bin/agent/list?access_token={accessToken}";
-            return HttpHelper.Get(url);
+            using var http = new HttpHelper(CreateHttpRequest(url, "GET"));
+            return http.GetResult().ResultString;
         }
         #endregion
 
@@ -2116,7 +2493,10 @@ namespace ZqUtils.WeChat.Helpers
         public string CreateQyMenu(string agentId, string menuJson)
         {
             var url = $"https://qyapi.weixin.qq.com/cgi-bin/menu/create?access_token={accessToken}&agentid={agentId}";
-            return HttpHelper.Post(url, menuJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = menuJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -2127,7 +2507,8 @@ namespace ZqUtils.WeChat.Helpers
         public string DeleteQyMenu(string agentId)
         {
             var url = $"https://qyapi.weixin.qq.com/cgi-bin/menu/delete?access_token={accessToken}&agentid={agentId}";
-            return HttpHelper.Get(url);
+            using var http = new HttpHelper(CreateHttpRequest(url, "GET"));
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -2138,7 +2519,8 @@ namespace ZqUtils.WeChat.Helpers
         public string GetQyMenuList(string agentId)
         {
             var url = $"https://qyapi.weixin.qq.com/cgi-bin/menu/get?access_token={accessToken}&agentid={agentId}";
-            return HttpHelper.Get(url);
+            using var http = new HttpHelper(CreateHttpRequest(url, "GET"));
+            return http.GetResult().ResultString;
         }
         #endregion
 
@@ -2151,7 +2533,10 @@ namespace ZqUtils.WeChat.Helpers
         public string SendQyMsg(string msgJson)
         {
             var url = $"https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token={accessToken}";
-            return HttpHelper.Post(url, msgJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = msgJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -2162,7 +2547,10 @@ namespace ZqUtils.WeChat.Helpers
         public string CreateQyChat(string msgJson)
         {
             var url = $"https://qyapi.weixin.qq.com/cgi-bin/chat/create?access_token={accessToken}";
-            return HttpHelper.Post(url, msgJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = msgJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -2173,7 +2561,8 @@ namespace ZqUtils.WeChat.Helpers
         public string GetQyChat(string chatId)
         {
             var url = $"https://qyapi.weixin.qq.com/cgi-bin/chat/get?access_token={accessToken}&chatid={chatId}";
-            return HttpHelper.Get(url);
+            using var http = new HttpHelper(CreateHttpRequest(url, "GET"));
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -2184,7 +2573,10 @@ namespace ZqUtils.WeChat.Helpers
         public string UpdateQyChat(string msgJson)
         {
             var url = $"https://qyapi.weixin.qq.com/cgi-bin/chat/update?access_token={accessToken}";
-            return HttpHelper.Post(url, msgJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = msgJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -2195,7 +2587,10 @@ namespace ZqUtils.WeChat.Helpers
         public string QuitQyChat(string postJson)
         {
             var url = $"https://qyapi.weixin.qq.com/cgi-bin/chat/quit?access_token={accessToken}";
-            return HttpHelper.Post(url, postJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = postJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -2206,7 +2601,10 @@ namespace ZqUtils.WeChat.Helpers
         public string ClearQyChat(string postJson)
         {
             var url = $"https://qyapi.weixin.qq.com/cgi-bin/chat/clearnotify?access_token={postJson}";
-            return HttpHelper.Post(url, postJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = postJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -2217,7 +2615,10 @@ namespace ZqUtils.WeChat.Helpers
         public string SendQyChatMsg(string msgJson)
         {
             var url = $"https://qyapi.weixin.qq.com/cgi-bin/chat/send?access_token={accessToken}";
-            return HttpHelper.Post(url, msgJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = msgJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
 
         /// <summary>
@@ -2228,7 +2629,10 @@ namespace ZqUtils.WeChat.Helpers
         public string SetQyChatMute(string postJson)
         {
             var url = $"https://qyapi.weixin.qq.com/cgi-bin/chat/setmute?access_token={accessToken}";
-            return HttpHelper.Post(url, postJson);
+            var req = CreateHttpRequest(url, "POST");
+            req.PostString = postJson;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
         #endregion
         #endregion
@@ -2243,7 +2647,8 @@ namespace ZqUtils.WeChat.Helpers
         public string JsCodeToSession(string code)
         {
             var url = $"https://api.weixin.qq.com/sns/jscode2session?appid={wxConfig.AppId}&secret={wxConfig.AppSecret}&js_code={code}&grant_type=authorization_code";
-            return HttpHelper.Get(url);
+            using var http = new HttpHelper(CreateHttpRequest(url, "GET"));
+            return http.GetResult().ResultString;
         }
         #endregion
 
@@ -2270,7 +2675,10 @@ namespace ZqUtils.WeChat.Helpers
         public string SendWxOpenTemplateMsg(string jsonContent)
         {
             var wxUrl = $"https://api.weixin.qq.com/cgi-bin/message/wxopen/template/send?access_token={accessToken}";
-            return HttpHelper.Post(wxUrl, jsonContent);
+            var req = CreateHttpRequest(wxUrl, "POST");
+            req.PostString = jsonContent;
+            using var http = new HttpHelper(req);
+            return http.GetResult().ResultString;
         }
         #endregion
         #endregion

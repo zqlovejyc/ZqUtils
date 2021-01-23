@@ -247,7 +247,6 @@
     <Compile Include="Reflection\PEImage.cs" />
     <Compile Include="Reflection\Reflect.cs" />
     <Compile Include="Reflection\ScriptEngine.cs" />
-    <Compile Include="Utilities\HttpUtility.cs" />
     <Compile Include="Reflection\Runtime.cs" />
     <Compile Include="WeChat\Helpers\MsgCryptHelper.cs" />
     <Compile Include="WeChat\Interfaces\IWeChatNotify.cs" />

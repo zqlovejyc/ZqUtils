@@ -65,6 +65,50 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
+        /// 执行指定exe程序命令
+        /// </summary>
+        /// <param name="p">进程</param>
+        /// <param name="exe">exe可执行文件路径</param>
+        /// <param name="arg">参数</param>
+        /// <param name="output">委托</param>
+        /// <example>
+        ///     <code>
+        ///         var tool = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\aria2-1.34.0-win-64bit-build1\\aria2c.exe";
+        ///         var fi = new FileInfo(strFileName);
+        ///         var command = " -c -s 10 -x 10 --file-allocation=none --check-certificate=false -d " + fi.DirectoryName + " -o " + fi.Name + " " + url;
+        ///         using (var p = new Process())
+        ///         {
+        ///             Execute(p, tool, command, (s, e) => ShowInfo(url, e.Data));
+        ///         }
+        ///     </code>
+        /// </example>
+        public static void Execute(
+            Process p,
+            string exe,
+            string arg,
+            DataReceivedEventHandler output)
+        {
+            p.StartInfo.FileName = exe;
+            p.StartInfo.Arguments = arg;
+
+            //输出信息重定向
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.CreateNoWindow = true;
+            p.StartInfo.RedirectStandardError = true;
+            p.StartInfo.RedirectStandardOutput = true;
+
+            p.OutputDataReceived += output;
+            p.ErrorDataReceived += output;
+
+            //启动线程
+            p.Start();
+            p.BeginOutputReadLine();
+            p.BeginErrorReadLine();
+            //等待进程结束
+            p.WaitForExit();
+        }
+
+        /// <summary>
         /// 执行命令
         /// </summary>
         /// <param name="startInfo"></param>
