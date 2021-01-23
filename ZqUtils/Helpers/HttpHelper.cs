@@ -988,16 +988,22 @@ namespace ZqUtils.Helpers
                         {
                             var baseurl = Header["location"].ToString().Trim();
                             var locationurl = baseurl.ToLower();
+
                             if (!string.IsNullOrEmpty(locationurl))
                             {
                                 var b = locationurl.StartsWith("http://") || locationurl.StartsWith("https://");
-                                if (!b) baseurl = new Uri(new Uri(ResponseUri), baseurl).AbsoluteUri;
+                                if (!b)
+                                    baseurl = new Uri(new Uri(ResponseUri), baseurl).AbsoluteUri;
                             }
+
                             return baseurl;
                         }
                     }
                 }
-                catch { }
+                catch
+                {
+                }
+
                 return string.Empty;
             }
         }
