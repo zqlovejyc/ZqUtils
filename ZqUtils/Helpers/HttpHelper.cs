@@ -132,15 +132,6 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
-        /// 通过设置这个属性，可以在发出连接的时候绑定客户端发出连接所使用的IP地址。 
-        /// </summary>
-        /// <param name="servicePoint">ServicePoint</param>
-        /// <param name="remoteEndPoint">IPEndPoint</param>
-        /// <param name="retryCount">int</param>
-        /// <returns>IPEndPoint</returns>
-        private IPEndPoint BindIPEndPointCallback(ServicePoint servicePoint, IPEndPoint remoteEndPoint, int retryCount) => ipEndPoint;
-
-        /// <summary>
         /// 设置代理
         /// </summary>
         /// <param name="req">http请求参数</param>
@@ -341,8 +332,9 @@ namespace ZqUtils.Helpers
             if (req.IPEndPoint != null)
             {
                 ipEndPoint = req.IPEndPoint;
+
                 //设置本地的出口ip和端口
-                request.ServicePoint.BindIPEndPointDelegate = new BindIPEndPoint(BindIPEndPointCallback);
+                request.ServicePoint.BindIPEndPointDelegate = (servicePoint, remoteEndPoint, retryCount) => ipEndPoint;
             }
 
             //设置Header参数
