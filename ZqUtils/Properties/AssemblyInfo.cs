@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("张强")]
 [assembly: AssemblyProduct("ZqUtils")]
-[assembly: AssemblyCopyright("Copyright © 张强 2015-2021 943620963@qq.com")]
+[assembly: AssemblyCopyright("Copyright © 张强 2018-2021 943620963@qq.com")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
