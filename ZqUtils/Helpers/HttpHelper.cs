@@ -967,7 +967,7 @@ namespace ZqUtils.Helpers
         public CookieCollection CookieCollection { get; set; }
 
         /// <summary>
-        /// 返回的string类型数据，ResultType.String或者ResultType.Byte返回数据，其它情况为空
+        /// 返回的string类型数据，只有ResultType.String时才返回数据，其它情况为空
         /// </summary>
         public string ResultString { get; set; }
 
@@ -1050,7 +1050,7 @@ namespace ZqUtils.Helpers
         String,
 
         /// <summary>
-        /// 表示返回字符串和字节流，ResultByte和ResultString都有数据
+        /// 表示返回字节数组，只有ResultByte有数据
         /// </summary>
         Byte,
 
