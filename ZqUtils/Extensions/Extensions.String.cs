@@ -410,12 +410,15 @@ namespace ZqUtils.Extensions
             var dic = new Dictionary<string, string>();
             @this = Regex.Replace(Regex.Replace(@this, @"^(.*)\?", ""), @"#(.*)$", "");
             var arr = @this.Split('&');
-            foreach (var i in arr)
+            if (arr.IsNotNullOrEmpty())
             {
-                if (!string.IsNullOrEmpty(i))
+                foreach (var i in arr)
                 {
-                    var t = i.Split('=');
-                    dic.Add(t[0], HttpUtility.UrlDecode(t[1]));
+                    if (!string.IsNullOrEmpty(i))
+                    {
+                        var t = i.Split('=');
+                        dic.Add(t[0], HttpUtility.UrlDecode(t[1]));
+                    }
                 }
             }
             return dic;
