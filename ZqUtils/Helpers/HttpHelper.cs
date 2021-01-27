@@ -105,10 +105,10 @@ namespace ZqUtils.Helpers
                     SetCerList(req);
 
                 //单个证书
-                else if (!string.IsNullOrEmpty(req.CerPath))
+                else if (req.CerPath.IsNotNullOrEmpty())
                 {
                     //证书是否包含密码
-                    if (!string.IsNullOrEmpty(req.CerPassword))
+                    if (req.CerPassword.IsNotNullOrEmpty())
                         request.ClientCertificates.Add(new X509Certificate2(req.CerPath, req.CerPassword));
                     else
                         request.ClientCertificates.Add(new X509Certificate(req.CerPath));
@@ -138,13 +138,13 @@ namespace ZqUtils.Helpers
         private void SetProxy(HttpRequest req)
         {
             var isIeProxy = false;
-            if (!string.IsNullOrEmpty(req.ProxyIp))
+            if (req.ProxyIp.IsNotNullOrEmpty())
                 isIeProxy = req.ProxyIp.ToLower().Contains("ieproxy");
 
             //非IE代理
             if (!isIeProxy)
             {
-                if (!string.IsNullOrEmpty(req.ProxyIp))
+                if (req.ProxyIp.IsNotNullOrEmpty())
                 {
                     //设置代理服务器
                     if (req.ProxyIp.Contains(":"))
@@ -182,7 +182,7 @@ namespace ZqUtils.Helpers
         private void SetCookie(HttpRequest req)
         {
             //设置Cookie字符串
-            if (!string.IsNullOrEmpty(req.Cookie))
+            if (req.Cookie.IsNotNullOrEmpty())
                 request.Headers[HttpRequestHeader.Cookie] = req.Cookie;
 
             //设置CookieContainer
@@ -205,86 +205,103 @@ namespace ZqUtils.Helpers
 
                 //表单数据
                 byte[] buffer = null;
+
                 //文件数据
                 var fileStream = new MemoryStream();
+
                 //分隔符
                 var boundary = $"----WebKitFormBoundary{DateTime.Now.Ticks:x}";
 
                 //byte字节
                 if (req.PostDataType == PostDataType.Byte && req.PostByte?.Length > 0)
-                    //验证在得到结果时是否有传入数据
                     buffer = req.PostByte;
+
+                //字符串
+                else if (req.PostDataType == PostDataType.String && req.PostString.IsNotNullOrEmpty())
+                    buffer = postEncoding.GetBytes(req.PostString);
 
                 //文件
                 else if (req.PostDataType == PostDataType.File)
                 {
-                    if ((req.PostFiles == null || req.PostFiles.Count == 0) && !string.IsNullOrEmpty(req.PostString))
+                    #region 表单数据+文件数据
+                    var formData = new StringBuilder();
+
+                    //表单数据
+                    if (req.PostString.IsNotNullOrEmpty())
                     {
-                        using var sr = new StreamReader(req.PostString, postEncoding);
-                        buffer = postEncoding.GetBytes(sr.ReadToEnd());
-                    }
-                    else
-                    {
-                        #region 表单数据+文件数据
-                        var formData = new StringBuilder();
-                        if (!string.IsNullOrEmpty(req.PostString))
+                        var formDic = req.PostString.ToDictionary();
+                        if (formDic.IsNotNullOrEmpty())
                         {
-                            //表单数据
-                            var formDic = req.PostString.ToDictionary();
-                            if (formDic.IsNotNullOrEmpty())
+                            foreach (var item in formDic)
                             {
-                                foreach (var item in formDic)
+                                formData.Append($"--{boundary}")
+                                        .Append("\r\n")
+                                        .Append($"Content-Disposition: form-data; name=\"{item.Key}\"")
+                                        .Append("\r\n\r\n")
+                                        .Append(item.Value)
+                                        .Append("\r\n");
+                            }
+                        }
+                    }
+
+                    //文件数据
+                    if (req.PostFiles.IsNotNullOrEmpty())
+                    {
+                        foreach (var item in req.PostFiles)
+                        {
+                            if (File.Exists(item.Value))
+                            {
+                                formData.Append($"--{boundary}")
+                                        .Append("\r\n")
+                                        .Append($"Content-Disposition: form-data; name=\"{item.Key}\"; filename=\"{item.Value.Substring(PathHelper.CurrentOsDirectorySeparator.ToString())}\"")
+                                        .Append("\r\n")
+                                        .Append($"Content-Type: application/octet-stream")
+                                        .Append("\r\n\r\n");
+                                //文件流
+                                using var fs = new FileStream(item.Value, FileMode.Open, FileAccess.Read);
+                                //写入文件
+                                var fileBuffer = new byte[1024];
+                                var fileBytesRead = 0;
+                                while ((fileBytesRead = fs.Read(fileBuffer, 0, fileBuffer.Length)) != 0)
                                 {
-                                    formData.Append($"--{boundary}")
-                                            .Append("\r\n")
-                                            .Append($"Content-Disposition: form-data; name=\"{item.Key}\"")
-                                            .Append("\r\n\r\n")
-                                            .Append(item.Value)
-                                            .Append("\r\n");
+                                    fileStream.Write(fileBuffer, 0, fileBytesRead);
                                 }
                             }
                         }
-                        //文件数据
-                        var fileList = req.PostFiles?.ToList();
-                        if (fileList?.Count > 0)
-                        {
-                            fileList.ForEach(o =>
-                            {
-                                if (File.Exists(o.Value))
-                                {
-                                    formData.Append($"--{boundary}")
-                                            .Append("\r\n")
-                                            .Append($"Content-Disposition: form-data; name=\"{o.Key}\"; filename=\"{o.Value.Substring(PathHelper.CurrentOsDirectorySeparator.ToString())}\"")
-                                            .Append("\r\n")
-                                            .Append("Content-Type: application/octet-stream")
-                                            .Append("\r\n\r\n");
-                                    //文件流
-                                    using var fs = new FileStream(o.Value, FileMode.Open, FileAccess.Read);
-                                    //写入文件
-                                    var fileBuffer = new byte[1024];
-                                    var fileBytesRead = 0;
-                                    while ((fileBytesRead = fs.Read(fileBuffer, 0, fileBuffer.Length)) != 0)
-                                    {
-                                        fileStream.Write(fileBuffer, 0, fileBytesRead);
-                                    }
-                                }
-                            });
-                        }
-                        buffer = postEncoding.GetBytes(formData.ToString());
-                        #endregion                                           
                     }
-                }
 
-                //字符串
-                else if (!string.IsNullOrEmpty(req.PostString))
-                {
-                    buffer = postEncoding.GetBytes(req.PostString);
+                    //文件流
+                    if (req.PostFileStream?.Length > 0 && req.PostFileStreamInfo != null)
+                    {
+                        var (name, fileName) = req.PostFileStreamInfo.Value;
+
+                        formData.Append($"--{boundary}")
+                                .Append("\r\n")
+                                .Append($"Content-Disposition: form-data; name=\"{name}\"; filename=\"{fileName}\"")
+                                .Append("\r\n")
+                                .Append($"Content-Type: application/octet-stream")
+                                .Append("\r\n\r\n");
+                        //文件流
+                        using var fs = req.PostFileStream;
+                        fs.Position = 0;
+                        //写入文件
+                        var fileBuffer = new byte[1024];
+                        var fileBytesRead = 0;
+                        while ((fileBytesRead = fs.Read(fileBuffer, 0, fileBuffer.Length)) != 0)
+                        {
+                            fileStream.Write(fileBuffer, 0, fileBytesRead);
+                        }
+                    }
+
+                    //赋值表单数据
+                    buffer = postEncoding.GetBytes(formData.ToString());
+                    #endregion
                 }
 
                 //写入请求内容
-                if (buffer != null || fileStream.Length > 0)
+                if (buffer?.Length > 0 || fileStream.Length > 0)
                 {
-                    if (req.PostFiles?.Count > 0 && fileStream.Length > 0)
+                    if (fileStream.Length > 0)
                     {
                         var footData = postEncoding.GetBytes($"\r\n--{boundary}--\r\n");
                         request.ContentType = $"multipart/form-data; boundary={boundary}";
@@ -354,7 +371,7 @@ namespace ZqUtils.Helpers
             }
 
             //设置浏览器支持的编码类型
-            if (!string.IsNullOrEmpty(req.AcceptEncoding))
+            if (req.AcceptEncoding.IsNotNullOrEmpty())
                 request.Headers.Add("Accept-Encoding", req.AcceptEncoding);
 
             // 设置代理
@@ -373,7 +390,7 @@ namespace ZqUtils.Helpers
 
             request.ReadWriteTimeout = req.ReadWriteTimeout;
 
-            if (!string.IsNullOrEmpty(req.Host))
+            if (req.Host.IsNotNullOrEmpty())
                 request.Host = req.Host;
 
             if (req.IfModifiedSince != null)
@@ -451,7 +468,7 @@ namespace ZqUtils.Helpers
                     }
                     catch
                     {
-                        if (string.IsNullOrEmpty(response.CharacterSet))
+                        if (response.CharacterSet.IsNullOrEmpty())
                             responseEncoding = Encoding.UTF8;
                         else
                             responseEncoding = Encoding.GetEncoding(response.CharacterSet);
@@ -459,7 +476,7 @@ namespace ZqUtils.Helpers
                 }
                 else
                 {
-                    if (string.IsNullOrEmpty(response.CharacterSet))
+                    if (response.CharacterSet.IsNullOrEmpty())
                         responseEncoding = Encoding.UTF8;
                     else
                         responseEncoding = Encoding.GetEncoding(response.CharacterSet);
@@ -475,7 +492,7 @@ namespace ZqUtils.Helpers
         /// <returns>byte[]</returns>
         private byte[] GetByte(HttpRequest req, HttpResult result)
         {
-            byte[] ResponseByte = null;
+            byte[] responseByte = null;
             var responseStream = response.GetResponseStream();
 
             //解压缩
@@ -497,11 +514,11 @@ namespace ZqUtils.Helpers
                     ms.Write(buffer, 0, bytesRead);
                 }
 
-                ResponseByte = ms.ToArray();
+                responseByte = ms.ToArray();
             }
 
             //文件
-            else if (!string.IsNullOrEmpty(req.DownloadSaveFilePath))
+            else if (req.DownloadSaveFilePath.IsNotNullOrEmpty())
             {
                 //判断文件目录是否存在
                 var dirPath = Path.GetDirectoryName(req.DownloadSaveFilePath);
@@ -525,7 +542,7 @@ namespace ZqUtils.Helpers
 
             responseStream.Close();
 
-            return ResponseByte;
+            return responseByte;
         }
 
         /// <summary>
@@ -557,17 +574,19 @@ namespace ZqUtils.Helpers
                 result.CookieCollection = request.CookieContainer.GetCookies(response.ResponseUri);
 
             //获取set-cookie
-            if (!string.IsNullOrEmpty(response.Headers["set-cookie"]))
+            if (response.Headers["set-cookie"].IsNotNullOrEmpty())
                 result.Cookie = response.Headers["set-cookie"];
 
-            //处理网页byte
-            var ResponseByte = GetByte(req, result);
-            if (ResponseByte?.Length > 0)
+            //处理返回byte
+            var responseByte = GetByte(req, result);
+            if (responseByte?.Length > 0)
             {
                 //设置编码
-                SetEncoding(req, result, ResponseByte);
-                //得到返回的HTML
-                result.ResultString = responseEncoding.GetString(ResponseByte);
+                SetEncoding(req, result, responseByte);
+
+                //赋值返回结果字符串
+                if (req.ResultType == ResultType.String)
+                    result.ResultString = responseEncoding.GetString(responseByte);
             }
         }
         #endregion
@@ -797,6 +816,16 @@ namespace ZqUtils.Helpers
         public IDictionary<string, string> PostFiles { get; set; }
 
         /// <summary>
+        /// Post上传文件流
+        /// </summary>
+        public Stream PostFileStream { get; set; }
+
+        /// <summary>
+        /// Post上传文件流信息，如：Content-Disposition: form-data; name="file"; filename="test.xlsx"
+        /// </summary>
+        public (string name, string fileName)? PostFileStreamInfo { get; set; }
+
+        /// <summary>
         /// Cookie容器
         /// </summary>
         public CookieContainer CookieContainer { get; set; }
@@ -988,7 +1017,7 @@ namespace ZqUtils.Helpers
                             var baseurl = Header["location"].ToString().Trim();
                             var locationurl = baseurl.ToLower();
 
-                            if (!string.IsNullOrEmpty(locationurl))
+                            if (locationurl.IsNotNullOrEmpty())
                             {
                                 var b = locationurl.StartsWith("http://") || locationurl.StartsWith("https://");
                                 if (!b)
