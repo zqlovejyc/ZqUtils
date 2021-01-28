@@ -1025,10 +1025,15 @@ namespace ZqUtils.Extensions
         /// <returns>bool</returns>
         public static bool EqualIgnoreCase(this string @this, params string[] strs)
         {
-            foreach (var item in strs)
+            if (strs.IsNotNullOrEmpty())
             {
-                if (string.Equals(@this, item, StringComparison.OrdinalIgnoreCase)) return true;
+                foreach (var item in strs)
+                {
+                    if (string.Equals(@this, item, StringComparison.OrdinalIgnoreCase))
+                        return true;
+                }
             }
+
             return false;
         }
 
@@ -1040,11 +1045,18 @@ namespace ZqUtils.Extensions
         /// <returns>bool</returns>
         public static bool StartsWithIgnoreCase(this string @this, params string[] strs)
         {
-            if (string.IsNullOrEmpty(@this)) return false;
-            foreach (var item in strs)
+            if (@this.IsNullOrEmpty())
+                return false;
+
+            if (strs.IsNotNullOrEmpty())
             {
-                if (@this.StartsWith(item, StringComparison.OrdinalIgnoreCase)) return true;
+                foreach (var item in strs)
+                {
+                    if (@this.StartsWith(item, StringComparison.OrdinalIgnoreCase))
+                        return true;
+                }
             }
+
             return false;
         }
 
@@ -1056,11 +1068,18 @@ namespace ZqUtils.Extensions
         /// <returns>bool</returns>
         public static bool EndsWithIgnoreCase(this string value, params string[] strs)
         {
-            if (string.IsNullOrEmpty(value)) return false;
-            foreach (var item in strs)
+            if (value.IsNullOrEmpty())
+                return false;
+
+            if (strs.IsNotNullOrEmpty())
             {
-                if (value.EndsWith(item, StringComparison.OrdinalIgnoreCase)) return true;
+                foreach (var item in strs)
+                {
+                    if (value.EndsWith(item, StringComparison.OrdinalIgnoreCase))
+                        return true;
+                }
             }
+
             return false;
         }
         #endregion
