@@ -112,19 +112,20 @@ namespace ZqUtils.Extensions
                     }
                 }).ToDictionary(o => o.Key, p => p.Value);
             }
+
             //拼接xml数据
             var xml = new StringBuilder("<xml>");
             foreach (var i in @this)
             {
-                if (i.Value.GetType() == typeof(int))
-                {
-                    //整型
-                    xml.Append($"<{i.Key}>{i.Value}</{i.Key}>");
-                }
-                else
+                if (i.Value.GetType() == typeof(string))
                 {
                     //字符串
                     xml.Append($"<{i.Key}><![CDATA[{i.Value}]]></{i.Key}>");
+                }
+                else
+                {
+                    //整型
+                    xml.Append($"<{i.Key}>{i.Value}</{i.Key}>");
                 }
             }
             xml.Append("</xml>");
