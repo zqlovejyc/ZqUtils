@@ -67,7 +67,7 @@ namespace ZqUtils.Helpers
             string[] folders, files;
             var crc = new Crc32();
             //压缩文件
-            var ent = new ZipEntry(Path.Combine(parentFolderName, Path.GetFileName(folderToZip) + "/"));
+            var ent = new ZipEntry(Path.Combine(parentFolderName, Path.GetFileName(folderToZip) + "/")) { IsUnicodeText = true };
             zipStream.PutNextEntry(ent);
             zipStream.Flush();
             files = Directory.GetFiles(folderToZip);
@@ -77,7 +77,7 @@ namespace ZqUtils.Helpers
                 {
                     var buffer = new byte[fs.Length];
                     fs.Read(buffer, 0, buffer.Length);
-                    ent = new ZipEntry(Path.Combine(parentFolderName, Path.GetFileName(folderToZip) + "/" + Path.GetFileName(file)));
+                    ent = new ZipEntry(Path.Combine(parentFolderName, Path.GetFileName(folderToZip) + "/" + Path.GetFileName(file))) { IsUnicodeText = true };
                     ent.DateTime = DateTime.Now;
                     ent.Size = fs.Length;
                     crc.Reset();
@@ -138,7 +138,7 @@ namespace ZqUtils.Helpers
                 fs.Read(buffer, 0, buffer.Length);
                 if (!string.IsNullOrEmpty(password))
                     zipStream.Password = password;
-                var ent = new ZipEntry(Path.GetFileName(fileToZip));
+                var ent = new ZipEntry(Path.GetFileName(fileToZip)) { IsUnicodeText = true };
                 zipStream.PutNextEntry(ent);
                 zipStream.SetLevel(6);
                 zipStream.Write(buffer, 0, buffer.Length);
@@ -167,7 +167,7 @@ namespace ZqUtils.Helpers
                     {
                         if (!string.IsNullOrEmpty(password))
                             zipStream.Password = password;
-                        var ent = new ZipEntry(Path.GetFileName(fileToZip));
+                        var ent = new ZipEntry(Path.GetFileName(fileToZip)) { IsUnicodeText = true };
                         zipStream.PutNextEntry(ent);
                         zipStream.SetLevel(6);
                         zipStream.Write(buffer, 0, buffer.Length);
