@@ -75,14 +75,16 @@ namespace ZqUtils.Extensions
             {
                 @this = @this.Where(o => o.Value?.ToString().IsNullOrEmpty() == false).ToDictionary(o => o.Key, o => o.Value);
             }
+
             //对参数键值对进行ASCII升序排序
             if (isAsciiSort)
             {
                 //C#默认的不是ASCII排序，正确的ASCII排序规则：数字、大写字母、小写字母的顺序
                 @this = @this.OrderBy(o => o.Key, new OrdinalComparer()).ToDictionary(o => o.Key, o => o.Value);
             }
+
             //拼接url
-            return @this.Aggregate(seed, _ => $"{_.Key}={_.Value?.ToString()}&", "&");
+            return @this.Aggregate(seed, _ => $"{_.Key}={_.Value}&", "&");
         }
         #endregion
 
