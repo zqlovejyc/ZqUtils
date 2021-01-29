@@ -84,10 +84,8 @@ namespace ZqUtils.Helpers
         /// <param name="fileBytes"></param>
         public static void Create(string filePath, params byte[] fileBytes)
         {
-            using (var fs = File.Create(filePath))
-            {
-                fs.Write(fileBytes);
-            }
+            using var fs = File.Create(filePath);
+            fs.Write(fileBytes);
         }
 
         /// <summary>
@@ -99,15 +97,13 @@ namespace ZqUtils.Helpers
         {
             using (fileStream)
             {
-                using (var fs = File.Create(filePath))
+                using var fs = File.Create(filePath);
+                var buffer = new byte[2048];
+                var count = 0;
+                //每次读取2kb数据，然后写入文件
+                while ((count = fileStream.Read(buffer, 0, buffer.Length)) != 0)
                 {
-                    var buffer = new byte[2048];
-                    var count = 0;
-                    //每次读取2kb数据，然后写入文件
-                    while ((count = fileStream.Read(buffer, 0, buffer.Length)) != 0)
-                    {
-                        fs.Write(buffer, 0, count);
-                    }
+                    fs.Write(buffer, 0, count);
                 }
             }
         }
@@ -119,10 +115,8 @@ namespace ZqUtils.Helpers
         /// <param name="fileBytes"></param>
         public static async Task CreateAsync(string filePath, params byte[] fileBytes)
         {
-            using (var fs = File.Create(filePath))
-            {
-                await fs.WriteAsync(fileBytes, 0, fileBytes.Length);
-            }
+            using var fs = File.Create(filePath);
+            await fs.WriteAsync(fileBytes, 0, fileBytes.Length);
         }
 
         /// <summary>
@@ -134,15 +128,13 @@ namespace ZqUtils.Helpers
         {
             using (fileStream)
             {
-                using (var fs = File.Create(filePath))
+                using var fs = File.Create(filePath);
+                var buffer = new byte[2048];
+                var count = 0;
+                //每次读取2kb数据，然后写入文件
+                while ((count = fileStream.Read(buffer, 0, buffer.Length)) != 0)
                 {
-                    var buffer = new byte[2048];
-                    var count = 0;
-                    //每次读取2kb数据，然后写入文件
-                    while ((count = fileStream.Read(buffer, 0, buffer.Length)) != 0)
-                    {
-                        await fs.WriteAsync(buffer, 0, count);
-                    }
+                    await fs.WriteAsync(buffer, 0, count);
                 }
             }
         }
@@ -158,18 +150,14 @@ namespace ZqUtils.Helpers
             if (!File.Exists(filePath))
             {
                 //读取嵌入资源
-                using (var stream = assembly.GetManifestResourceStream(manifestResourcePath))
+                using var stream = assembly.GetManifestResourceStream(manifestResourcePath);
+                using var fs = File.Create(filePath);
+                byte[] buffer = new byte[2048];
+                var count = 0;
+                //每次读取2kb数据，然后写入文件
+                while ((count = stream.Read(buffer, 0, buffer.Length)) != 0)
                 {
-                    using (var fs = File.Create(filePath))
-                    {
-                        var buffer = new byte[2048];
-                        var count = 0;
-                        //每次读取2kb数据，然后写入文件
-                        while ((count = stream.Read(buffer, 0, buffer.Length)) != 0)
-                        {
-                            fs.Write(buffer, 0, count);
-                        }
-                    }
+                    fs.Write(buffer, 0, count);
                 }
             }
         }
@@ -185,18 +173,14 @@ namespace ZqUtils.Helpers
             if (!File.Exists(filePath))
             {
                 //读取嵌入资源
-                using (var stream = assembly.GetManifestResourceStream(manifestResourcePath))
+                using var stream = assembly.GetManifestResourceStream(manifestResourcePath);
+                using var fs = File.Create(filePath);
+                var buffer = new byte[2048];
+                var bytesRead = 0;
+                //每次读取2kb数据，然后写入文件
+                while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) != 0)
                 {
-                    using (var fs = File.Create(filePath))
-                    {
-                        var buffer = new byte[2048];
-                        var count = 0;
-                        //每次读取2kb数据，然后写入文件
-                        while ((count = await stream.ReadAsync(buffer, 0, buffer.Length)) != 0)
-                        {
-                            await fs.WriteAsync(buffer, 0, count);
-                        }
-                    }
+                    await fs.WriteAsync(buffer, 0, bytesRead);
                 }
             }
         }
@@ -214,40 +198,41 @@ namespace ZqUtils.Helpers
         {
             try
             {
-                using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                var buffer = new byte[10240];
+                HttpContext.Current.Response.Clear();
+                var dataToRead = fileStream.Length;
+                long position = 0;
+                if (HttpContext.Current.Request.Headers["Range"] != null)
                 {
-                    var buffer = new byte[10240];
-                    HttpContext.Current.Response.Clear();
-                    var dataToRead = fileStream.Length;
-                    long p = 0;
-                    if (HttpContext.Current.Request.Headers["Range"] != null)
+                    HttpContext.Current.Response.StatusCode = 206;
+                    var range = HttpContext.Current.Request.Headers["Range"].Replace("bytes=", "");
+                    position = long.Parse(range.Substring(0, range.IndexOf("-")));
+                }
+
+                if (position != 0)
+                    HttpContext.Current.Response.AddHeader("Content-Range", $"bytes {position}-{dataToRead - 1}/{dataToRead}");
+
+                HttpContext.Current.Response.AddHeader("Content-Length", (dataToRead - position).ToString());
+                HttpContext.Current.Response.ContentType = "application/octet-stream";
+                HttpContext.Current.Response.AddHeader("Content-Disposition", $"attachment; filename={HttpUtility.UrlEncode(HttpContext.Current.Request.ContentEncoding.GetBytes(fileName))}");
+                //jquery.fileDownload插件必须添加以下Cookie设置，否则successCallback回调无效                
+                HttpContext.Current.Response.Cookies.Add(new HttpCookie("fileDownload", "true"));
+                fileStream.Position = position;
+                dataToRead -= position;
+                while (dataToRead > 0)
+                {
+                    if (HttpContext.Current.Response.IsClientConnected)
                     {
-                        HttpContext.Current.Response.StatusCode = 206;
-                        var range = HttpContext.Current.Request.Headers["Range"].Replace("bytes=", "");
-                        p = long.Parse(range.Substring(0, range.IndexOf("-")));
+                        var length = fileStream.Read(buffer, 0, 10240);
+                        HttpContext.Current.Response.OutputStream.Write(buffer, 0, length);
+                        HttpContext.Current.Response.Flush();
+                        buffer = new byte[10240];
+                        dataToRead -= length;
                     }
-                    if (p != 0) HttpContext.Current.Response.AddHeader("Content-Range", $"bytes {p.ToString()}-{(dataToRead - 1).ToString()}/{dataToRead.ToString()}");
-                    HttpContext.Current.Response.AddHeader("Content-Length", (dataToRead - p).ToString());
-                    HttpContext.Current.Response.ContentType = "application/octet-stream";
-                    HttpContext.Current.Response.AddHeader("Content-Disposition", $"attachment; filename={HttpUtility.UrlEncode(HttpContext.Current.Request.ContentEncoding.GetBytes(fileName))}");
-                    //jquery.fileDownload插件必须添加以下Cookie设置，否则successCallback回调无效                
-                    HttpContext.Current.Response.Cookies.Add(new HttpCookie("fileDownload", "true"));
-                    fileStream.Position = p;
-                    dataToRead = dataToRead - p;
-                    while (dataToRead > 0)
+                    else
                     {
-                        if (HttpContext.Current.Response.IsClientConnected)
-                        {
-                            var length = fileStream.Read(buffer, 0, 10240);
-                            HttpContext.Current.Response.OutputStream.Write(buffer, 0, length);
-                            HttpContext.Current.Response.Flush();
-                            buffer = new byte[10240];
-                            dataToRead = dataToRead - length;
-                        }
-                        else
-                        {
-                            dataToRead = -1;
-                        }
+                        dataToRead = -1;
                     }
                 }
             }
@@ -257,7 +242,11 @@ namespace ZqUtils.Helpers
             }
             finally
             {
-                if (isDeleteFile) if (File.Exists(filePath)) File.Delete(filePath);
+                if (isDeleteFile)
+                {
+                    if (File.Exists(filePath))
+                        File.Delete(filePath);
+                }
                 HttpContext.Current.Response.End();
             }
         }
@@ -275,46 +264,42 @@ namespace ZqUtils.Helpers
             {
                 var request = HttpContext.Current.Request;
                 var response = HttpContext.Current.Response;
-                using (var fileStream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using var fileStream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                using var binaryReader = new BinaryReader(fileStream);
+                response.AddHeader("Accept-Ranges", "bytes");
+                response.Buffer = false;
+                var fileLength = fileStream.Length;
+                long startBytes = 0;
+                var pack = 10240;  //10K bytes
+                var sleep = (int)Math.Floor((double)(1000 * pack / speed)) + 1;
+                if (request.Headers["Range"] != null)
                 {
-                    using (var binaryReader = new BinaryReader(fileStream))
+                    response.StatusCode = 206;
+                    var range = request.Headers["Range"].Split(new char[] { '=', '-' });
+                    startBytes = Convert.ToInt64(range[1]);
+                }
+                response.AddHeader("Content-Length", (fileLength - startBytes).ToString());
+                if (startBytes != 0)
+                {
+                    response.AddHeader("Content-Range", string.Format(" bytes {0}-{1}/{2}", startBytes, fileLength - 1, fileLength));
+                }
+                response.AddHeader("Connection", "Keep-Alive");
+                response.ContentType = "application/octet-stream";
+                response.AddHeader("Content-Disposition", "attachment;filename=" + HttpUtility.UrlEncode(fileName, Encoding.UTF8));
+                //jquery.fileDownload插件必须添加以下Cookie设置，否则successCallback回调无效                
+                HttpContext.Current.Response.Cookies.Add(new HttpCookie("fileDownload", "true"));
+                binaryReader.BaseStream.Seek(startBytes, SeekOrigin.Begin);
+                var maxCount = Math.Floor((double)((fileLength - startBytes) / pack)) + 1;
+                for (var i = 0d; i < maxCount; i++)
+                {
+                    if (response.IsClientConnected)
                     {
-                        response.AddHeader("Accept-Ranges", "bytes");
-                        response.Buffer = false;
-                        var fileLength = fileStream.Length;
-                        long startBytes = 0;
-                        var pack = 10240;  //10K bytes
-                        var sleep = (int)Math.Floor((double)(1000 * pack / speed)) + 1;
-                        if (request.Headers["Range"] != null)
-                        {
-                            response.StatusCode = 206;
-                            var range = request.Headers["Range"].Split(new char[] { '=', '-' });
-                            startBytes = Convert.ToInt64(range[1]);
-                        }
-                        response.AddHeader("Content-Length", (fileLength - startBytes).ToString());
-                        if (startBytes != 0)
-                        {
-                            response.AddHeader("Content-Range", string.Format(" bytes {0}-{1}/{2}", startBytes, fileLength - 1, fileLength));
-                        }
-                        response.AddHeader("Connection", "Keep-Alive");
-                        response.ContentType = "application/octet-stream";
-                        response.AddHeader("Content-Disposition", "attachment;filename=" + HttpUtility.UrlEncode(fileName, Encoding.UTF8));
-                        //jquery.fileDownload插件必须添加以下Cookie设置，否则successCallback回调无效                
-                        HttpContext.Current.Response.Cookies.Add(new HttpCookie("fileDownload", "true"));
-                        binaryReader.BaseStream.Seek(startBytes, SeekOrigin.Begin);
-                        var maxCount = Math.Floor((double)((fileLength - startBytes) / pack)) + 1;
-                        for (var i = 0d; i < maxCount; i++)
-                        {
-                            if (response.IsClientConnected)
-                            {
-                                response.BinaryWrite(binaryReader.ReadBytes(pack));
-                                Thread.Sleep(sleep);
-                            }
-                            else
-                            {
-                                i = maxCount;
-                            }
-                        }
+                        response.BinaryWrite(binaryReader.ReadBytes(pack));
+                        Thread.Sleep(sleep);
+                    }
+                    else
+                    {
+                        i = maxCount;
                     }
                 }
             }
@@ -421,27 +406,23 @@ namespace ZqUtils.Helpers
                     HttpContext.Current.Response.AddHeader("content-disposition", $"filename={zipName}");
                     //jquery.fileDownload插件必须添加以下Cookie设置，否则successCallback回调无效                
                     HttpContext.Current.Response.Cookies.Add(new HttpCookie("fileDownload", "true"));
-                    using (var zipStream = new ZipOutputStream(HttpContext.Current.Response.OutputStream))
+                    using var zipStream = new ZipOutputStream(HttpContext.Current.Response.OutputStream);
+                    zipStream.SetLevel(3); //0-9, 9 being the highest level of compression
+                    foreach (string file in filePaths)
                     {
-                        zipStream.SetLevel(3); //0-9, 9 being the highest level of compression
-                        foreach (string file in filePaths)
+                        using var fs = File.OpenRead(file);
+                        var entry = new ZipEntry(Path.GetFileName(file)) { Size = fs.Length, IsUnicodeText = true };
+                        //Setting the Size provides WinXP built-in extractor compatibility,
+                        //but if not available, you can set zipOutputStream.UseZip64 = UseZip64.Off instead.
+                        zipStream.PutNextEntry(entry);
+                        var buffer = new byte[4096];
+                        var count = 0;
+                        while ((count = fs.Read(buffer, 0, buffer.Length)) != 0)
                         {
-                            using (var fs = File.OpenRead(file))
-                            {
-                                var entry = new ZipEntry(ZipEntry.CleanName(file)) { Size = fs.Length, IsUnicodeText = true };
-                                //Setting the Size provides WinXP built-in extractor compatibility,
-                                //but if not available, you can set zipOutputStream.UseZip64 = UseZip64.Off instead.
-                                zipStream.PutNextEntry(entry);
-                                var buffer = new byte[4096];
-                                var count = 0;
-                                while ((count = fs.Read(buffer, 0, buffer.Length)) != 0)
-                                {
-                                    zipStream.Write(buffer, 0, count);
-                                    if (!HttpContext.Current.Response.IsClientConnected)
-                                        break;
-                                    HttpContext.Current.Response.Flush();
-                                }
-                            }
+                            zipStream.Write(buffer, 0, count);
+                            if (!HttpContext.Current.Response.IsClientConnected)
+                                break;
+                            HttpContext.Current.Response.Flush();
                         }
                     }
                 }
@@ -476,32 +457,26 @@ namespace ZqUtils.Helpers
             {
                 if (filePaths?.Length > 0)
                 {
-                    using (var stream = new MemoryStream())
+                    using var stream = new MemoryStream();
+                    using var zipStream = new ZipOutputStream(stream);
+                    zipStream.SetLevel(3); //0-9, 9 being the highest level of compression
+                    foreach (string file in filePaths)
                     {
-                        using (var zipStream = new ZipOutputStream(stream))
+                        using var fs = File.OpenRead(file);
+                        var entry = new ZipEntry(Path.GetFileName(file)) { Size = fs.Length, IsUnicodeText = true };
+                        //Setting the Size provides WinXP built-in extractor compatibility,
+                        //but if not available, you can set zipOutputStream.UseZip64 = UseZip64.Off instead.
+                        zipStream.PutNextEntry(entry);
+                        var buffer = new byte[4096];
+                        var count = 0;
+                        while ((count = fs.Read(buffer, 0, buffer.Length)) != 0)
                         {
-                            zipStream.SetLevel(3); //0-9, 9 being the highest level of compression
-                            foreach (string file in filePaths)
-                            {
-                                using (var fs = File.OpenRead(file))
-                                {
-                                    var entry = new ZipEntry(ZipEntry.CleanName(file)) { Size = fs.Length, IsUnicodeText = true };
-                                    //Setting the Size provides WinXP built-in extractor compatibility,
-                                    //but if not available, you can set zipOutputStream.UseZip64 = UseZip64.Off instead.
-                                    zipStream.PutNextEntry(entry);
-                                    var buffer = new byte[4096];
-                                    var count = 0;
-                                    while ((count = fs.Read(buffer, 0, buffer.Length)) != 0)
-                                    {
-                                        zipStream.Write(buffer, 0, count);
-                                        zipStream.Flush();
-                                    }
-                                }
-                            }
-                            zipStream.Finish();
-                            return stream.ToArray();
+                            zipStream.Write(buffer, 0, count);
+                            zipStream.Flush();
                         }
                     }
+                    zipStream.Finish();
+                    return stream.ToArray();
                 }
                 return null;
             }
@@ -535,40 +510,41 @@ namespace ZqUtils.Helpers
         {
             try
             {
-                using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                var buffer = new byte[10240];
+                HttpContext.Current.Response.Clear();
+                var dataToRead = fileStream.Length;
+                long position = 0;
+                if (HttpContext.Current.Request.Headers["Range"] != null)
                 {
-                    var buffer = new byte[10240];
-                    HttpContext.Current.Response.Clear();
-                    var dataToRead = fileStream.Length;
-                    long p = 0;
-                    if (HttpContext.Current.Request.Headers["Range"] != null)
+                    HttpContext.Current.Response.StatusCode = 206;
+                    var range = HttpContext.Current.Request.Headers["Range"].Replace("bytes=", "");
+                    position = long.Parse(range.Substring(0, range.IndexOf("-")));
+                }
+
+                if (position != 0)
+                    HttpContext.Current.Response.AddHeader("Content-Range", $"bytes {position}-{dataToRead - 1}/{dataToRead}");
+
+                HttpContext.Current.Response.AddHeader("Content-Length", (dataToRead - position).ToString());
+                HttpContext.Current.Response.ContentType = "application/octet-stream";
+                HttpContext.Current.Response.AddHeader("Content-Disposition", $"attachment; filename={HttpUtility.UrlEncode(HttpContext.Current.Request.ContentEncoding.GetBytes(fileName))}");
+                //jquery.fileDownload插件必须添加以下Cookie设置，否则successCallback回调无效                
+                HttpContext.Current.Response.Cookies.Add(new HttpCookie("fileDownload", "true"));
+                fileStream.Position = position;
+                dataToRead -= position;
+                while (dataToRead > 0)
+                {
+                    if (HttpContext.Current.Response.IsClientConnected)
                     {
-                        HttpContext.Current.Response.StatusCode = 206;
-                        var range = HttpContext.Current.Request.Headers["Range"].Replace("bytes=", "");
-                        p = long.Parse(range.Substring(0, range.IndexOf("-")));
+                        var length = await fileStream.ReadAsync(buffer, 0, 10240);
+                        await HttpContext.Current.Response.OutputStream.WriteAsync(buffer, 0, length);
+                        await HttpContext.Current.Response.OutputStream.FlushAsync();
+                        buffer = new byte[10240];
+                        dataToRead -= length;
                     }
-                    if (p != 0) HttpContext.Current.Response.AddHeader("Content-Range", $"bytes {p.ToString()}-{(dataToRead - 1).ToString()}/{dataToRead.ToString()}");
-                    HttpContext.Current.Response.AddHeader("Content-Length", (dataToRead - p).ToString());
-                    HttpContext.Current.Response.ContentType = "application/octet-stream";
-                    HttpContext.Current.Response.AddHeader("Content-Disposition", $"attachment; filename={HttpUtility.UrlEncode(HttpContext.Current.Request.ContentEncoding.GetBytes(fileName))}");
-                    //jquery.fileDownload插件必须添加以下Cookie设置，否则successCallback回调无效                
-                    HttpContext.Current.Response.Cookies.Add(new HttpCookie("fileDownload", "true"));
-                    fileStream.Position = p;
-                    dataToRead = dataToRead - p;
-                    while (dataToRead > 0)
+                    else
                     {
-                        if (HttpContext.Current.Response.IsClientConnected)
-                        {
-                            var length = await fileStream.ReadAsync(buffer, 0, 10240);
-                            await HttpContext.Current.Response.OutputStream.WriteAsync(buffer, 0, length);
-                            await HttpContext.Current.Response.OutputStream.FlushAsync();
-                            buffer = new byte[10240];
-                            dataToRead = dataToRead - length;
-                        }
-                        else
-                        {
-                            dataToRead = -1;
-                        }
+                        dataToRead = -1;
                     }
                 }
             }
@@ -600,47 +576,43 @@ namespace ZqUtils.Helpers
             {
                 var request = HttpContext.Current.Request;
                 var response = HttpContext.Current.Response;
-                using (var fileStream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using var fileStream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                using var binaryReader = new BinaryReader(fileStream);
+                response.AddHeader("Accept-Ranges", "bytes");
+                response.Buffer = false;
+                var fileLength = fileStream.Length;
+                long startBytes = 0;
+                var pack = 10240;  //10K bytes
+                var sleep = (int)Math.Floor((double)(1000 * pack / speed)) + 1;
+                if (request.Headers["Range"] != null)
                 {
-                    using (var binaryReader = new BinaryReader(fileStream))
+                    response.StatusCode = 206;
+                    var range = request.Headers["Range"].Split(new char[] { '=', '-' });
+                    startBytes = Convert.ToInt64(range[1]);
+                }
+                response.AddHeader("Content-Length", (fileLength - startBytes).ToString());
+                if (startBytes != 0)
+                {
+                    response.AddHeader("Content-Range", string.Format(" bytes {0}-{1}/{2}", startBytes, fileLength - 1, fileLength));
+                }
+                response.AddHeader("Connection", "Keep-Alive");
+                response.ContentType = "application/octet-stream";
+                response.AddHeader("Content-Disposition", "attachment;filename=" + HttpUtility.UrlEncode(fileName, Encoding.UTF8));
+                //jquery.fileDownload插件必须添加以下Cookie设置，否则successCallback回调无效                
+                HttpContext.Current.Response.Cookies.Add(new HttpCookie("fileDownload", "true"));
+                binaryReader.BaseStream.Seek(startBytes, SeekOrigin.Begin);
+                var maxCount = Math.Floor((double)((fileLength - startBytes) / pack)) + 1;
+                for (var i = 0d; i < maxCount; i++)
+                {
+                    if (response.IsClientConnected)
                     {
-                        response.AddHeader("Accept-Ranges", "bytes");
-                        response.Buffer = false;
-                        var fileLength = fileStream.Length;
-                        long startBytes = 0;
-                        var pack = 10240;  //10K bytes
-                        var sleep = (int)Math.Floor((double)(1000 * pack / speed)) + 1;
-                        if (request.Headers["Range"] != null)
-                        {
-                            response.StatusCode = 206;
-                            var range = request.Headers["Range"].Split(new char[] { '=', '-' });
-                            startBytes = Convert.ToInt64(range[1]);
-                        }
-                        response.AddHeader("Content-Length", (fileLength - startBytes).ToString());
-                        if (startBytes != 0)
-                        {
-                            response.AddHeader("Content-Range", string.Format(" bytes {0}-{1}/{2}", startBytes, fileLength - 1, fileLength));
-                        }
-                        response.AddHeader("Connection", "Keep-Alive");
-                        response.ContentType = "application/octet-stream";
-                        response.AddHeader("Content-Disposition", "attachment;filename=" + HttpUtility.UrlEncode(fileName, Encoding.UTF8));
-                        //jquery.fileDownload插件必须添加以下Cookie设置，否则successCallback回调无效                
-                        HttpContext.Current.Response.Cookies.Add(new HttpCookie("fileDownload", "true"));
-                        binaryReader.BaseStream.Seek(startBytes, SeekOrigin.Begin);
-                        var maxCount = Math.Floor((double)((fileLength - startBytes) / pack)) + 1;
-                        for (var i = 0d; i < maxCount; i++)
-                        {
-                            if (response.IsClientConnected)
-                            {
-                                var bytes = binaryReader.ReadBytes(pack);
-                                await response.OutputStream.WriteAsync(bytes, 0, bytes.Length);
-                                Thread.Sleep(sleep);
-                            }
-                            else
-                            {
-                                i = maxCount;
-                            }
-                        }
+                        var bytes = binaryReader.ReadBytes(pack);
+                        await response.OutputStream.WriteAsync(bytes, 0, bytes.Length);
+                        Thread.Sleep(sleep);
+                    }
+                    else
+                    {
+                        i = maxCount;
                     }
                 }
             }
@@ -651,7 +623,10 @@ namespace ZqUtils.Helpers
             finally
             {
                 if (isDeleteFile)
-                    if (File.Exists(fullPath)) File.Delete(fullPath);
+                {
+                    if (File.Exists(fullPath))
+                        File.Delete(fullPath);
+                }
                 HttpContext.Current.Response.End();
             }
         }
@@ -711,16 +686,14 @@ namespace ZqUtils.Helpers
                 HttpContext.Current.Response.AddHeader("Content-Length", new FileInfo(filePath).Length.ToString());
                 //jquery.fileDownload插件必须添加以下Cookie设置，否则successCallback回调无效                
                 HttpContext.Current.Response.Cookies.Add(new HttpCookie("fileDownload", "true"));
-                using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                var buffer = new byte[2048];
+                var bytesRead = 0;
+                //每次读取2kb数据，然后写入文件
+                while ((bytesRead = await fileStream.ReadAsync(buffer, 0, buffer.Length)) != 0)
                 {
-                    var buffer = new byte[2048];
-                    var bytesRead = 0;
-                    //每次读取2kb数据，然后写入文件
-                    while ((bytesRead = await fileStream.ReadAsync(buffer, 0, buffer.Length)) != 0)
-                    {
-                        await HttpContext.Current.Response.OutputStream.WriteAsync(buffer, 0, buffer.Length);
-                        await HttpContext.Current.Response.OutputStream.FlushAsync();//输出缓存，此部不可少
-                    }
+                    await HttpContext.Current.Response.OutputStream.WriteAsync(buffer, 0, buffer.Length);
+                    await HttpContext.Current.Response.OutputStream.FlushAsync();//输出缓存，此部不可少
                 }
             }
             catch (Exception)
@@ -754,27 +727,23 @@ namespace ZqUtils.Helpers
                     HttpContext.Current.Response.AddHeader("content-disposition", $"filename={zipName}");
                     //jquery.fileDownload插件必须添加以下Cookie设置，否则successCallback回调无效                
                     HttpContext.Current.Response.Cookies.Add(new HttpCookie("fileDownload", "true"));
-                    using (var zipStream = new ZipOutputStream(HttpContext.Current.Response.OutputStream))
+                    using var zipStream = new ZipOutputStream(HttpContext.Current.Response.OutputStream);
+                    zipStream.SetLevel(3); //0-9, 9 being the highest level of compression
+                    foreach (string file in filePaths)
                     {
-                        zipStream.SetLevel(3); //0-9, 9 being the highest level of compression
-                        foreach (string file in filePaths)
+                        using var fs = File.OpenRead(file);
+                        var entry = new ZipEntry(Path.GetFileName(file)) { Size = fs.Length, IsUnicodeText = true };
+                        //Setting the Size provides WinXP built-in extractor compatibility,
+                        //but if not available, you can set zipOutputStream.UseZip64 = UseZip64.Off instead.
+                        zipStream.PutNextEntry(entry);
+                        var buffer = new byte[4096];
+                        var count = 0;
+                        while ((count = await fs.ReadAsync(buffer, 0, buffer.Length)) != 0)
                         {
-                            using (var fs = File.OpenRead(file))
-                            {
-                                var entry = new ZipEntry(ZipEntry.CleanName(file)) { Size = fs.Length, IsUnicodeText = true };
-                                //Setting the Size provides WinXP built-in extractor compatibility,
-                                //but if not available, you can set zipOutputStream.UseZip64 = UseZip64.Off instead.
-                                zipStream.PutNextEntry(entry);
-                                var buffer = new byte[4096];
-                                var count = 0;
-                                while ((count = await fs.ReadAsync(buffer, 0, buffer.Length)) != 0)
-                                {
-                                    await zipStream.WriteAsync(buffer, 0, count);
-                                    if (!HttpContext.Current.Response.IsClientConnected)
-                                        break;
-                                    await HttpContext.Current.Response.OutputStream.FlushAsync();
-                                }
-                            }
+                            await zipStream.WriteAsync(buffer, 0, count);
+                            if (!HttpContext.Current.Response.IsClientConnected)
+                                break;
+                            await HttpContext.Current.Response.OutputStream.FlushAsync();
                         }
                     }
                 }
@@ -809,32 +778,26 @@ namespace ZqUtils.Helpers
             {
                 if (filePaths?.Length > 0)
                 {
-                    using (var stream = new MemoryStream())
+                    using var stream = new MemoryStream();
+                    using var zipStream = new ZipOutputStream(stream);
+                    zipStream.SetLevel(3); //0-9, 9 being the highest level of compression
+                    foreach (string file in filePaths)
                     {
-                        using (var zipStream = new ZipOutputStream(stream))
+                        using var fs = File.OpenRead(file);
+                        var entry = new ZipEntry(Path.GetFileName(file)) { Size = fs.Length, IsUnicodeText = true };
+                        //Setting the Size provides WinXP built-in extractor compatibility,
+                        //but if not available, you can set zipOutputStream.UseZip64 = UseZip64.Off instead.
+                        zipStream.PutNextEntry(entry);
+                        var buffer = new byte[4096];
+                        var count = 0;
+                        while ((count = await fs.ReadAsync(buffer, 0, buffer.Length)) != 0)
                         {
-                            zipStream.SetLevel(3); //0-9, 9 being the highest level of compression
-                            foreach (string file in filePaths)
-                            {
-                                using (var fs = File.OpenRead(file))
-                                {
-                                    var entry = new ZipEntry(ZipEntry.CleanName(file)) { Size = fs.Length, IsUnicodeText = true };
-                                    //Setting the Size provides WinXP built-in extractor compatibility,
-                                    //but if not available, you can set zipOutputStream.UseZip64 = UseZip64.Off instead.
-                                    zipStream.PutNextEntry(entry);
-                                    var buffer = new byte[4096];
-                                    var count = 0;
-                                    while ((count = await fs.ReadAsync(buffer, 0, buffer.Length)) != 0)
-                                    {
-                                        await zipStream.WriteAsync(buffer, 0, count);
-                                        await zipStream.FlushAsync();
-                                    }
-                                }
-                            }
-                            zipStream.Finish();
-                            return stream.ToArray();
+                            await zipStream.WriteAsync(buffer, 0, count);
+                            await zipStream.FlushAsync();
                         }
                     }
+                    zipStream.Finish();
+                    return stream.ToArray();
                 }
                 return null;
             }
@@ -869,13 +832,11 @@ namespace ZqUtils.Helpers
             var sb = new StringBuilder();
             if (File.Exists(filePath))
             {
-                using (var sr = new StreamReader(filePath))
+                using var sr = new StreamReader(filePath);
+                string line;
+                while ((line = sr.ReadLine()) != null)
                 {
-                    string line;
-                    while ((line = sr.ReadLine()) != null)
-                    {
-                        sb.AppendLine(line);
-                    }
+                    sb.AppendLine(line);
                 }
             }
             return sb.ToString();
@@ -891,13 +852,11 @@ namespace ZqUtils.Helpers
             var sb = new StringBuilder();
             if (File.Exists(filePath))
             {
-                using (var sr = new StreamReader(filePath))
+                using var sr = new StreamReader(filePath);
+                string line;
+                while ((line = await sr.ReadLineAsync()) != null)
                 {
-                    string line;
-                    while ((line = await sr.ReadLineAsync()) != null)
-                    {
-                        sb.AppendLine(line);
-                    }
+                    sb.AppendLine(line);
                 }
             }
             return sb.ToString();
@@ -976,10 +935,8 @@ namespace ZqUtils.Helpers
             {
                 logWriteLock.EnterWriteLock();
                 IsExist(filePath);
-                using (var sw = new StreamWriter(filePath, isAppend, Encoding.GetEncoding(encoding)))
-                {
-                    sw.Write(content);
-                }
+                using var sw = new StreamWriter(filePath, isAppend, Encoding.GetEncoding(encoding));
+                sw.Write(content);
             }
             catch (Exception)
             {
@@ -1004,10 +961,8 @@ namespace ZqUtils.Helpers
             {
                 logWriteLock.EnterWriteLock();
                 IsExist(filePath);
-                using (var sw = new StreamWriter(filePath, isAppend, Encoding.GetEncoding(encoding)))
-                {
-                    await sw.WriteAsync(content);
-                }
+                using var sw = new StreamWriter(filePath, isAppend, Encoding.GetEncoding(encoding));
+                await sw.WriteAsync(content);
             }
             catch (Exception)
             {
@@ -1050,20 +1005,21 @@ namespace ZqUtils.Helpers
         public static bool FileCopy(string sourceFileName, string destFileName, bool overwrite = false)
         {
             var isExist = File.Exists(destFileName);
-            if (!overwrite && isExist) return true;
-            if (overwrite && isExist) File.Delete(destFileName);
-            using (var fStream = new FileStream(sourceFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+
+            if (!overwrite && isExist)
+                return true;
+
+            if (overwrite && isExist)
+                File.Delete(destFileName);
+
+            using var fStream = new FileStream(sourceFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var fs = File.Create(destFileName);
+            var buffer = new byte[2048];
+            var bytesRead = 0;
+            //每次读取2kb数据，然后写入文件
+            while ((bytesRead = fStream.Read(buffer, 0, buffer.Length)) != 0)
             {
-                using (var fs = File.Create(destFileName))
-                {
-                    var buffer = new byte[2048];
-                    var bytesRead = 0;
-                    //每次读取2kb数据，然后写入文件
-                    while ((bytesRead = fStream.Read(buffer, 0, buffer.Length)) != 0)
-                    {
-                        fs.Write(buffer, 0, bytesRead);
-                    }
-                }
+                fs.Write(buffer, 0, bytesRead);
             }
             return true;
         }
@@ -1078,21 +1034,23 @@ namespace ZqUtils.Helpers
         public static async Task<bool> FileCopyAsync(string sourceFileName, string destFileName, bool overwrite = false)
         {
             var isExist = File.Exists(destFileName);
-            if (!overwrite && isExist) return true;
-            if (overwrite && isExist) File.Delete(destFileName);
-            using (var fStream = new FileStream(sourceFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+
+            if (!overwrite && isExist) 
+                return true;
+
+            if (overwrite && isExist)
+                File.Delete(destFileName);
+
+            using var fStream = new FileStream(sourceFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var fs = File.Create(destFileName);
+            var buffer = new byte[2048];
+            var bytesRead = 0;
+            //每次读取2kb数据，然后写入文件
+            while ((bytesRead = await fStream.ReadAsync(buffer, 0, buffer.Length)) != 0)
             {
-                using (var fs = File.Create(destFileName))
-                {
-                    var buffer = new byte[2048];
-                    var bytesRead = 0;
-                    //每次读取2kb数据，然后写入文件
-                    while ((bytesRead = await fStream.ReadAsync(buffer, 0, buffer.Length)) != 0)
-                    {
-                        await fs.WriteAsync(buffer, 0, bytesRead);
-                    }
-                }
+                await fs.WriteAsync(buffer, 0, bytesRead);
             }
+
             return true;
         }
         #endregion
@@ -1108,22 +1066,26 @@ namespace ZqUtils.Helpers
         public static bool FileMove(string sourceFileName, string destFileName, bool overwrite = false)
         {
             var isExist = File.Exists(destFileName);
-            if (!overwrite && isExist) return true;
-            if (overwrite && isExist) File.Delete(destFileName);
-            using (var fStream = new FileStream(sourceFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+
+            if (!overwrite && isExist) 
+                return true;
+
+            if (overwrite && isExist)
+                File.Delete(destFileName);
+
+            using var fStream = new FileStream(sourceFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var fs = File.Create(destFileName);
+            var buffer = new byte[2048];
+            var bytesRead = 0;
+            //每次读取2kb数据，然后写入文件
+            while ((bytesRead = fStream.Read(buffer, 0, buffer.Length)) != 0)
             {
-                using (var fs = File.Create(destFileName))
-                {
-                    var buffer = new byte[2048];
-                    var bytesRead = 0;
-                    //每次读取2kb数据，然后写入文件
-                    while ((bytesRead = fStream.Read(buffer, 0, buffer.Length)) != 0)
-                    {
-                        fs.Write(buffer, 0, bytesRead);
-                    }
-                }
+                fs.Write(buffer, 0, bytesRead);
             }
-            if (File.Exists(sourceFileName)) File.Delete(sourceFileName);
+
+            if (File.Exists(sourceFileName))
+                File.Delete(sourceFileName);
+
             return true;
         }
 
@@ -1137,22 +1099,26 @@ namespace ZqUtils.Helpers
         public static async Task<bool> FileMoveAsync(string sourceFileName, string destFileName, bool overwrite = false)
         {
             var isExist = File.Exists(destFileName);
-            if (!overwrite && isExist) return true;
-            if (overwrite && isExist) File.Delete(destFileName);
-            using (var fStream = new FileStream(sourceFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+
+            if (!overwrite && isExist)
+                return true;
+
+            if (overwrite && isExist)
+                File.Delete(destFileName);
+
+            using var fStream = new FileStream(sourceFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var fs = File.Create(destFileName);
+            var buffer = new byte[2048];
+            var bytesRead = 0;
+            //每次读取2kb数据，然后写入文件
+            while ((bytesRead = await fStream.ReadAsync(buffer, 0, buffer.Length)) != 0)
             {
-                using (var fs = File.Create(destFileName))
-                {
-                    var buffer = new byte[2048];
-                    var bytesRead = 0;
-                    //每次读取2kb数据，然后写入文件
-                    while ((bytesRead = await fStream.ReadAsync(buffer, 0, buffer.Length)) != 0)
-                    {
-                        await fs.WriteAsync(buffer, 0, bytesRead);
-                    }
-                }
+                await fs.WriteAsync(buffer, 0, bytesRead);
             }
-            if (File.Exists(sourceFileName)) File.Delete(sourceFileName);
+
+            if (File.Exists(sourceFileName))
+                File.Delete(sourceFileName);
+
             return true;
         }
         #endregion
@@ -1165,18 +1131,16 @@ namespace ZqUtils.Helpers
         /// <returns>string</returns>
         public static string GetMD5HashFromFile(string filePath)
         {
-            using (var file = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using var file = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            var md5 = new MD5CryptoServiceProvider();
+            var retVal = md5.ComputeHash(file);
+            file.Close();
+            var sb = new StringBuilder();
+            for (int i = 0; i < retVal.Length; i++)
             {
-                var md5 = new MD5CryptoServiceProvider();
-                var retVal = md5.ComputeHash(file);
-                file.Close();
-                var sb = new StringBuilder();
-                for (int i = 0; i < retVal.Length; i++)
-                {
-                    sb.Append(retVal[i].ToString("x2"));
-                }
-                return sb.ToString();
+                sb.Append(retVal[i].ToString("x2"));
             }
+            return sb.ToString();
         }
         #endregion
 
@@ -1193,12 +1157,10 @@ namespace ZqUtils.Helpers
             if (index > -1)
             {
                 data = data.Substring(index + 7);
-                using (var fs = File.Create(filePath))
-                {
-                    var bytes = Convert.FromBase64String(data);
-                    fs.Write(bytes, 0, bytes.Length);
-                    return true;
-                }
+                using var fs = File.Create(filePath);
+                var bytes = Convert.FromBase64String(data);
+                fs.Write(bytes, 0, bytes.Length);
+                return true;
             }
             return false;
         }
@@ -1215,12 +1177,10 @@ namespace ZqUtils.Helpers
             if (index > -1)
             {
                 data = data.Substring(index + 7);
-                using (var fs = File.Create(filePath))
-                {
-                    var bytes = Convert.FromBase64String(data);
-                    await fs.WriteAsync(bytes, 0, bytes.Length);
-                    return true;
-                }
+                using var fs = File.Create(filePath);
+                var bytes = Convert.FromBase64String(data);
+                await fs.WriteAsync(bytes, 0, bytes.Length);
+                return true;
             }
             return false;
         }

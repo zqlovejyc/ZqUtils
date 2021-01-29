@@ -16,14 +16,15 @@
  */
 #endregion
 
+using ICSharpCode.SharpZipLib.Checksum;
+using ICSharpCode.SharpZipLib.Zip;
+using SevenZip;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Collections.Generic;
-using ICSharpCode.SharpZipLib.Zip;
-using ICSharpCode.SharpZipLib.Checksum;
-using SevenZip;
+using ZqUtils.Extensions;
 /****************************
 * [Author] 张强
 * [Date] 2015-10-26
@@ -43,14 +44,11 @@ namespace ZqUtils.Helpers
         static ZipHelper()
         {
             var path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), Environment.Is64BitProcess ? "x64" : "x86", "7z.dll");
+
             if (File.Exists(path))
-            {
                 SevenZipBase.SetLibraryPath(path);
-            }
             else
-            {
                 throw new FileLoadException($"{path}文件未找到！");
-            }
         }
         #endregion
 
@@ -73,19 +71,17 @@ namespace ZqUtils.Helpers
             files = Directory.GetFiles(folderToZip);
             foreach (var file in files)
             {
-                using (var fs = File.OpenRead(file))
-                {
-                    var buffer = new byte[fs.Length];
-                    fs.Read(buffer, 0, buffer.Length);
-                    ent = new ZipEntry(Path.Combine(parentFolderName, Path.GetFileName(folderToZip) + "/" + Path.GetFileName(file))) { IsUnicodeText = true };
-                    ent.DateTime = DateTime.Now;
-                    ent.Size = fs.Length;
-                    crc.Reset();
-                    crc.Update(buffer);
-                    ent.Crc = crc.Value;
-                    zipStream.PutNextEntry(ent);
-                    zipStream.Write(buffer, 0, buffer.Length);
-                }
+                using var fs = File.OpenRead(file);
+                var buffer = new byte[fs.Length];
+                fs.Read(buffer, 0, buffer.Length);
+                ent = new ZipEntry(Path.Combine(parentFolderName, Path.GetFileName(folderToZip) + "/" + Path.GetFileName(file))) { IsUnicodeText = true };
+                ent.DateTime = DateTime.Now;
+                ent.Size = fs.Length;
+                crc.Reset();
+                crc.Update(buffer);
+                ent.Crc = crc.Value;
+                zipStream.PutNextEntry(ent);
+                zipStream.Write(buffer, 0, buffer.Length);
             }
             //获取文件夹
             folders = Directory.GetDirectories(folderToZip);
@@ -107,17 +103,16 @@ namespace ZqUtils.Helpers
         /// <returns>是否压缩成功</returns>   
         public static bool ZipDirectory(string folderToZip, string zipedFile, string password = null)
         {
-            var result = false;
             if (!Directory.Exists(folderToZip))
-                return result;
-            using (var zipStream = new ZipOutputStream(File.Create(zipedFile)))
-            {
-                zipStream.SetLevel(6);
-                if (!string.IsNullOrEmpty(password))
-                    zipStream.Password = password;
-                result = ZipDirectory(folderToZip, zipStream, "");
-            }
-            return result;
+                return false;
+
+            using var zipStream = new ZipOutputStream(File.Create(zipedFile));
+            zipStream.SetLevel(6);
+
+            if (password.IsNotNullOrEmpty())
+                zipStream.Password = password;
+
+            return ZipDirectory(folderToZip, zipStream, "");
         }
 
         /// <summary>
@@ -132,18 +127,18 @@ namespace ZqUtils.Helpers
             if (!File.Exists(fileToZip))
                 return false;
 
-            using (var fs = File.OpenRead(fileToZip))
-            {
-                var buffer = new byte[fs.Length];
-                fs.Read(buffer, 0, buffer.Length);
-                if (!string.IsNullOrEmpty(password))
-                    zipStream.Password = password;
-                var ent = new ZipEntry(Path.GetFileName(fileToZip)) { IsUnicodeText = true };
-                zipStream.PutNextEntry(ent);
-                zipStream.SetLevel(6);
-                zipStream.Write(buffer, 0, buffer.Length);
-                return true;
-            }
+            using var fs = File.OpenRead(fileToZip);
+            var buffer = new byte[fs.Length];
+            fs.Read(buffer, 0, buffer.Length);
+
+            if (password.IsNotNullOrEmpty())
+                zipStream.Password = password;
+
+            var ent = new ZipEntry(Path.GetFileName(fileToZip)) { IsUnicodeText = true };
+            zipStream.PutNextEntry(ent);
+            zipStream.SetLevel(6);
+            zipStream.Write(buffer, 0, buffer.Length);
+            return true;
         }
 
         /// <summary>   
@@ -157,23 +152,20 @@ namespace ZqUtils.Helpers
         {
             if (!File.Exists(fileToZip))
                 return false;
-            using (var fs = File.OpenRead(fileToZip))
-            {
-                var buffer = new byte[fs.Length];
-                fs.Read(buffer, 0, buffer.Length);
-                using (var f = File.Create(zipedFile))
-                {
-                    using (var zipStream = new ZipOutputStream(f))
-                    {
-                        if (!string.IsNullOrEmpty(password))
-                            zipStream.Password = password;
-                        var ent = new ZipEntry(Path.GetFileName(fileToZip)) { IsUnicodeText = true };
-                        zipStream.PutNextEntry(ent);
-                        zipStream.SetLevel(6);
-                        zipStream.Write(buffer, 0, buffer.Length);
-                    }
-                }
-            }
+
+            using var fs = File.OpenRead(fileToZip);
+            var buffer = new byte[fs.Length];
+            fs.Read(buffer, 0, buffer.Length);
+            using var f = File.Create(zipedFile);
+            using var zipStream = new ZipOutputStream(f);
+
+            if (password.IsNotNullOrEmpty())
+                zipStream.Password = password;
+
+            var ent = new ZipEntry(Path.GetFileName(fileToZip)) { IsUnicodeText = true };
+            zipStream.PutNextEntry(ent);
+            zipStream.SetLevel(6);
+            zipStream.Write(buffer, 0, buffer.Length);
             return true;
         }
 
@@ -187,14 +179,13 @@ namespace ZqUtils.Helpers
         public static bool Zip(string fileToZip, string zipedFile, string password = null)
         {
             var result = false;
+
             if (Directory.Exists(fileToZip))
-            {
                 result = ZipDirectory(fileToZip, zipedFile, password);
-            }
+
             else if (File.Exists(fileToZip))
-            {
                 result = ZipFile(fileToZip, zipedFile, password);
-            }
+
             return result;
         }
 
@@ -208,25 +199,26 @@ namespace ZqUtils.Helpers
         public static bool Zip(List<string> filesToZip, string zipedFile, string password = null)
         {
             var result = true;
-            using (var zipStream = new ZipOutputStream(File.Create(zipedFile)))
+            using var zipStream = new ZipOutputStream(File.Create(zipedFile));
+            zipStream.SetLevel(6);
+
+            if (password.IsNotNullOrEmpty())
+                zipStream.Password = password;
+
+            filesToZip.ForEach(o =>
             {
-                zipStream.SetLevel(6);
-                if (!string.IsNullOrEmpty(password))
-                    zipStream.Password = password;
-                filesToZip.ForEach(o =>
+                if (Directory.Exists(o))
                 {
-                    if (Directory.Exists(o))
-                    {
-                        if (!ZipDirectory(o, zipStream, ""))
-                            result = false;
-                    }
-                    else if (File.Exists(o))
-                    {
-                        if (!ZipFile(o, zipStream, password))
-                            result = false;
-                    }
-                });
-            }
+                    if (!ZipDirectory(o, zipStream, ""))
+                        result = false;
+                }
+                else if (File.Exists(o))
+                {
+                    if (!ZipFile(o, zipStream, password))
+                        result = false;
+                }
+            });
+
             return result;
         }
         #endregion
@@ -247,36 +239,34 @@ namespace ZqUtils.Helpers
             if (!Directory.Exists(zipedFolder))
                 Directory.CreateDirectory(zipedFolder);
 
-            using (var zipStream = new ZipInputStream(File.OpenRead(fileToUnZip)))
-            {
-                if (!string.IsNullOrEmpty(password))
-                    zipStream.Password = password;
+            using var zipStream = new ZipInputStream(File.OpenRead(fileToUnZip));
 
-                ZipEntry ent;
-                while ((ent = zipStream.GetNextEntry()) != null)
+            if (password.IsNotNullOrEmpty())
+                zipStream.Password = password;
+
+            ZipEntry ent;
+            while ((ent = zipStream.GetNextEntry()) != null)
+            {
+                if (ent.Name.IsNotNullOrEmpty())
                 {
-                    if (!string.IsNullOrEmpty(ent.Name))
+                    var fileName = Path.Combine(zipedFolder, ent.Name);
+                    fileName = PathHelper.ConvertToCurrentOsPath(fileName);
+                    if (fileName.EndsWith(PathHelper.CurrentOsDirectorySeparator.ToString()))
                     {
-                        var fileName = Path.Combine(zipedFolder, ent.Name);
-                        fileName = PathHelper.ConvertToCurrentOsPath(fileName);
-                        if (fileName.EndsWith(PathHelper.CurrentOsDirectorySeparator.ToString()))
-                        {
-                            Directory.CreateDirectory(fileName);
-                            continue;
-                        }
-                        using (var fs = File.Create(fileName))
-                        {
-                            var buffer = new byte[2048];
-                            var bytesRead = 0;
-                            //每次读取2kb数据，然后写入文件
-                            while ((bytesRead = zipStream.Read(buffer, 0, buffer.Length)) != 0)
-                            {
-                                fs.Write(buffer, 0, bytesRead);
-                            }
-                        }
+                        Directory.CreateDirectory(fileName);
+                        continue;
+                    }
+                    using var fs = File.Create(fileName);
+                    var buffer = new byte[2048];
+                    var bytesRead = 0;
+                    //每次读取2kb数据，然后写入文件
+                    while ((bytesRead = zipStream.Read(buffer, 0, buffer.Length)) != 0)
+                    {
+                        fs.Write(buffer, 0, bytesRead);
                     }
                 }
             }
+
             return true;
         }
         #endregion
@@ -314,48 +304,40 @@ namespace ZqUtils.Helpers
                 ArchiveFormat = outArchiveFormat,
                 CompressionLevel = compressionLevel
             };
+
             if (fileCompressionStarted != null)
-            {
                 tmp.FileCompressionStarted += fileCompressionStarted;
-            }
+
             if (filesFound != null)
-            {
                 tmp.FilesFound += filesFound;
-            }
+
             if (compressing != null)
-            {
                 tmp.Compressing += compressing;
-            }
+
             if (fileCompressionFinished != null)
-            {
                 tmp.FileCompressionFinished += fileCompressionFinished;
-            }
+
             //文件夹
             if (Directory.Exists(sourcePath))
             {
-                if (!string.IsNullOrEmpty(password))
-                {
+                if (password.IsNotNullOrEmpty())
                     tmp.CompressDirectory(sourcePath, destFileName, password);
-                }
                 else
-                {
                     tmp.CompressDirectory(sourcePath, destFileName);
-                }
+
                 return true;
             }
             //文件
             else if (File.Exists(sourcePath))
             {
-                if (!string.IsNullOrEmpty(password))
-                {
+                if (password.IsNotNullOrEmpty())
                     tmp.CompressFilesEncrypted(destFileName, password, sourcePath);
-                }
                 else
-                {
                     tmp.CompressFiles(destFileName, sourcePath);
-                }
+
                 return true;
             }
+
             return false;
         }
 
@@ -391,35 +373,30 @@ namespace ZqUtils.Helpers
                 ArchiveFormat = outArchiveFormat,
                 CompressionLevel = compressionLevel
             };
+
             if (fileCompressionStarted != null)
-            {
                 tmp.FileCompressionStarted += fileCompressionStarted;
-            }
+
             if (filesFound != null)
-            {
                 tmp.FilesFound += filesFound;
-            }
+
             if (compressing != null)
-            {
                 tmp.Compressing += compressing;
-            }
+
             if (fileCompressionFinished != null)
-            {
                 tmp.FileCompressionFinished += fileCompressionFinished;
-            }
+
             var files = sourceFiles?.Where(o => File.Exists(o))?.ToArray();
             if (files?.Length > 0)
             {
-                if (!string.IsNullOrEmpty(password))
-                {
+                if (password.IsNotNullOrEmpty())
                     tmp.CompressFilesEncrypted(destFileName, password, files);
-                }
                 else
-                {
                     tmp.CompressFiles(destFileName, files);
-                }
+
                 return true;
             }
+
             return false;
         }
         #endregion
@@ -445,33 +422,28 @@ namespace ZqUtils.Helpers
             EventHandler<ProgressEventArgs> extracting = null,
             EventHandler<FileInfoEventArgs> fileExtractionFinished = null)
         {
-            SevenZipExtractor tmp = null;
-            if (!string.IsNullOrEmpty(password))
-            {
+            SevenZipExtractor tmp;
+
+            if (password.IsNotNullOrEmpty())
                 tmp = new SevenZipExtractor(filePath, password);
-            }
             else
-            {
                 tmp = new SevenZipExtractor(filePath);
-            }
+
             if (fileExtractionStarted != null)
-            {
                 tmp.FileExtractionStarted += fileExtractionStarted;
-            }
+
             if (fileExists != null)
-            {
                 tmp.FileExists += fileExists;
-            }
+
             if (extracting != null)
-            {
                 tmp.Extracting += extracting;
-            }
+
             if (fileExtractionFinished != null)
-            {
                 tmp.FileExtractionFinished += fileExtractionFinished;
-            }
+
             tmp.ExtractArchive(extractFolder);
             tmp?.Dispose();
+
             return true;
         }
         #endregion
