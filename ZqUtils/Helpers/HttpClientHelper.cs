@@ -158,7 +158,7 @@ namespace ZqUtils.Helpers
             Dictionary<string, string> headers = null,
             Action<HttpClient> @delegate = null)
         {
-            if (url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
+            if (url.StartsWithIgnoreCase("https"))
                 ServicePointManager.ServerCertificateValidationCallback = (request, certificate, chain, errors) => true;
 
             var httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = decompressionMethods });
