@@ -93,7 +93,7 @@ namespace ZqUtils.Helpers
         private void SetCer(HttpRequest req)
         {
             //这一句一定要写在创建连接的前面。使用回调的方法进行证书验证。
-            if (req.Url?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true)
+            if (req.Url.StartsWithIgnoreCase("https"))
                 ServicePointManager.ServerCertificateValidationCallback = (request, certificate, chain, errors) => true;
 
             //初始化对像，并设置请求的URL地址
@@ -197,7 +197,7 @@ namespace ZqUtils.Helpers
         private void SetPostData(HttpRequest req)
         {
             //验证在得到结果时是否有传入数据
-            if (request.Method?.Trim().ToLower().Contains("get") == false)
+            if (!request.Method.EqualIgnoreCase("get"))
             {
                 //post数据编码
                 if (req.PostEncoding != null)
@@ -505,9 +505,9 @@ namespace ZqUtils.Helpers
             var responseStream = response.GetResponseStream();
 
             //解压缩
-            if (response.ContentEncoding?.ToLower().Contains("gzip") == true)
+            if (response.ContentEncoding.ContainsIgnoreCase("gzip"))
                 responseStream = new GZipStream(responseStream, CompressionMode.Decompress);
-            else if (response.ContentEncoding?.ToLower().Contains("deflate") == true)
+            else if (response.ContentEncoding.ContainsIgnoreCase("deflate"))
                 responseStream = new DeflateStream(responseStream, CompressionMode.Decompress);
 
             //返回类型非文件
