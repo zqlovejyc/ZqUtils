@@ -1151,16 +1151,28 @@ namespace ZqUtils.Helpers
         /// <returns>string</returns>
         public static string GetMD5HashFromFile(string filePath)
         {
-            using var file = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-            var md5 = new MD5CryptoServiceProvider();
-            var retVal = md5.ComputeHash(file);
-            file.Close();
-            var sb = new StringBuilder();
-            for (int i = 0; i < retVal.Length; i++)
+            var file = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            return GetMD5HashFromStream(file);
+        }
+
+        /// <summary>
+        /// 获取文件流MD5 hash值
+        /// </summary>
+        /// <param name="fileStream">文件流</param>
+        /// <returns>string</returns>
+        public static string GetMD5HashFromStream(Stream fileStream)
+        {
+            using var md5 = new MD5CryptoServiceProvider();
+            using (fileStream)
             {
-                sb.Append(retVal[i].ToString("x2"));
+                var retVal = md5.ComputeHash(fileStream);
+                var sb = new StringBuilder();
+                for (int i = 0; i < retVal.Length; i++)
+                {
+                    sb.Append(retVal[i].ToString("x2"));
+                }
+                return sb.ToString();
             }
-            return sb.ToString();
         }
         #endregion
 
