@@ -139,7 +139,7 @@ namespace ZqUtils.Helpers
         {
             var isIeProxy = false;
             if (req.ProxyIp.IsNotNullOrEmpty())
-                isIeProxy = req.ProxyIp.ToLower().Contains("ieproxy");
+                isIeProxy = req.ProxyIp.ContainsIgnoreCase("ieproxy");
 
             //非IE代理
             if (!isIeProxy)
@@ -1021,14 +1021,12 @@ namespace ZqUtils.Helpers
                 {
                     if (Header?.Count > 0)
                     {
-                        if (Header.AllKeys.Any(k => k.ToLower().Contains("location")))
+                        if (Header.AllKeys.Any(k => k.ContainsIgnoreCase("location")))
                         {
-                            var baseurl = Header["location"].ToString().Trim();
-                            var locationurl = baseurl.ToLower();
-
-                            if (locationurl.IsNotNullOrEmpty())
+                            var baseurl = Header["location"]?.ToString().Trim();
+                            if (baseurl.IsNotNullOrEmpty())
                             {
-                                var b = locationurl.StartsWith("http://") || locationurl.StartsWith("https://");
+                                var b = baseurl.StartsWithIgnoreCase("http://") || baseurl.StartsWithIgnoreCase("https://");
                                 if (!b)
                                     baseurl = new Uri(new Uri(ResponseUri), baseurl).AbsoluteUri;
                             }
