@@ -67,7 +67,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 执行指定exe程序命令
         /// </summary>
-        /// <param name="p">进程</param>
+        /// <param name="process">进程</param>
         /// <param name="exe">exe可执行文件路径</param>
         /// <param name="arg">参数</param>
         /// <param name="output">委托</param>
@@ -83,29 +83,30 @@ namespace ZqUtils.Helpers
         ///     </code>
         /// </example>
         public static void Execute(
-            Process p,
+            Process process,
             string exe,
             string arg,
             DataReceivedEventHandler output)
         {
-            p.StartInfo.FileName = exe;
-            p.StartInfo.Arguments = arg;
+            process.StartInfo.FileName = exe;
+            process.StartInfo.Arguments = arg;
 
             //输出信息重定向
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.CreateNoWindow = true;
-            p.StartInfo.RedirectStandardError = true;
-            p.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.CreateNoWindow = true;
+            process.StartInfo.RedirectStandardError = true;
+            process.StartInfo.RedirectStandardOutput = true;
 
-            p.OutputDataReceived += output;
-            p.ErrorDataReceived += output;
+            process.OutputDataReceived += output;
+            process.ErrorDataReceived += output;
 
             //启动线程
-            p.Start();
-            p.BeginOutputReadLine();
-            p.BeginErrorReadLine();
+            process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+
             //等待进程结束
-            p.WaitForExit();
+            process.WaitForExit();
         }
 
         /// <summary>
