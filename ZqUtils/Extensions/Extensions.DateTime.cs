@@ -103,7 +103,7 @@ namespace ZqUtils.Extensions
         {
             //var tricks = new DateTime(1970, 1, 1, 0, 0, 0).Ticks + @this * 10000;
             //return new DateTime(tricks).AddHours(8);
-            var start = TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1));
+            var start = TimeZoneInfo.ConvertTime(new DateTime(1970, 1, 1), TimeZoneInfo.Local);
             return start.Add(new TimeSpan(long.Parse(@this + "0000")));
         }
 
@@ -112,12 +112,22 @@ namespace ZqUtils.Extensions
         /// </summary>
         /// <param name="this">年周字符串，如(2020年第34周)：2034/202034</param>
         /// <param name="dayOfWeek">周的开始日期：Sunday或者Monday</param>
+        /// <param name="weekRule">年第一周规则</param>
         /// <param name="lastYear">如果当年第一天不是一周的开始，是否倒推上一年日期</param>
         /// <returns></returns>
-        public static DateTime ToDateTime(this string @this, DayOfWeek dayOfWeek = DayOfWeek.Sunday, bool lastYear = false)
+        public static DateTime? ToDateTime(
+            this string @this,
+            DayOfWeek dayOfWeek = DayOfWeek.Sunday,
+            CalendarWeekRule weekRule = CalendarWeekRule.FirstDay,
+            bool lastYear = false)
         {
+            //判断是否为空
+            if (@this.IsNullOrWhiteSpace())
+                return null;
+
             //年份
             string year = null;
+
             //YYWW
             if (@this.Length == 4)
                 year = DateTime.Now.Year.ToString().Substring(0, 2) + @this.Substring(0, 2);
@@ -136,6 +146,7 @@ namespace ZqUtils.Extensions
 
             //第一周剩余天数
             int firstWeekDays;
+
             //周日
             if (dayOfWeek == DayOfWeek.Sunday)
                 firstWeekDays = 6 - (int)startDayOfWeek;
@@ -143,12 +154,168 @@ namespace ZqUtils.Extensions
             else
                 firstWeekDays = 7 - (int)startDayOfWeek;
 
+            //当年第一天位于年第几周
+            var weekOrYear = start.WeekOfYear(dayOfWeek, weekRule);
+
+            //如果当年第一天不是第一周，则重新计算当年第一周开始日期
+            if (weekOrYear != 1)
+                start = start.AddDays(firstWeekDays + 1);
+
             //第一周
             if (weeks == 1)
             {
                 //是否倒推上一年
                 if (!lastYear)
                     return start;
+
+                //周日
+                if (dayOfWeek == DayOfWeek.Sunday)
+                    return start.AddDays(-(int)startDayOfWeek);
+                //周一
+                else
+                    return start.AddDays(-(int)startDayOfWeek + 1);
+            }
+
+            //年开始日期 + 第一周天数 + 中间天数 + 最后一周只算1天
+            return start.AddDays(firstWeekDays).AddDays((weeks - 2) * 7).AddDays(1);
+        }
+
+        /// <summary>
+        /// 年周(YYWW/YYYYWW)转换为年月日
+        /// </summary>
+        /// <param name="this">年周字符串，如(2020年第34周)：2034/202034</param>
+        /// <param name="calendarTypes">公历类型</param>
+        /// <param name="dayOfWeek">周的开始日期：Sunday或者Monday</param>
+        /// <param name="weekRule">年第一周规则</param>
+        /// <param name="lastYear">如果当年第一天不是一周的开始，是否倒推上一年日期</param>
+        /// <returns></returns>
+        public static DateTime? ToDateTime(
+            this string @this,
+            GregorianCalendarTypes calendarTypes,
+            DayOfWeek dayOfWeek = DayOfWeek.Sunday,
+            CalendarWeekRule weekRule = CalendarWeekRule.FirstDay,
+            bool lastYear = false)
+        {
+            //判断是否为空
+            if (@this.IsNullOrWhiteSpace())
+                return null;
+
+            //年份
+            string year = null;
+
+            //YYWW
+            if (@this.Length == 4)
+                year = DateTime.Now.Year.ToString().Substring(0, 2) + @this.Substring(0, 2);
+            //YYYYWW
+            else if (@this.Length == 6)
+                year = @this.Substring(0, 4);
+
+            //第几周
+            var weeks = @this.Substring(@this.Length - 2).ToInt();
+
+            //当年第一天
+            var start = $"{year}-01-01".ToDateTime().Value;
+
+            //当年第一天周几
+            var startDayOfWeek = start.DayOfWeek;
+
+            //第一周剩余天数
+            int firstWeekDays;
+
+            //周日
+            if (dayOfWeek == DayOfWeek.Sunday)
+                firstWeekDays = 6 - (int)startDayOfWeek;
+            //周一
+            else
+                firstWeekDays = 7 - (int)startDayOfWeek;
+
+            //当年第一天位于年第几周
+            var weekOrYear = start.WeekOfYear(calendarTypes, dayOfWeek, weekRule);
+
+            //如果当年第一天不是第一周，则重新计算当年第一周开始日期
+            if (weekOrYear != 1)
+                start = start.AddDays(firstWeekDays + 1);
+
+            //第一周
+            if (weeks == 1)
+            {
+                //是否倒推上一年
+                if (!lastYear)
+                    return start;
+
+                //周日
+                if (dayOfWeek == DayOfWeek.Sunday)
+                    return start.AddDays(-(int)startDayOfWeek);
+                //周一
+                else
+                    return start.AddDays(-(int)startDayOfWeek + 1);
+            }
+
+            //年开始日期 + 第一周天数 + 中间天数 + 最后一周只算1天
+            return start.AddDays(firstWeekDays).AddDays((weeks - 2) * 7).AddDays(1);
+        }
+
+        /// <summary>
+        /// 年周(YYWW/YYYYWW)转换为年月日
+        /// </summary>
+        /// <param name="this">年周字符串，如(2020年第34周)：2034/202034</param>
+        /// <param name="ci">区域信息，示例：new CultureInfo("zh-CN")</param>
+        /// <param name="dayOfWeek">周的开始日期：Sunday或者Monday</param>
+        /// <param name="lastYear">如果当年第一天不是一周的开始，是否倒推上一年日期</param>
+        /// <returns></returns>
+        public static DateTime? ToDateTime(
+            this string @this,
+            CultureInfo ci,
+            DayOfWeek dayOfWeek = DayOfWeek.Sunday,
+            bool lastYear = false)
+        {
+            //判断是否为空
+            if (@this.IsNullOrWhiteSpace())
+                return null;
+
+            //年份
+            string year = null;
+
+            //YYWW
+            if (@this.Length == 4)
+                year = DateTime.Now.Year.ToString().Substring(0, 2) + @this.Substring(0, 2);
+            //YYYYWW
+            else if (@this.Length == 6)
+                year = @this.Substring(0, 4);
+
+            //第几周
+            var weeks = @this.Substring(@this.Length - 2).ToInt();
+
+            //当年第一天
+            var start = $"{year}-01-01".ToDateTime().Value;
+
+            //当年第一天周几
+            var startDayOfWeek = start.DayOfWeek;
+
+            //第一周剩余天数
+            int firstWeekDays;
+
+            //周日
+            if (dayOfWeek == DayOfWeek.Sunday)
+                firstWeekDays = 6 - (int)startDayOfWeek;
+            //周一
+            else
+                firstWeekDays = 7 - (int)startDayOfWeek;
+
+            //当年第一天位于年第几周
+            var weekOrYear = start.WeekOfYear(ci);
+
+            //如果当年第一天不是第一周，则重新计算当年第一周开始日期
+            if (weekOrYear != 1)
+                start = start.AddDays(firstWeekDays + 1);
+
+            //第一周
+            if (weeks == 1)
+            {
+                //是否倒推上一年
+                if (!lastYear)
+                    return start;
+
                 //周日
                 if (dayOfWeek == DayOfWeek.Sunday)
                     return start.AddDays(-(int)startDayOfWeek);
@@ -176,7 +343,7 @@ namespace ZqUtils.Extensions
 
         #region WeekOfMonth
         /// <summary>
-        /// 获取当前时间是本月的第几周
+        /// 获取指定时间是当月的第几周
         /// </summary>
         /// <param name="this">当前时间</param>
         /// <param name="type">1:周一至周日 为一周;2:表示 周日至周六 为一周</param>
@@ -196,11 +363,14 @@ namespace ZqUtils.Extensions
         /// <summary>
         /// 获取指定时间是当年的第几周
         /// </summary>
-        /// <param name="this"></param>
-        /// <param name="dayOfWeek"></param>
-        /// <param name="weekRule"></param>
+        /// <param name="this">目标日期</param>
+        /// <param name="dayOfWeek">周的开始日期</param>
+        /// <param name="weekRule">年第一周规则</param>
         /// <returns></returns>
-        public static int WeekOfYear(this DateTime @this, DayOfWeek dayOfWeek = DayOfWeek.Monday, CalendarWeekRule weekRule = CalendarWeekRule.FirstDay)
+        public static int WeekOfYear(
+            this DateTime @this,
+            DayOfWeek dayOfWeek = DayOfWeek.Sunday,
+            CalendarWeekRule weekRule = CalendarWeekRule.FirstDay)
         {
             var gc = new GregorianCalendar();
             return gc.GetWeekOfYear(@this, weekRule, dayOfWeek);
@@ -209,12 +379,16 @@ namespace ZqUtils.Extensions
         /// <summary>
         /// 获取指定时间是当年的第几周
         /// </summary>
-        /// <param name="this"></param>
-        /// <param name="calendarTypes"></param>
-        /// <param name="dayOfWeek"></param>
-        /// <param name="weekRule"></param>
+        /// <param name="this">目标日期</param>
+        /// <param name="calendarTypes">公历类型</param>
+        /// <param name="dayOfWeek">周的开始日期</param>
+        /// <param name="weekRule">年第一周规则</param>
         /// <returns></returns>
-        public static int WeekOfYear(this DateTime @this, GregorianCalendarTypes calendarTypes, DayOfWeek dayOfWeek = DayOfWeek.Monday, CalendarWeekRule weekRule = CalendarWeekRule.FirstDay)
+        public static int WeekOfYear(
+            this DateTime @this,
+            GregorianCalendarTypes calendarTypes,
+            DayOfWeek dayOfWeek = DayOfWeek.Sunday,
+            CalendarWeekRule weekRule = CalendarWeekRule.FirstDay)
         {
             var gc = new GregorianCalendar(calendarTypes);
             return gc.GetWeekOfYear(@this, weekRule, dayOfWeek);
@@ -223,8 +397,8 @@ namespace ZqUtils.Extensions
         /// <summary>
         /// 获取指定时间是当年的第几周
         /// </summary>
-        /// <param name="this"></param>
-        /// <param name="ci">示例：new CultureInfo("zh-CN")</param>
+        /// <param name="this">目标日期</param>
+        /// <param name="ci">区域信息，示例：new CultureInfo("zh-CN")</param>
         /// <returns></returns>
         public static int WeekOfYear(this DateTime @this, CultureInfo ci)
         {
