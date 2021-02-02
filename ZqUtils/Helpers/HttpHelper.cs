@@ -711,15 +711,15 @@ namespace ZqUtils.Helpers
         /// <param name="url">要下载的文件url</param>
         /// <param name="fileSavePath">本地文件保存路径</param>
         /// <param name="toolPath">aria2c.exe可执行文件路径</param>
-        /// <param name="command">下载文件默认命令</param>
         /// <param name="action">文件下载进度委托</param>
+        /// <param name="command">下载文件默认命令</param>
         /// <returns>是否下载成功</returns>
         public static void DownloadByAria2(
             string url,
             string fileSavePath,
             string toolPath,
-            string command = " -c -s 10 -x 10 --file-allocation=none --check-certificate=false -d {0} -o {1} {2}",
-            Action<string> action = null)
+            Action<string> action = null,
+            string command = " -c -s 10 -x 10 --file-allocation=none --check-certificate=false -d {0} -o {1} {2}")
         {
             var fi = new FileInfo(fileSavePath);
             command = string.Format(command, fi.DirectoryName, fi.Name, url);
