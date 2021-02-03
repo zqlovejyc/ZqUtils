@@ -815,23 +815,27 @@ namespace ZqUtils.Extensions
         /// <summary>
         /// GMT字符串/日期字符串/时间戳 转DateTime
         /// </summary>
-        /// <param name="this">GMT日期字符串</param>
+        /// <param name="this">日期字符串</param>
         /// <returns>DateTime</returns>
         public static DateTime? ToDateTime(this string @this)
         {
-            if (!@this.IsNull())
+            if (@this.IsNotNullOrEmpty())
             {
                 #region GMT日期
-                if (@this.ToUpper().Contains("GMT") == true)
+                if (@this.ContainsIgnoreCase("GMT"))
                 {
-                    var pattern = "";
+                    var pattern = string.Empty;
+
                     if (@this.IndexOf("+0") != -1)
                     {
-                        @this = @this.Replace("GMT", "");
+                        @this = @this.Replace("GMT", "").Replace("gmt", "");
                         pattern = "ddd, dd MMM yyyy HH':'mm':'ss zzz";
                     }
-                    if (@this.ToUpper().IndexOf("GMT") != -1) pattern = "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'";
-                    if (pattern != "")
+
+                    if (@this.ContainsIgnoreCase("GMT"))
+                        pattern = "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'";
+
+                    if (pattern.IsNotNullOrEmpty())
                     {
                         var dt = DateTime.ParseExact(@this, pattern, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal);
                         return dt.ToLocalTime();
@@ -844,7 +848,7 @@ namespace ZqUtils.Extensions
                 #endregion
 
                 #region 日期字符串
-                else if (@this.Contains("-") || @this.Contains(":") || @this.Contains("/"))
+                else if (@this.ContainsIgnoreCase("-", ":", "/"))
                 {
                     if (DateTime.TryParse(@this, out DateTime time))
                         return time;
@@ -871,6 +875,7 @@ namespace ZqUtils.Extensions
                 }
                 #endregion
             }
+
             return null;
         }
 
