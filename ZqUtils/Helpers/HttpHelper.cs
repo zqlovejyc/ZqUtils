@@ -23,6 +23,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -380,7 +381,7 @@ namespace ZqUtils.Helpers
             request.ServicePoint.Expect100Continue = req.Expect100Continue;
 
             //请求方式Get或者Post
-            request.Method = req.Method;
+            request.Method = req.HttpMethod.Method;
 
             //请求超时时间
             request.Timeout = req.Timeout;
@@ -756,7 +757,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 请求方式，默认：GET方式
         /// </summary>
-        public string Method { get; set; } = "GET";
+        public HttpMethod HttpMethod { get; set; } = HttpMethod.Get;
 
         /// <summary>
         /// 请求超时时间，默认：100000毫秒
