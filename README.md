@@ -7,7 +7,7 @@
 
 <div align="center">
 
-[![star](https://gitee.com/zqlovejyc/ZqUtils/badge/star.svg)](https://gitee.com/zqlovejyc/ZqUtils/stargazers) [![fork](https://gitee.com/zqlovejyc/ZqUtils/badge/fork.svg)](https://gitee.com/zqlovejyc/ZqUtils/members) [![GitHub stars](https://img.shields.io/github/stars/zqlovejyc/ZqUtils?logo=github)](https://github.com/zqlovejyc/ZqUtils/stargazers) [![GitHub forks](https://img.shields.io/github/forks/zqlovejyc/ZqUtils?logo=github)](https://github.com/zqlovejyc/ZqUtils/network) [![GitHub license](https://img.shields.io/badge/license-Apache2-yellow)](https://gitee.com/zqlovejyc/ZqUtils/blob/master/LICENSE) [![nuget](https://img.shields.io/nuget/v/Zq.Utils.svg?cacheSeconds=10800)](https://www.nuget.org/packages//Zq.Utils)
+[![star](https://gitee.com/zqlovejyc/ZqUtils/badge/star.svg)](https://gitee.com/zqlovejyc/ZqUtils/stargazers) [![fork](https://gitee.com/zqlovejyc/ZqUtils/badge/fork.svg)](https://gitee.com/zqlovejyc/ZqUtils/members) [![GitHub stars](https://img.shields.io/github/stars/zqlovejyc/ZqUtils?logo=github)](https://github.com/zqlovejyc/ZqUtils/stargazers) [![GitHub forks](https://img.shields.io/github/forks/zqlovejyc/ZqUtils?logo=github)](https://github.com/zqlovejyc/ZqUtils/network) [![GitHub license](https://img.shields.io/badge/license-Apache2-yellow)](https://github.com/zqlovejyc/ZqUtils/blob/master/LICENSE) [![nuget](https://img.shields.io/nuget/v/Zq.Utils.svg?cacheSeconds=10800)](https://www.nuget.org/packages//Zq.Utils)
 
 </div>
 
