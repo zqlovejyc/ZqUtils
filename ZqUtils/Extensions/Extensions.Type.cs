@@ -702,6 +702,17 @@ namespace ZqUtils.Extensions
         {
             return @this.GetTypeInfo().IsGenericType;
         }
+
+        /// <summary>
+        /// IsGenericType
+        /// </summary>
+        /// <param name="this"></param>
+        /// <param name="genericType"></param>
+        /// <returns></returns>
+        public static bool IsGenericType(this Type @this, Type genericType)
+        {
+            return @this.IsGenericType() && @this.GetGenericTypeDefinition() == genericType;
+        }
         #endregion
 
         #region IsGenericTypeDefinition
@@ -987,19 +998,6 @@ namespace ZqUtils.Extensions
                 }
             }
             return false;
-        }
-        #endregion
-
-        #region IsGenericType
-        /// <summary>
-        /// IsGenericType
-        /// </summary>
-        /// <param name="this"></param>
-        /// <param name="genericType"></param>
-        /// <returns></returns>
-        public static bool IsGenericType(this Type @this, Type genericType)
-        {
-            return @this.IsGenericType() && @this.GetGenericTypeDefinition() == genericType;
         }
         #endregion
 
