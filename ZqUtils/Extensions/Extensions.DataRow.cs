@@ -62,13 +62,13 @@ namespace ZqUtils.Extensions
         /// <typeparam name="T">Generic type parameter.</typeparam>
         /// <param name="this">The @this to act on.</param>
         /// <returns>@this as a T.</returns>
-        public static T ToEntity<T>(this DataRow @this) where T : new()
+        public static T ToEntity<T>(this DataRow @this)
         {
             Type type = typeof(T);
             PropertyInfo[] properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
             FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
 
-            var entity = new T();
+            var entity = Activator.CreateInstance<T>();
 
             foreach (PropertyInfo property in properties)
             {

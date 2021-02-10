@@ -45,7 +45,7 @@ namespace ZqUtils.Extensions
         /// <returns>Type</returns>
         public static Type GetCoreType(this Type @this) =>
             @this.IsNullable() ? Nullable.GetUnderlyingType(@this) : @this;
-        #endregion      
+        #endregion        
 
         #region GetGenericTypeDefinitionIfGeneric
         /// <summary>
@@ -248,7 +248,7 @@ namespace ZqUtils.Extensions
         {
             return @this.GetTypeInfo().GetCustomAttributes(attributeType, inherit).ToArray();
         }
-        #endregion
+        #endregion        
 
         #region GetAttribute
         /// <summary>
@@ -774,6 +774,26 @@ namespace ZqUtils.Extensions
             @this != null && (@this.FullName.StartsWith("<>f__AnonymousType") || @this.FullName.StartsWith("VB$AnonymousType"));
         #endregion
 
+        #region IsDynamicOrObjectType
+        /// <summary>
+        /// 判断是否是dynamic或者object类型
+        /// </summary>
+        /// <param name="this"></param>
+        /// <returns></returns>
+        public static bool IsDynamicOrObjectType(this Type @this) =>
+            @this == typeof(object);
+        #endregion
+
+        #region IsStringType
+        /// <summary>
+        /// 判断是否是string类型
+        /// </summary>
+        /// <param name="this"></param>
+        /// <returns></returns>
+        public static bool IsStringType(this Type @this) =>
+            @this == typeof(string);
+        #endregion
+
         #region IsInstanceOfType
         /// <summary>
         /// IsInstanceOfType
@@ -918,7 +938,7 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static bool IsListType(this Type @this)
         {
-            return typeof(IList).IsAssignableFrom(@this);
+            return @this != null && (@this.AssignableTo(typeof(IList)) || @this.AssignableTo(typeof(IList<>)));
         }
         #endregion
 
@@ -942,7 +962,7 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static bool IsDictionaryType(this Type @this)
         {
-            return @this.IsImplementsGenericInterface(typeof(IDictionary<,>));
+            return @this != null && @this.IsImplementsGenericInterface(typeof(IDictionary<,>));
         }
         #endregion
 
@@ -983,6 +1003,31 @@ namespace ZqUtils.Extensions
         }
         #endregion
 
+        #region IsIntType
+        /// <summary>
+        /// 是否整数
+        /// </summary>
+        /// <param name="this"></param>
+        /// <returns></returns>
+        public static bool IsIntType(this Type @this)
+        {
+            switch (@this.GetTypeCode())
+            {
+                case TypeCode.SByte:
+                case TypeCode.Byte:
+                case TypeCode.Int16:
+                case TypeCode.UInt16:
+                case TypeCode.Int32:
+                case TypeCode.UInt32:
+                case TypeCode.Int64:
+                case TypeCode.UInt64:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+        #endregion
+
         #region PropertiesWithAnInaccessibleSetter
         /// <summary>
         /// PropertiesWithAnInaccessibleSetter
@@ -1008,13 +1053,13 @@ namespace ZqUtils.Extensions
         }
         #endregion
 
-        #region Assembly  
+        #region GetAssembly  
         /// <summary>
         /// Assembly
         /// </summary>
         /// <param name="this"></param>
         /// <returns></returns>
-        public static Assembly Assembly(this Type @this)
+        public static Assembly GetAssembly(this Type @this)
         {
             return @this.GetTypeInfo().Assembly;
         }
@@ -1030,7 +1075,7 @@ namespace ZqUtils.Extensions
         {
             return @this.GetTypeInfo().BaseType;
         }
-        #endregion                
+        #endregion
 
         #region GetBaseTypes
         /// <summary>
@@ -1218,49 +1263,6 @@ namespace ZqUtils.Extensions
         /// <param name="this"></param>
         /// <returns></returns>
         public static TypeCode GetTypeCode(this Type @this) => Type.GetTypeCode(@this);
-        #endregion
-
-        #region IsInt
-        /// <summary>
-        /// 是否整数
-        /// </summary>
-        /// <param name="this"></param>
-        /// <returns></returns>
-        public static bool IsInt(this Type @this)
-        {
-            switch (@this.GetTypeCode())
-            {
-                case TypeCode.SByte:
-                case TypeCode.Byte:
-                case TypeCode.Int16:
-                case TypeCode.UInt16:
-                case TypeCode.Int32:
-                case TypeCode.UInt32:
-                case TypeCode.Int64:
-                case TypeCode.UInt64:
-                    return true;
-                default:
-                    return false;
-            }
-        }
-        #endregion
-
-        #region IsList
-        /// <summary>
-        /// 是否泛型列表
-        /// </summary>
-        /// <param name="this"></param>
-        /// <returns></returns>
-        public static bool IsList(this Type @this) => @this != null && @this.IsGenericType && @this.As(typeof(IList<>));
-        #endregion
-
-        #region IsDictionary
-        /// <summary>
-        /// 是否泛型字典
-        /// </summary>
-        /// <param name="this"></param>
-        /// <returns></returns>
-        public static bool IsDictionary(this Type @this) => @this != null && @this.IsGenericType && @this.As(typeof(IDictionary<,>));
         #endregion
 
         #region CreateInstance
@@ -1459,31 +1461,6 @@ namespace ZqUtils.Extensions
         public static object CreateInstance(this Type type, bool nonPublic)
         {
             return Activator.CreateInstance(type, nonPublic);
-        }
-        #endregion
-
-        #region GetObject
-        /// <summary>
-        /// Creates a proxy for the well-known object indicated by the specified type and URL.
-        /// </summary>
-        /// <param name="this">The type of the well-known object to which you want to connect.</param>
-        /// <param name="url">The URL of the well-known object.</param>
-        /// <returns>A proxy that points to an endpoint served by the requested well-known object.</returns>
-        public static object GetObject(this Type @this, string url)
-        {
-            return Activator.GetObject(@this, url);
-        }
-
-        /// <summary>
-        /// Creates a proxy for the well-known object indicated by the specified type, URL, and channel data.
-        /// </summary>
-        /// <param name="this">The type of the well-known object to which you want to connect.</param>
-        /// <param name="url">The URL of the well-known object.</param>
-        /// <param name="state">Channel-specific data or null.</param>
-        /// <returns>A proxy that points to an endpoint served by the requested well-known object.</returns>
-        public static object GetObject(this Type @this, string url, object state)
-        {
-            return Activator.GetObject(@this, url, state);
         }
         #endregion
 

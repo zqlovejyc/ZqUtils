@@ -123,6 +123,58 @@ namespace ZqUtils.Extensions
         }
         #endregion
 
+        #region ToDictionary
+        /// <summary>
+        /// 转换为字典集合
+        /// </summary>
+        /// <param name="this"></param>
+        /// <returns></returns>
+        public static List<Dictionary<string, object>> ToDictionary(this DataTable @this)
+        {
+            var list = new List<Dictionary<string, object>>();
+
+            if (@this?.Rows.Count > 0)
+            {
+                foreach (DataRow dr in @this.Rows)
+                {
+                    var dic = new Dictionary<string, object>();
+                    foreach (DataColumn dc in @this.Columns)
+                    {
+                        dic.Add(dc.ColumnName, dr[dc.ColumnName]);
+                    }
+                    list.Add(dic);
+                }
+            }
+
+            return list;
+        }
+
+        /// <summary>
+        /// 转换为字典集合
+        /// </summary>
+        /// <param name="this"></param>
+        /// <returns></returns>
+        public static List<Dictionary<string, T>> ToDictionary<T>(this DataTable @this)
+        {
+            var list = new List<Dictionary<string, T>>();
+
+            if (@this?.Rows.Count > 0)
+            {
+                foreach (DataRow dr in @this.Rows)
+                {
+                    var dic = new Dictionary<string, T>();
+                    foreach (DataColumn dc in @this.Columns)
+                    {
+                        dic.Add(dc.ColumnName, dr[dc.ColumnName].To<T>());
+                    }
+                    list.Add(dic);
+                }
+            }
+
+            return list;
+        }
+        #endregion
+
         #region ToList
         /// <summary>
         /// DataTable转换强类型List集合
@@ -132,32 +184,41 @@ namespace ZqUtils.Extensions
         /// <returns>IList</returns>
         public static IList<T> ToList<T>(this DataTable @this)
         {
+            var type = typeof(T);
             List<T> list = null;
             if (@this?.Rows.Count > 0)
             {
                 list = new List<T>();
-                if (typeof(T).Name != "Object")
+                if (type.IsDynamicOrObjectType() || type.IsStringType() || type.IsValueType)
+                {
+                    var result = @this.ToIEnumerable(type == typeof(DynamicRow) ? MappingRow.DynamicRow : MappingRow.DapperRow)?.ToList();
+                    if (result.IsNotNullOrEmpty())
+                    {
+                        if (type.IsDynamicOrObjectType())
+                            list = result as List<T>;
+                        else
+                            list = result.Select(x => (T)(x as IDictionary<string, object>).Select(x => x.Value).FirstOrDefault()).ToList();
+                    }
+                }
+                else if (type.AssignableTo(typeof(Dictionary<,>)))
+                {
+                    list = @this.ToDictionary() as List<T>;
+                }
+                else if (type.AssignableTo(typeof(IDictionary<,>)))
+                {
+                    var result = @this.ToIEnumerable(type == typeof(DynamicRow) ? MappingRow.DynamicRow : MappingRow.DapperRow)?.ToList();
+                    if (result.IsNotNullOrEmpty())
+                        list = result.Select(x => (T)x).ToList();
+                }
+                else if (type.IsClass)
                 {
                     foreach (DataRow row in @this.Rows)
                     {
-                        var instance = Activator.CreateInstance<T>();
-                        var props = instance.GetType().GetProperties(BindingFlags.GetProperty | BindingFlags.Public | BindingFlags.Instance);
-                        foreach (var p in props)
-                        {
-                            if (!p.CanWrite) continue;
-                            if (@this.Columns.Contains(p.Name) && !row[p.Name].IsNull())
-                            {
-                                p.SetValue(instance, row[p.Name].ToSafeValue(p.PropertyType), null);
-                            }
-                        }
-                        list.Add(instance);
+                        list.Add(row.ToEntity<T>());
                     }
                 }
-                else
-                {
-                    list = @this.ToIEnumerable()?.ToList() as List<T>;
-                }
             }
+
             return list;
         }
         #endregion
@@ -296,7 +357,7 @@ namespace ZqUtils.Extensions
         /// 自定义动态类
         /// </summary>
         [Serializable]
-        private sealed class DynamicRow : DynamicObject, IDictionary<string, object>
+        public sealed class DynamicRow : DynamicObject, IDictionary<string, object>
         {
             /// <summary>
             /// 私有字段
@@ -316,7 +377,18 @@ namespace ZqUtils.Extensions
             public override string ToString() => this.ToJson();
 
             #region 实现DynamicObject
+            /// <summary>
+            /// GetDynamicMemberNames
+            /// </summary>
+            /// <returns></returns>
             public override IEnumerable<string> GetDynamicMemberNames() => base.GetDynamicMemberNames();
+
+            /// <summary>
+            /// TryGetMember
+            /// </summary>
+            /// <param name="binder"></param>
+            /// <param name="result"></param>
+            /// <returns></returns>
             public override bool TryGetMember(GetMemberBinder binder, out object result)
             {
                 var retVal = _row.Table.Columns.Contains(binder.Name);
@@ -324,6 +396,13 @@ namespace ZqUtils.Extensions
                 if (retVal && !(_row[binder.Name] is DBNull)) result = _row[binder.Name];
                 return retVal;
             }
+
+            /// <summary>
+            /// TrySetMember
+            /// </summary>
+            /// <param name="binder"></param>
+            /// <param name="value"></param>
+            /// <returns></returns>
             public override bool TrySetMember(SetMemberBinder binder, object value)
             {
                 if (!_row.Table.Columns.Contains(binder.Name))
@@ -334,7 +413,23 @@ namespace ZqUtils.Extensions
                 _row[binder.Name] = value;
                 return true;
             }
+
+            /// <summary>
+            /// TryInvoke
+            /// </summary>
+            /// <param name="binder"></param>
+            /// <param name="args"></param>
+            /// <param name="result"></param>
+            /// <returns></returns>
             public override bool TryInvoke(InvokeBinder binder, object[] args, out object result) => base.TryInvoke(binder, args, out result);
+
+            /// <summary>
+            /// TryInvokeMember
+            /// </summary>
+            /// <param name="binder"></param>
+            /// <param name="args"></param>
+            /// <param name="result"></param>
+            /// <returns></returns>
             public override bool TryInvokeMember(InvokeMemberBinder binder, object[] args, out object result) => base.TryInvokeMember(binder, args, out result);
             #endregion
 
@@ -407,7 +502,17 @@ namespace ZqUtils.Extensions
                 return r;
             }
             IEnumerator<KeyValuePair<string, object>> IEnumerable<KeyValuePair<string, object>>.GetEnumerator() => GetEnumerator();
+
+            /// <summary>
+            /// GetEnumerator
+            /// </summary>
+            /// <returns></returns>
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+            /// <summary>
+            /// GetEnumerator
+            /// </summary>
+            /// <returns></returns>
             public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
             {
                 var columns = _row.Table.Columns;
@@ -461,13 +566,17 @@ namespace ZqUtils.Extensions
         /// <summary>
         /// DapperTable
         /// </summary>
-        private sealed class DapperTable
+        public sealed class DapperTable
         {
             private string[] fieldNames;
             private readonly Dictionary<string, int> fieldNameLookup;
 
             internal string[] FieldNames => fieldNames;
 
+            /// <summary>
+            /// DapperTable
+            /// </summary>
+            /// <param name="fieldNames"></param>
             public DapperTable(string[] fieldNames)
             {
                 this.fieldNames = fieldNames ?? throw new ArgumentNullException(nameof(fieldNames));
@@ -495,6 +604,9 @@ namespace ZqUtils.Extensions
 
             internal bool FieldExists(string key) => key != null && fieldNameLookup.ContainsKey(key);
 
+            /// <summary>
+            /// FieldCount
+            /// </summary>
             public int FieldCount => fieldNames.Length;
         }
 
@@ -563,7 +675,7 @@ namespace ZqUtils.Extensions
         /// <summary>
         /// DapperRow
         /// </summary>
-        private sealed class DapperRow
+        public sealed class DapperRow
                : IDynamicMetaObjectProvider
                , IDictionary<string, object>
                , IReadOnlyDictionary<string, object>
@@ -571,6 +683,11 @@ namespace ZqUtils.Extensions
             private readonly DapperTable table;
             private object[] values;
 
+            /// <summary>
+            /// DapperRow
+            /// </summary>
+            /// <param name="table"></param>
+            /// <param name="values"></param>
             public DapperRow(DapperTable table, object[] values)
             {
                 this.table = table ?? throw new ArgumentNullException(nameof(table));
@@ -596,6 +713,12 @@ namespace ZqUtils.Extensions
                 }
             }
 
+            /// <summary>
+            /// TryGetValue
+            /// </summary>
+            /// <param name="key"></param>
+            /// <param name="value"></param>
+            /// <returns></returns>
             public bool TryGetValue(string key, out object value)
             {
                 var index = table.IndexOfName(key);
@@ -614,6 +737,10 @@ namespace ZqUtils.Extensions
                 return true;
             }
 
+            /// <summary>
+            /// ToString
+            /// </summary>
+            /// <returns></returns>
             public override string ToString()
             {
                 var sb = GetStringBuilder().Append("{DapperRow");
@@ -635,6 +762,10 @@ namespace ZqUtils.Extensions
 
             DynamicMetaObject IDynamicMetaObjectProvider.GetMetaObject(Expression parameter) => new DapperRowMetaObject(parameter, BindingRestrictions.Empty, this);
 
+            /// <summary>
+            /// GetEnumerator
+            /// </summary>
+            /// <returns></returns>
             public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
             {
                 var names = table.FieldNames;
@@ -711,6 +842,12 @@ namespace ZqUtils.Extensions
                 set { SetValue(key, value, false); }
             }
 
+            /// <summary>
+            /// SetValue
+            /// </summary>
+            /// <param name="key"></param>
+            /// <param name="value"></param>
+            /// <returns></returns>
             public object SetValue(string key, object value) => SetValue(key, value, false);
 
             private object SetValue(string key, object value, bool isAdd)
