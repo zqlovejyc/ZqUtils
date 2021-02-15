@@ -184,38 +184,37 @@ namespace ZqUtils.Extensions
         /// <returns>IList</returns>
         public static IList<T> ToList<T>(this DataTable @this)
         {
+            if (@this.IsNull() || @this.Rows.IsNull() || @this.Rows.Count == 0)
+                return null;
+
+            var list = new List<T>();
             var type = typeof(T);
-            List<T> list = null;
-            if (@this?.Rows.Count > 0)
+            if (type.IsDynamicOrObjectType() || type.IsStringType() || type.IsValueType)
             {
-                list = new List<T>();
-                if (type.IsDynamicOrObjectType() || type.IsStringType() || type.IsValueType)
+                var result = @this.ToIEnumerable(type == typeof(DynamicRow) ? MappingRow.DynamicRow : MappingRow.DapperRow)?.ToList();
+                if (result.IsNotNullOrEmpty())
                 {
-                    var result = @this.ToIEnumerable(type == typeof(DynamicRow) ? MappingRow.DynamicRow : MappingRow.DapperRow)?.ToList();
-                    if (result.IsNotNullOrEmpty())
-                    {
-                        if (type.IsDynamicOrObjectType())
-                            list = result as List<T>;
-                        else
-                            list = result.Select(x => (T)(x as IDictionary<string, object>).Select(x => x.Value).FirstOrDefault()).ToList();
-                    }
+                    if (type.IsDynamicOrObjectType())
+                        list = result as List<T>;
+                    else
+                        list = result.Select(x => (T)(x as IDictionary<string, object>).Select(x => x.Value).FirstOrDefault()).ToList();
                 }
-                else if (type.AssignableTo(typeof(Dictionary<,>)))
+            }
+            else if (type.AssignableTo(typeof(Dictionary<,>)))
+            {
+                list = @this.ToDictionary() as List<T>;
+            }
+            else if (type.AssignableTo(typeof(IDictionary<,>)))
+            {
+                var result = @this.ToIEnumerable(type == typeof(DynamicRow) ? MappingRow.DynamicRow : MappingRow.DapperRow)?.ToList();
+                if (result.IsNotNullOrEmpty())
+                    list = result.Select(x => (T)x).ToList();
+            }
+            else if (type.IsClass)
+            {
+                foreach (DataRow row in @this.Rows)
                 {
-                    list = @this.ToDictionary() as List<T>;
-                }
-                else if (type.AssignableTo(typeof(IDictionary<,>)))
-                {
-                    var result = @this.ToIEnumerable(type == typeof(DynamicRow) ? MappingRow.DynamicRow : MappingRow.DapperRow)?.ToList();
-                    if (result.IsNotNullOrEmpty())
-                        list = result.Select(x => (T)x).ToList();
-                }
-                else if (type.IsClass)
-                {
-                    foreach (DataRow row in @this.Rows)
-                    {
-                        list.Add(row.ToEntity<T>());
-                    }
+                    list.Add(row.ToEntity<T>());
                 }
             }
 
@@ -362,7 +361,7 @@ namespace ZqUtils.Extensions
             /// <summary>
             /// 私有字段
             /// </summary>
-            private DataRow _row;
+            private readonly DataRow _row;
 
             /// <summary>
             /// 含参构造函数
@@ -675,10 +674,7 @@ namespace ZqUtils.Extensions
         /// <summary>
         /// DapperRow
         /// </summary>
-        public sealed class DapperRow
-               : IDynamicMetaObjectProvider
-               , IDictionary<string, object>
-               , IReadOnlyDictionary<string, object>
+        public sealed class DapperRow : IDynamicMetaObjectProvider, IDictionary<string, object>, IReadOnlyDictionary<string, object>
         {
             private readonly DapperTable table;
             private object[] values;
