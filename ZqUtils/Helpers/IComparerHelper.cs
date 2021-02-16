@@ -20,55 +20,40 @@ using System;
 using System.Collections.Generic;
 /****************************
 * [Author] 张强
-* [Date] 2020-06-15
-* [Describe] IEqualityComparer泛型比较器工具类
+* [Date] 2021-02-16
+* [Describe] IComparer泛型比较器工具类
 * **************************/
 namespace ZqUtils.Helpers
 {
     /// <summary>
-    /// IEqualityComparer泛型比较器
+    /// IComparer泛型比较器工具类
     /// </summary>
-    public class IEqualityComparerHelper<T> : IEqualityComparer<T>
+    /// <typeparam name="T"></typeparam>
+    public class IComparerHelper<T> : IComparer<T>
     {
-        private readonly Func<T, T, bool> _comparer;
-        private readonly Func<T, int> _hashCoder;
+        private readonly Func<T, T, int> _comparer;
 
         /// <summary>
         /// 构造函数
         /// </summary>
         /// <param name="comparer">自定义比较委托</param>
-        /// <param name="hashCoder">hash编码获取委托</param>
-        public IEqualityComparerHelper(Func<T, T, bool> comparer = null, Func<T, int> hashCoder = null)
+        public IComparerHelper(Func<T, T, int> comparer = null)
         {
             _comparer = comparer;
-            _hashCoder = hashCoder;
         }
 
         /// <summary>
-        /// 比较方法
+        /// 实现比较方法接口
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <returns></returns>
-        bool IEqualityComparer<T>.Equals(T x, T y)
+        /// <param name="x">x</param>
+        /// <param name="y">y</param>
+        /// <returns>int</returns>
+        public int Compare(T x, T y)
         {
             if (_comparer == null)
-                return Equals(x, y);
+                return string.Compare(x?.ToString(), y?.ToString());
 
             return _comparer(x, y);
-        }
-
-        /// <summary>
-        /// Hash编码
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        int IEqualityComparer<T>.GetHashCode(T obj)
-        {
-            if (_hashCoder == null)
-                return obj?.GetHashCode() ?? 0;
-
-            return _hashCoder(obj);
         }
     }
 }

@@ -35,35 +35,6 @@ using ZqUtils.Extensions;
 * **************************/
 namespace ZqUtils.Helpers
 {
-    #region 实现泛型比较接口
-    /// <summary>
-    /// 实现泛型比较接口
-    /// </summary>
-    /// <typeparam name="T">待比较的数据类型</typeparam>
-    public class OrderKeyCompare<T> : IComparer<T>
-    {
-        /// <summary>
-        /// 实现比较方法接口
-        /// </summary>
-        /// <param name="x">x</param>
-        /// <param name="y">y</param>
-        /// <returns>int</returns>
-        public int Compare(T x, T y)
-        {
-            var b = decimal.TryParse(x.ToString(), out decimal d);
-            if (b)
-            {
-                return decimal.Parse(x.ToString()).CompareTo(decimal.Parse(y.ToString()));
-            }
-            else
-            {
-                return x.ToString().CompareTo(y.ToString());
-            }
-        }
-    }
-    #endregion
-
-    #region 文件帮助类
     /// <summary>
     /// 文件帮助类
     /// </summary>
@@ -890,8 +861,13 @@ namespace ZqUtils.Helpers
         public static string GetDirectoryInfo(DirectoryInfo[] dir)
         {
             var result = new StringBuilder();
-            if (dir != null)
+            if (dir.IsNotNull())
             {
+                var comparer = new IComparerHelper<string>((x, y) =>
+                   x.IsValidDecimal() && y.IsValidDecimal()
+                   ? decimal.Compare(x.ToDecimal(), y.ToDecimal())
+                   : string.Compare(x, y));
+
                 var query = (from a in dir
                              let files = a.GetFiles().Select(o => o.Name)
                              let dirs = a.GetDirectories()
@@ -908,7 +884,7 @@ namespace ZqUtils.Helpers
                 {
                     result.Append("{")
                           .Append($"\"dirName\":\"{o.dirName}\",")
-                          .Append($"\"filesName\":{o.filesName.OrderBy(s => s.Contains(".") ? s.Substring(0, s.LastIndexOf(".")) : s, new OrderKeyCompare<string>()).ToJson()},")
+                          .Append($"\"filesName\":{o.filesName.OrderBy(s => s.Contains(".") ? s.Substring(0, s.LastIndexOf(".")) : s, comparer).ToJson()},")
                           .Append($"\"childrensDirInfo\":{GetDirectoryInfo(o.dirsName)}")
                           .Append("},");
                 });
@@ -928,12 +904,17 @@ namespace ZqUtils.Helpers
             var result = new StringBuilder();
             if (Directory.Exists(path))
             {
+                var comparer = new IComparerHelper<string>((x, y) =>
+                   x.IsValidDecimal() && y.IsValidDecimal()
+                   ? decimal.Compare(x.ToDecimal(), y.ToDecimal())
+                   : string.Compare(x, y));
+
                 var di = new DirectoryInfo(path);
                 var files = di.GetFiles();
                 var dirs = di.GetDirectories();
                 result.Append("{")
                       .Append($"\"dirName\":\"{path.Substring("\\")}\",")
-                      .Append($"\"filesName\":{files.Select(o => o.Name).OrderBy(o => o.Contains(".") ? o.Substring(0, o.LastIndexOf(".")) : o, new OrderKeyCompare<string>()).ToJson()},")
+                      .Append($"\"filesName\":{files?.Select(o => o.Name).OrderBy(o => o.Contains(".") ? o.Substring(0, o.LastIndexOf(".")) : o, comparer).ToJson()},")
                       .Append($"\"childrensDirInfo\":{GetDirectoryInfo(dirs)}")
                       .Append("}");
             }
@@ -1218,5 +1199,4 @@ namespace ZqUtils.Helpers
         }
         #endregion        
     }
-    #endregion
 }

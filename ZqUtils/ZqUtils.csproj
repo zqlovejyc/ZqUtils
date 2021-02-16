@@ -203,6 +203,7 @@
     <Compile Include="Helpers\FreeRedisHelper.cs" />
     <Compile Include="Helpers\GpsHelper.cs" />
     <Compile Include="Helpers\HttpHelper.cs" />
+    <Compile Include="Helpers\IComparerHelper.cs" />
     <Compile Include="Helpers\IEqualityComparerHelper.cs" />
     <Compile Include="Helpers\ImageHelper.cs" />
     <Compile Include="Helpers\JwtTokenHelper.cs" />

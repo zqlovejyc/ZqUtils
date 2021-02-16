@@ -5503,9 +5503,8 @@ namespace ZqUtils.Extensions
         public static bool IsValidBoolean(this object @this)
         {
             if (@this == null)
-            {
-                return true;
-            }
+                return false;
+
             return bool.TryParse(@this.ToString(), out bool result);
         }
         #endregion
@@ -5519,9 +5518,8 @@ namespace ZqUtils.Extensions
         public static bool IsValidByte(this object @this)
         {
             if (@this == null)
-            {
-                return true;
-            }
+                return false;
+
             return byte.TryParse(@this.ToString(), out byte result);
         }
         #endregion
@@ -5534,6 +5532,9 @@ namespace ZqUtils.Extensions
         /// <returns>true if valid char, false if not.</returns>
         public static bool IsValidChar(this object @this)
         {
+            if (@this == null)
+                return false;
+
             return char.TryParse(@this.ToString(), out char result);
         }
         #endregion
@@ -5547,9 +5548,8 @@ namespace ZqUtils.Extensions
         public static bool IsValidDateTime(this object @this)
         {
             if (@this == null)
-            {
-                return true;
-            }
+                return false;
+
             return DateTime.TryParse(@this.ToString(), out DateTime result);
         }
         #endregion
@@ -5563,9 +5563,8 @@ namespace ZqUtils.Extensions
         public static bool IsValidDateTimeOffSet(this object @this)
         {
             if (@this == null)
-            {
-                return true;
-            }
+                return false;
+
             return DateTimeOffset.TryParse(@this.ToString(), out DateTimeOffset result);
         }
         #endregion
@@ -5579,9 +5578,8 @@ namespace ZqUtils.Extensions
         public static bool IsValidDecimal(this object @this)
         {
             if (@this == null)
-            {
-                return true;
-            }
+                return false;
+
             return decimal.TryParse(@this.ToString(), out decimal result);
         }
         #endregion
@@ -5595,9 +5593,8 @@ namespace ZqUtils.Extensions
         public static bool IsValidDouble(this object @this)
         {
             if (@this == null)
-            {
-                return true;
-            }
+                return false;
+
             return double.TryParse(@this.ToString(), out double result);
         }
         #endregion
@@ -5611,9 +5608,8 @@ namespace ZqUtils.Extensions
         public static bool IsValidFloat(this object @this)
         {
             if (@this == null)
-            {
-                return true;
-            }
+                return false;
+
             return float.TryParse(@this.ToString(), out float result);
         }
         #endregion
@@ -5626,6 +5622,9 @@ namespace ZqUtils.Extensions
         /// <returns>true if valid System.Guid, false if not.</returns>
         public static bool IsValidGuid(this object @this)
         {
+            if (@this == null)
+                return false;
+
             return Guid.TryParse(@this.ToString(), out Guid result);
         }
         #endregion
@@ -5639,9 +5638,8 @@ namespace ZqUtils.Extensions
         public static bool IsValidInt16(this object @this)
         {
             if (@this == null)
-            {
-                return true;
-            }
+                return false;
+
             return short.TryParse(@this.ToString(), out short result);
         }
         #endregion
@@ -5655,9 +5653,8 @@ namespace ZqUtils.Extensions
         public static bool IsValidInt32(this object @this)
         {
             if (@this == null)
-            {
-                return true;
-            }
+                return false;
+
             return int.TryParse(@this.ToString(), out int result);
         }
         #endregion
@@ -5671,9 +5668,8 @@ namespace ZqUtils.Extensions
         public static bool IsValidInt64(this object @this)
         {
             if (@this == null)
-            {
-                return true;
-            }
+                return false;
+
             return long.TryParse(@this.ToString(), out long result);
         }
         #endregion
@@ -5687,9 +5683,8 @@ namespace ZqUtils.Extensions
         public static bool IsValidLong(this object @this)
         {
             if (@this == null)
-            {
-                return true;
-            }
+                return false;
+
             return long.TryParse(@this.ToString(), out long result);
         }
         #endregion
@@ -5703,9 +5698,8 @@ namespace ZqUtils.Extensions
         public static bool IsValidSByte(this object @this)
         {
             if (@this == null)
-            {
-                return true;
-            }
+                return false;
+
             return sbyte.TryParse(@this.ToString(), out sbyte result);
         }
         #endregion
@@ -5719,9 +5713,8 @@ namespace ZqUtils.Extensions
         public static bool IsValidShort(this object @this)
         {
             if (@this == null)
-            {
-                return true;
-            }
+                return false;
+
             return short.TryParse(@this.ToString(), out short result);
         }
         #endregion
@@ -5735,9 +5728,8 @@ namespace ZqUtils.Extensions
         public static bool IsValidSingle(this object @this)
         {
             if (@this == null)
-            {
-                return true;
-            }
+                return false;
+
             return float.TryParse(@this.ToString(), out float result);
         }
         #endregion
@@ -5763,9 +5755,8 @@ namespace ZqUtils.Extensions
         public static bool IsValidUInt16(this object @this)
         {
             if (@this == null)
-            {
-                return true;
-            }
+                return false;
+
             return ushort.TryParse(@this.ToString(), out ushort result);
         }
         #endregion
@@ -5779,9 +5770,8 @@ namespace ZqUtils.Extensions
         public static bool IsValidUInt32(this object @this)
         {
             if (@this == null)
-            {
-                return true;
-            }
+                return false;
+
             return uint.TryParse(@this.ToString(), out uint result);
         }
         #endregion
@@ -5795,9 +5785,8 @@ namespace ZqUtils.Extensions
         public static bool IsValidUInt64(this object @this)
         {
             if (@this == null)
-            {
-                return true;
-            }
+                return false;
+
             return ulong.TryParse(@this.ToString(), out ulong result);
         }
         #endregion
@@ -5811,9 +5800,8 @@ namespace ZqUtils.Extensions
         public static bool IsValidULong(this object @this)
         {
             if (@this == null)
-            {
-                return true;
-            }
+                return false;
+
             return ulong.TryParse(@this.ToString(), out ulong result);
         }
         #endregion
@@ -5827,9 +5815,8 @@ namespace ZqUtils.Extensions
         public static bool IsValidUShort(this object @this)
         {
             if (@this == null)
-            {
-                return true;
-            }
+                return false;
+
             return ushort.TryParse(@this.ToString(), out ushort result);
         }
         #endregion
