@@ -1064,7 +1064,15 @@ namespace ZqUtils.Helpers
         /// <typeparam name="T"></typeparam>
         /// <param name="subscriber">消费处理委托</param>
         /// <param name="handler">异常处理委托</param>
-        public void Subscribe<T>(Func<T, BasicDeliverEventArgs, bool> subscriber, Action<string, int, Exception> handler) where T : class
+        /// <param name="registered">注册事件</param>
+        /// <param name="unregistered">取消注册事件</param>
+        /// <param name="shutdown">关闭事件</param>
+        public void Subscribe<T>(
+            Func<T, BasicDeliverEventArgs, bool> subscriber,
+            Action<string, int, Exception> handler,
+            EventHandler<ConsumerEventArgs> registered = null,
+            EventHandler<ConsumerEventArgs> unregistered = null,
+            EventHandler<ShutdownEventArgs> shutdown = null) where T : class
         {
             var attribute = typeof(T).GetAttribute<RabbitMqAttribute>();
             if (attribute == null)
@@ -1134,7 +1142,21 @@ namespace ZqUtils.Helpers
             }
 
             //订阅消息
-            Subscribe(attribute.Exchange, attribute.Queue, attribute.RoutingKey, subscriber, handler, attribute.RetryCount, attribute.PrefetchCount, attribute.DeadLetter, attribute.ExchangeType, attribute.Durable, arguments);
+            Subscribe(
+                attribute.Exchange,
+                attribute.Queue,
+                attribute.RoutingKey,
+                subscriber,
+                handler,
+                attribute.RetryCount,
+                attribute.PrefetchCount,
+                attribute.DeadLetter,
+                attribute.ExchangeType,
+                attribute.Durable,
+                arguments,
+                registered: registered,
+                unregistered: unregistered,
+                shutdown: shutdown);
         }
 
         /// <summary>
@@ -1153,6 +1175,9 @@ namespace ZqUtils.Helpers
         /// <param name="durable">持久化</param>
         /// <param name="queueArguments">队列参数</param>
         /// <param name="exchangeArguments">交换机参数</param>
+        /// <param name="registered">注册事件</param>
+        /// <param name="unregistered">取消注册事件</param>
+        /// <param name="shutdown">关闭事件</param>
         public void Subscribe<T>(
             string exchange,
             string queue,
@@ -1165,7 +1190,10 @@ namespace ZqUtils.Helpers
             string exchangeType = ExchangeType.Direct,
             bool durable = true,
             IDictionary<string, object> queueArguments = null,
-            IDictionary<string, object> exchangeArguments = null) where T : class
+            IDictionary<string, object> exchangeArguments = null,
+            EventHandler<ConsumerEventArgs> registered = null,
+            EventHandler<ConsumerEventArgs> unregistered = null,
+            EventHandler<ShutdownEventArgs> shutdown = null) where T : class
         {
             //获取管道
             var channel = GetChannel(queue);
@@ -1192,7 +1220,7 @@ namespace ZqUtils.Helpers
             var consumer = new EventingBasicConsumer(channel);
 
             //接收消息事件
-            consumer.Received += (model, ea) =>
+            consumer.Received += (sender, ea) =>
             {
                 var body = ea.Body.DeserializeUtf8();
                 var numberOfRetries = 0;
@@ -1233,6 +1261,18 @@ namespace ZqUtils.Helpers
                     PublishToDead(queue, ea.Exchange, ea.RoutingKey, body, exception == null ? numberOfRetries : numberOfRetries - 1, exception);
                 }
             };
+
+            //注册事件
+            if (registered != null)
+                consumer.Registered += registered;
+
+            //取消注册事件
+            if (unregistered != null)
+                consumer.Unregistered += unregistered;
+
+            //关闭事件
+            if (shutdown != null)
+                consumer.Shutdown += shutdown;
 
             //手动确认
             channel.BasicConsume(queue, false, consumer);
