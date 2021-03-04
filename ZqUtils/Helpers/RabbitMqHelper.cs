@@ -16,12 +16,13 @@
  */
 #endregion
 
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Collections.Concurrent;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using ZqUtils.Extensions;
 /****************************
 * [Author] 张强
@@ -687,66 +688,58 @@ namespace ZqUtils.Helpers
 
             //设置队列消息过期时间，指整个队列的所有消息
             if (attribute.MessageTTL > 0)
-            {
                 arguments["x-message-ttl"] = attribute.MessageTTL;
-            }
 
             //设置队列过期时间
             if (attribute.AutoExpire > 0)
-            {
                 arguments["x-expires"] = attribute.AutoExpire;
-            }
 
             //设置队列最大长度
             if (attribute.MaxLength > 0)
-            {
                 arguments["x-max-length"] = attribute.MaxLength;
-            }
 
             //设置队列占用最大空间
             if (attribute.MaxLengthBytes > 0)
-            {
                 arguments["x-max-length-bytes"] = attribute.MaxLengthBytes;
-            }
 
             //设置队列溢出行为
             if (attribute.OverflowBehaviour == "drop-head" || attribute.OverflowBehaviour == "reject-publish")
-            {
                 arguments["x-overflow"] = attribute.OverflowBehaviour;
-            }
 
             //设置死信交换机
             if (!attribute.DeadLetterExchange.IsNullOrEmpty())
-            {
                 arguments["x-dead-letter-exchange"] = attribute.DeadLetterExchange;
-            }
 
             //设置死信路由键
             if (!attribute.DeadLetterRoutingKey.IsNullOrEmpty())
-            {
                 arguments["x-dead-letter-routing-key"] = attribute.DeadLetterRoutingKey;
-            }
 
             //设置队列优先级
             if (attribute.MaximumPriority > 0 && attribute.MaximumPriority <= 10)
-            {
                 arguments["x-max-priority"] = attribute.MaximumPriority;
-            }
 
             //设置队列惰性模式
             if (attribute.LazyMode == "default" || attribute.LazyMode == "lazy")
-            {
                 arguments["x-queue-mode"] = attribute.LazyMode;
-            }
 
             //设置集群配置
             if (!attribute.MasterLocator.IsNullOrEmpty())
-            {
                 arguments["x-queue-master-locator"] = attribute.MasterLocator;
-            }
 
             //发送消息
-            return Publish(attribute.Exchange, attribute.Queue, attribute.RoutingKey, body, attribute.ExchangeType, attribute.Durable, confirm, expiration, priority, arguments, null, attribute.Headers);
+            return Publish(
+                attribute.Exchange,
+                attribute.Queue,
+                attribute.RoutingKey,
+                body,
+                attribute.ExchangeType,
+                attribute.Durable,
+                confirm,
+                expiration,
+                priority,
+                arguments,
+                null,
+                attribute.Headers?.ToObject<Dictionary<string, object>>());
         }
 
         /// <summary>
@@ -771,66 +764,58 @@ namespace ZqUtils.Helpers
 
             //设置队列消息过期时间，指整个队列的所有消息
             if (attribute.MessageTTL > 0)
-            {
                 arguments["x-message-ttl"] = attribute.MessageTTL;
-            }
 
             //设置队列过期时间
             if (attribute.AutoExpire > 0)
-            {
                 arguments["x-expires"] = attribute.AutoExpire;
-            }
 
             //设置队列最大长度
             if (attribute.MaxLength > 0)
-            {
                 arguments["x-max-length"] = attribute.MaxLength;
-            }
 
             //设置队列占用最大空间
             if (attribute.MaxLengthBytes > 0)
-            {
                 arguments["x-max-length-bytes"] = attribute.MaxLengthBytes;
-            }
 
             //设置队列溢出行为
             if (attribute.OverflowBehaviour == "drop-head" || attribute.OverflowBehaviour == "reject-publish")
-            {
                 arguments["x-overflow"] = attribute.OverflowBehaviour;
-            }
 
             //设置死信交换机
             if (!attribute.DeadLetterExchange.IsNullOrEmpty())
-            {
                 arguments["x-dead-letter-exchange"] = attribute.DeadLetterExchange;
-            }
 
             //设置死信路由键
             if (!attribute.DeadLetterRoutingKey.IsNullOrEmpty())
-            {
                 arguments["x-dead-letter-routing-key"] = attribute.DeadLetterRoutingKey;
-            }
 
             //设置队列优先级
             if (attribute.MaximumPriority > 0 && attribute.MaximumPriority <= 10)
-            {
                 arguments["x-max-priority"] = attribute.MaximumPriority;
-            }
 
             //设置队列惰性模式
             if (attribute.LazyMode == "default" || attribute.LazyMode == "lazy")
-            {
                 arguments["x-queue-mode"] = attribute.LazyMode;
-            }
 
             //设置集群配置
             if (!attribute.MasterLocator.IsNullOrEmpty())
-            {
                 arguments["x-queue-master-locator"] = attribute.MasterLocator;
-            }
 
             //发送消息
-            return Publish(attribute.Exchange, attribute.Queue, attribute.RoutingKey, body, attribute.ExchangeType, attribute.Durable, confirm, expiration, priority, arguments, null, attribute.Headers);
+            return Publish(
+                attribute.Exchange,
+                attribute.Queue,
+                attribute.RoutingKey,
+                body,
+                attribute.ExchangeType,
+                attribute.Durable,
+                confirm,
+                expiration,
+                priority,
+                arguments,
+                null,
+                attribute.Headers?.ToObject<Dictionary<string, object>>());
         }
 
         /// <summary>
@@ -868,15 +853,11 @@ namespace ZqUtils.Helpers
 
             //判断交换机是否存在
             if (!IsExchangeExist(channel, exchange))
-            {
                 channel = ExchangeDeclare(channel, exchange, exchangeType, durable, arguments: exchangeArguments);
-            }
 
             //判断队列是否存在
             if (!IsQueueExist(channel, queue))
-            {
                 channel = QueueDeclare(channel, queue, durable, arguments: queueArguments);
-            }
 
             //绑定交换机和队列
             QueueBind(channel, exchange, queue, routingKey);
@@ -889,36 +870,26 @@ namespace ZqUtils.Helpers
 
             //单个消息过期时间
             if (!expiration.IsNullOrEmpty())
-            {
                 props.Expiration = expiration;
-            }
 
             //单个消息优先级
             if (priority >= 0 && priority <= 9)
-            {
                 props.Priority = priority.Value;
-            }
 
             //消息头部
             if (headers != null)
-            {
                 props.Headers = headers;
-            }
 
             //是否启用消息发送确认机制
             if (confirm)
-            {
                 channel.ConfirmSelect();
-            }
 
             //发送消息
             channel.BasicPublish(exchange, routingKey, props, body.SerializeUtf8());
 
             //消息发送失败处理
             if (confirm && !channel.WaitForConfirms())
-            {
                 return false;
-            }
 
             return true;
         }
@@ -958,15 +929,11 @@ namespace ZqUtils.Helpers
 
             //判断交换机是否存在
             if (!IsExchangeExist(channel, exchange))
-            {
                 channel = ExchangeDeclare(channel, exchange, exchangeType, durable, arguments: exchangeArguments);
-            }
 
             //判断队列是否存在
             if (!IsQueueExist(channel, queue))
-            {
                 channel = QueueDeclare(channel, queue, durable, arguments: queueArguments);
-            }
 
             //绑定交换机和队列
             QueueBind(channel, exchange, queue, routingKey);
@@ -979,27 +946,19 @@ namespace ZqUtils.Helpers
 
             //单个消息过期时间
             if (!expiration.IsNullOrEmpty())
-            {
                 props.Expiration = expiration;
-            }
 
             //单个消息优先级
             if (priority >= 0 && priority <= 9)
-            {
                 props.Priority = priority.Value;
-            }
 
             //消息头部
             if (headers != null)
-            {
                 props.Headers = headers;
-            }
 
             //是否启用消息发送确认机制
             if (confirm)
-            {
                 channel.ConfirmSelect();
-            }
 
             //发送消息
             foreach (var item in body)
@@ -1009,9 +968,7 @@ namespace ZqUtils.Helpers
 
             //消息发送失败处理
             if (confirm && !channel.WaitForConfirms())
-            {
                 return false;
-            }
 
             return true;
         }
@@ -1083,63 +1040,124 @@ namespace ZqUtils.Helpers
 
             //设置队列消息过期时间，指整个队列的所有消息
             if (attribute.MessageTTL > 0)
-            {
                 arguments["x-message-ttl"] = attribute.MessageTTL;
-            }
 
             //设置队列过期时间
             if (attribute.AutoExpire > 0)
-            {
                 arguments["x-expires"] = attribute.AutoExpire;
-            }
 
             //设置队列最大长度
             if (attribute.MaxLength > 0)
-            {
                 arguments["x-max-length"] = attribute.MaxLength;
-            }
 
             //设置队列占用最大空间
             if (attribute.MaxLengthBytes > 0)
-            {
                 arguments["x-max-length-bytes"] = attribute.MaxLengthBytes;
-            }
 
             //设置队列溢出行为
             if (attribute.OverflowBehaviour == "drop-head" || attribute.OverflowBehaviour == "reject-publish")
-            {
                 arguments["x-overflow"] = attribute.OverflowBehaviour;
-            }
 
             //设置死信交换机
             if (!attribute.DeadLetterExchange.IsNullOrEmpty())
-            {
                 arguments["x-dead-letter-exchange"] = attribute.DeadLetterExchange;
-            }
 
             //设置死信路由键
             if (!attribute.DeadLetterRoutingKey.IsNullOrEmpty())
-            {
                 arguments["x-dead-letter-routing-key"] = attribute.DeadLetterRoutingKey;
-            }
 
             //设置队列优先级
             if (attribute.MaximumPriority > 0 && attribute.MaximumPriority <= 10)
-            {
                 arguments["x-max-priority"] = attribute.MaximumPriority;
-            }
 
             //设置队列惰性模式
             if (attribute.LazyMode == "default" || attribute.LazyMode == "lazy")
-            {
                 arguments["x-queue-mode"] = attribute.LazyMode;
-            }
 
             //设置集群配置
             if (!attribute.MasterLocator.IsNullOrEmpty())
-            {
                 arguments["x-queue-master-locator"] = attribute.MasterLocator;
-            }
+
+            //订阅消息
+            Subscribe(
+                attribute.Exchange,
+                attribute.Queue,
+                attribute.RoutingKey,
+                subscriber,
+                handler,
+                attribute.RetryCount,
+                attribute.PrefetchCount,
+                attribute.DeadLetter,
+                attribute.ExchangeType,
+                attribute.Durable,
+                arguments,
+                registered: registered,
+                unregistered: unregistered,
+                shutdown: shutdown);
+        }
+
+        /// <summary>
+        /// 订阅消息
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="subscriber">消费处理委托</param>
+        /// <param name="handler">异常处理委托</param>
+        /// <param name="registered">注册事件</param>
+        /// <param name="unregistered">取消注册事件</param>
+        /// <param name="shutdown">关闭事件</param>
+        public void Subscribe<T>(
+            Func<T, BasicDeliverEventArgs, Task<bool>> subscriber,
+            Func<string, int, Exception, Task> handler,
+            EventHandler<ConsumerEventArgs> registered = null,
+            EventHandler<ConsumerEventArgs> unregistered = null,
+            EventHandler<ShutdownEventArgs> shutdown = null) where T : class
+        {
+            var attribute = typeof(T).GetAttribute<RabbitMqAttribute>();
+            if (attribute == null)
+                throw new ArgumentException("RabbitMqAttribute Is Null!");
+
+            //自定义参数
+            var arguments = new Dictionary<string, object>();
+
+            //设置队列消息过期时间，指整个队列的所有消息
+            if (attribute.MessageTTL > 0)
+                arguments["x-message-ttl"] = attribute.MessageTTL;
+
+            //设置队列过期时间
+            if (attribute.AutoExpire > 0)
+                arguments["x-expires"] = attribute.AutoExpire;
+
+            //设置队列最大长度
+            if (attribute.MaxLength > 0)
+                arguments["x-max-length"] = attribute.MaxLength;
+
+            //设置队列占用最大空间
+            if (attribute.MaxLengthBytes > 0)
+                arguments["x-max-length-bytes"] = attribute.MaxLengthBytes;
+
+            //设置队列溢出行为
+            if (attribute.OverflowBehaviour == "drop-head" || attribute.OverflowBehaviour == "reject-publish")
+                arguments["x-overflow"] = attribute.OverflowBehaviour;
+
+            //设置死信交换机
+            if (!attribute.DeadLetterExchange.IsNullOrEmpty())
+                arguments["x-dead-letter-exchange"] = attribute.DeadLetterExchange;
+
+            //设置死信路由键
+            if (!attribute.DeadLetterRoutingKey.IsNullOrEmpty())
+                arguments["x-dead-letter-routing-key"] = attribute.DeadLetterRoutingKey;
+
+            //设置队列优先级
+            if (attribute.MaximumPriority > 0 && attribute.MaximumPriority <= 10)
+                arguments["x-max-priority"] = attribute.MaximumPriority;
+
+            //设置队列惰性模式
+            if (attribute.LazyMode == "default" || attribute.LazyMode == "lazy")
+                arguments["x-queue-mode"] = attribute.LazyMode;
+
+            //设置集群配置
+            if (!attribute.MasterLocator.IsNullOrEmpty())
+                arguments["x-queue-master-locator"] = attribute.MasterLocator;
 
             //订阅消息
             Subscribe(
@@ -1200,15 +1218,11 @@ namespace ZqUtils.Helpers
 
             //判断交换机是否存在
             if (!IsExchangeExist(channel, exchange))
-            {
                 channel = ExchangeDeclare(channel, exchange, exchangeType, durable, arguments: exchangeArguments);
-            }
 
             //判断队列是否存在
             if (!IsQueueExist(channel, queue))
-            {
                 channel = QueueDeclare(channel, queue, durable, arguments: queueArguments);
-            }
 
             //绑定交换机和队列
             QueueBind(channel, exchange, queue, routingKey);
@@ -1226,16 +1240,20 @@ namespace ZqUtils.Helpers
                 var numberOfRetries = 0;
                 Exception exception = null;
                 bool? result = false;
+
                 while (numberOfRetries <= retryCount)
                 {
                     try
                     {
                         var msg = body.ToObject<T>();
+
                         result = subscriber?.Invoke(msg, ea);
+
                         if (result == true)
                             channel.BasicAck(ea.DeliveryTag, false);
                         else
                             channel.BasicNack(ea.DeliveryTag, false, false);
+
                         //异常置空
                         exception = null;
                         break;
@@ -1250,16 +1268,141 @@ namespace ZqUtils.Helpers
 
                 //重试后异常仍未解决
                 if (exception != null)
-                {
                     channel.BasicNack(ea.DeliveryTag, false, false);
-                }
 
                 //是否进入内置死信队列
                 if (deadLetter && (!(result == true) || exception != null))
+                    PublishToDead(
+                        queue,
+                        ea.Exchange,
+                        ea.RoutingKey,
+                        body,
+                        exception == null ? numberOfRetries : numberOfRetries - 1,
+                        exception);
+            };
+
+            //注册事件
+            if (registered != null)
+                consumer.Registered += registered;
+
+            //取消注册事件
+            if (unregistered != null)
+                consumer.Unregistered += unregistered;
+
+            //关闭事件
+            if (shutdown != null)
+                consumer.Shutdown += shutdown;
+
+            //手动确认
+            channel.BasicConsume(queue, false, consumer);
+        }
+
+        /// <summary>
+        /// 订阅消息
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="exchange">交换机名称</param>
+        /// <param name="queue">队列名称</param>
+        /// <param name="routingKey">路由键</param>
+        /// <param name="subscriber">消费处理委托</param>
+        /// <param name="handler">异常处理委托</param>
+        /// <param name="retryCount">重试次数</param>
+        /// <param name="prefetchCount">预取数量</param>
+        /// <param name="deadLetter">是否进入内置死信队列，此处与原生死信无关</param>
+        /// <param name="exchangeType">交换机类型</param>
+        /// <param name="durable">持久化</param>
+        /// <param name="queueArguments">队列参数</param>
+        /// <param name="exchangeArguments">交换机参数</param>
+        /// <param name="registered">注册事件</param>
+        /// <param name="unregistered">取消注册事件</param>
+        /// <param name="shutdown">关闭事件</param>
+        public void Subscribe<T>(
+            string exchange,
+            string queue,
+            string routingKey,
+            Func<T, BasicDeliverEventArgs, Task<bool>> subscriber,
+            Func<string, int, Exception, Task> handler,
+            int retryCount = 5,
+            ushort prefetchCount = 1,
+            bool deadLetter = true,
+            string exchangeType = ExchangeType.Direct,
+            bool durable = true,
+            IDictionary<string, object> queueArguments = null,
+            IDictionary<string, object> exchangeArguments = null,
+            EventHandler<ConsumerEventArgs> registered = null,
+            EventHandler<ConsumerEventArgs> unregistered = null,
+            EventHandler<ShutdownEventArgs> shutdown = null) where T : class
+        {
+            //获取管道
+            var channel = GetChannel(queue);
+
+            //判断交换机是否存在
+            if (!IsExchangeExist(channel, exchange))
+                channel = ExchangeDeclare(channel, exchange, exchangeType, durable, arguments: exchangeArguments);
+
+            //判断队列是否存在
+            if (!IsQueueExist(channel, queue))
+                channel = QueueDeclare(channel, queue, durable, arguments: queueArguments);
+
+            //绑定交换机和队列
+            QueueBind(channel, exchange, queue, routingKey);
+
+            //设置每次预取数量
+            channel.BasicQos(0, prefetchCount, false);
+
+            //创建消费者
+            var consumer = new EventingBasicConsumer(channel);
+
+            //接收消息事件
+            consumer.Received += async (sender, ea) =>
+            {
+                var body = ea.Body.DeserializeUtf8();
+                var numberOfRetries = 0;
+                Exception exception = null;
+                bool? result = false;
+
+                while (numberOfRetries <= retryCount)
                 {
-                    //发送消息到内置死信队列
-                    PublishToDead(queue, ea.Exchange, ea.RoutingKey, body, exception == null ? numberOfRetries : numberOfRetries - 1, exception);
+                    try
+                    {
+                        var msg = body.ToObject<T>();
+
+                        if (subscriber != null)
+                            result = await subscriber(msg, ea);
+
+                        if (result == true)
+                            channel.BasicAck(ea.DeliveryTag, false);
+                        else
+                            channel.BasicNack(ea.DeliveryTag, false, false);
+
+                        //异常置空
+                        exception = null;
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        exception = ex;
+
+                        if (handler != null)
+                            await handler(body, numberOfRetries, ex);
+
+                        numberOfRetries++;
+                    }
                 }
+
+                //重试后异常仍未解决
+                if (exception != null)
+                    channel.BasicNack(ea.DeliveryTag, false, false);
+
+                //是否进入内置死信队列
+                if (deadLetter && (!(result == true) || exception != null))
+                    PublishToDead(
+                        queue,
+                        ea.Exchange,
+                        ea.RoutingKey,
+                        body,
+                        exception == null ? numberOfRetries : numberOfRetries - 1,
+                        exception);
             };
 
             //注册事件
@@ -1313,15 +1456,11 @@ namespace ZqUtils.Helpers
 
             //判断交换机是否存在
             if (!IsExchangeExist(channel, exchange))
-            {
                 channel = ExchangeDeclare(channel, exchange);
-            }
 
             //判断队列是否存在
             if (!IsQueueExist(channel, queue))
-            {
                 channel = QueueDeclare(channel, queue);
-            }
 
             //绑定交换机和队列
             QueueBind(channel, exchange, queue, routingKey);
@@ -1334,6 +1473,68 @@ namespace ZqUtils.Helpers
             try
             {
                 handler(msg, result);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
+                channel.BasicAck(result.DeliveryTag, false);
+            }
+        }
+
+        /// <summary>
+        /// 获取消息
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="handler">消费处理委托</param>
+        public async Task PullAsync<T>(Func<T, BasicGetResult, Task> handler) where T : class
+        {
+            var attribute = typeof(T).GetAttribute<RabbitMqAttribute>();
+            if (attribute == null)
+                throw new ArgumentException("RabbitMqAttribute Is Null!");
+
+            await PullAsync(attribute.Exchange, attribute.Queue, attribute.RoutingKey, handler);
+        }
+
+        /// <summary>
+        /// 获取消息
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="exchange">交换机名称</param>
+        /// <param name="queue">队列名称</param>
+        /// <param name="routingKey">路由键</param>
+        /// <param name="handler">消费处理委托</param>
+        public async Task PullAsync<T>(
+            string exchange,
+            string queue,
+            string routingKey,
+            Func<T, BasicGetResult, Task> handler) where T : class
+        {
+            //获取管道
+            var channel = GetChannel(queue);
+
+            //判断交换机是否存在
+            if (!IsExchangeExist(channel, exchange))
+                channel = ExchangeDeclare(channel, exchange);
+
+            //判断队列是否存在
+            if (!IsQueueExist(channel, queue))
+                channel = QueueDeclare(channel, queue);
+
+            //绑定交换机和队列
+            QueueBind(channel, exchange, queue, routingKey);
+
+            var result = channel.BasicGet(queue, false);
+            if (result == null)
+                return;
+
+            var msg = result.Body.DeserializeUtf8().ToObject<T>();
+            try
+            {
+                if (handler != null)
+                    await handler(msg, result);
             }
             catch (Exception)
             {
@@ -1466,9 +1667,9 @@ namespace ZqUtils.Helpers
         public int MessageTTL { get; set; }
 
         /// <summary>
-        /// 消息头部
+        /// 消息头部对象json字符串
         /// </summary>
-        public IDictionary<string, object> Headers { get; set; }
+        public string Headers { get; set; }
 
         /// <summary>
         /// 队列过期时间，过期后队列自动被删除，单位ms
