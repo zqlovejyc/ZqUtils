@@ -1243,7 +1243,7 @@ namespace ZqUtils.Helpers
                 //接收消息事件
                 consumer.Received += (sender, ea) =>
                 {
-                    var body = ea.Body.ToArray().DeserializeUtf8();
+                    var body = ea.Body.DeserializeUtf8();
                     var numberOfRetries = 0;
                     Exception exception = null;
                     bool? result = false;
@@ -1369,7 +1369,7 @@ namespace ZqUtils.Helpers
                 //接收消息事件
                 consumer.Received += async (sender, ea) =>
                 {
-                    var body = ea.Body.ToArray().DeserializeUtf8();
+                    var body = ea.Body.DeserializeUtf8();
                     var numberOfRetries = 0;
                     Exception exception = null;
                     bool? result = false;
