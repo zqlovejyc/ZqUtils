@@ -24,8 +24,8 @@ C# .NET Framework4.5版本工具类
 
 - Gitee：[https://gitee.com/zqlovejyc/ZqUtils](https://gitee.com/zqlovejyc/ZqUtils)
 - GitHub：[https://github.com/zqlovejyc/ZqUtils](https://github.com/zqlovejyc/ZqUtils)
-- Nuget：[https://www.nuget.org/packages/Zq.Utils](https://www.nuget.org/packages/Zq.Utils)
-- Myget：[https://www.myget.org/feed/zq-myget/package/nuget/Zq.Utils](https://www.myget.org/feed/zq-myget/package/nuget/Zq.Utils)
+- NuGet：[https://www.nuget.org/packages/Zq.Utils](https://www.nuget.org/packages/Zq.Utils)
+- MyGet：[https://www.myget.org/feed/zq-myget/package/nuget/Zq.Utils](https://www.myget.org/feed/zq-myget/package/nuget/Zq.Utils)
 
 ## 🍻 贡献代码
 
