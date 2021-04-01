@@ -1302,7 +1302,7 @@ namespace ZqUtils.Extensions
         /// <param name="this">The @this to act on.</param>
         /// <param name="args">The arguments.</param>
         /// <returns>The new instance.</returns>
-        public static T CreateInstance<T>(this Type @this, object[] args)
+        public static T CreateInstance<T>(this Type @this, params object[] args)
         {
             return (T)Activator.CreateInstance(@this, args);
         }
@@ -1412,7 +1412,7 @@ namespace ZqUtils.Extensions
         ///     invoked.
         /// </param>
         /// <returns>A reference to the newly created object.</returns>
-        public static object CreateInstance(this Type type, object[] args)
+        public static object CreateInstance(this Type type, params object[] args)
         {
             return Activator.CreateInstance(type, args);
         }
