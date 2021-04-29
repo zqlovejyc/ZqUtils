@@ -44,18 +44,38 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         private static Func<T, F> MapProvider()
         {
-            var parameterExpression = Expression.Parameter(typeof(T), "p");
             var memberBindingList = new List<MemberBinding>();
+
+            var parameterExpression = Expression.Parameter(typeof(T), "x");
+
             foreach (var item in typeof(F).GetProperties())
             {
                 if (!item.CanWrite)
                     continue;
-                var property = Expression.Property(parameterExpression, typeof(T).GetProperty(item.Name));
+
+                var propertyInfo = typeof(T).GetProperty(item.Name);
+
+                if (propertyInfo == null)
+                    continue;
+
+                var property = Expression.Property(parameterExpression, propertyInfo);
+
                 var memberBinding = Expression.Bind(item, property);
+
                 memberBindingList.Add(memberBinding);
             }
-            var memberInitExpression = Expression.MemberInit(Expression.New(typeof(F)), memberBindingList.ToArray());
-            var lambda = Expression.Lambda<Func<T, F>>(memberInitExpression, new ParameterExpression[] { parameterExpression });
+
+            var memberInitExpression = Expression.MemberInit(
+                Expression.New(typeof(F)),
+                memberBindingList.ToArray());
+
+            var lambda = Expression.Lambda<Func<T, F>>(
+                memberInitExpression,
+                new ParameterExpression[]
+                {
+                    parameterExpression
+                });
+
             return lambda.Compile();
         }
 

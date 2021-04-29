@@ -1268,26 +1268,39 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static IOrderedQueryable<T> BuildIOrderedQueryable<T>(this IQueryable<T> @this, string property, string methodName)
         {
-            var props = property.Split('.');
+            var props = property?.Split('.');
+            if (props.IsNullOrEmpty())
+                throw new ArgumentException($"'{property}' can not be null or empty");
+
             var type = typeof(T);
             var arg = Expression.Parameter(type, "x");
             Expression expr = arg;
+
             foreach (var prop in props)
             {
-                // use reflection (not ComponentModel) to mirror LINQ
                 var pi = type.GetProperty(prop);
+
+                if (pi == null)
+                    continue;
+
                 expr = Expression.Property(expr, pi);
+
                 type = pi.PropertyType;
             }
+
             var delegateType = typeof(Func<,>).MakeGenericType(typeof(T), type);
             var lambda = Expression.Lambda(delegateType, expr, arg);
-            var result = typeof(Queryable).GetMethods().Single(
-              method => method.Name == methodName
-                && method.IsGenericMethodDefinition
-                && method.GetGenericArguments().Length == 2
-                && method.GetParameters().Length == 2)
-              .MakeGenericMethod(typeof(T), type)
-              .Invoke(null, new object[] { @this, lambda });
+
+            var result = typeof(Queryable)
+                .GetMethods()
+                .Single(
+                    method => method.Name == methodName &&
+                    method.IsGenericMethodDefinition &&
+                    method.GetGenericArguments().Length == 2 &&
+                    method.GetParameters().Length == 2)
+                .MakeGenericMethod(typeof(T), type)
+                .Invoke(null, new object[] { @this, lambda });
+
             return (IOrderedQueryable<T>)result;
         }
         #endregion
