@@ -17,11 +17,10 @@
 #endregion
 
 using System;
-using System.Xml;
-using System.Configuration;
-using System.Collections.Specialized;
 using System.Collections.Generic;
-using ZqUtils.Reflection;
+using System.Collections.Specialized;
+using System.Configuration;
+using System.Xml;
 using ZqUtils.Extensions;
 /****************************
 * [Author] 张强
@@ -30,6 +29,8 @@ using ZqUtils.Extensions;
 * **************************/
 namespace ZqUtils.Helpers
 {
+    using ZqUtils.Reflection;
+
     /// <summary>
     /// Config工具类
     /// </summary>
