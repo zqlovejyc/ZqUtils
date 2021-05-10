@@ -96,6 +96,23 @@ namespace ZqUtils.Extensions
         }
         #endregion
 
+        #region ConvertToDateTime
+        /// <summary>
+        /// 将 DateTimeOffset 转换成 DateTime
+        /// </summary>
+        /// <param name="dateTime"></param>
+        /// <returns></returns>
+        public static DateTime ConvertToDateTime(this DateTimeOffset dateTime)
+        {
+            if (dateTime.Offset.Equals(TimeSpan.Zero))
+                return dateTime.UtcDateTime;
+            else if (dateTime.Offset.Equals(TimeZoneInfo.Local.GetUtcOffset(dateTime.DateTime)))
+                return DateTime.SpecifyKind(dateTime.DateTime, DateTimeKind.Local);
+            else
+                return dateTime.DateTime;
+        }
+        #endregion
+
         #region ConvertTimeBySystemTimeZoneId
         /// <summary>
         /// Converts a time to the time in another time zone based on the time zone&#39;s identifier.

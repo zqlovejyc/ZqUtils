@@ -744,6 +744,18 @@ namespace ZqUtils.Extensions
         }
         #endregion
 
+        #region ConvertToDateTimeOffset
+        /// <summary>
+        /// 将 DateTime 转换成 DateTimeOffset
+        /// </summary>
+        /// <param name="dateTime"></param>
+        /// <returns></returns>
+        public static DateTimeOffset ConvertToDateTimeOffset(this DateTime dateTime)
+        {
+            return DateTime.SpecifyKind(dateTime, DateTimeKind.Local);
+        }
+        #endregion
+
         #region ConvertTimeBySystemTimeZoneId
         /// <summary>
         /// Converts a time to the time in another time zone based on the time zone&#39;s identifier.
