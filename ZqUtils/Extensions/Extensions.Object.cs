@@ -5996,15 +5996,23 @@ namespace ZqUtils.Extensions
         /// <returns>转换后的对象</returns>
         public static object ChangeType(this object @this, Type type)
         {
-            if (type == null) return @this;
-            if (@this == null) return type.IsValueType ? Activator.CreateInstance(type) : null;
+            if (type == null)
+                return @this;
+
+            if (@this == null)
+                return type.IsValueType ? Activator.CreateInstance(type) : null;
 
             var underlyingType = Nullable.GetUnderlyingType(type);
-            if (type.IsAssignableFrom(@this.GetType())) return @this;
+
+            if (type.IsAssignableFrom(@this.GetType()))
+                return @this;
+
             else if ((underlyingType ?? type).IsEnum)
             {
-                if (underlyingType != null && string.IsNullOrEmpty(@this.ToString())) return null;
-                else return Enum.Parse(underlyingType ?? type, @this.ToString());
+                if (underlyingType != null && string.IsNullOrEmpty(@this.ToString()))
+                    return null;
+                else
+                    return Enum.Parse(underlyingType ?? type, @this.ToString());
             }
             // 处理DateTime -> DateTimeOffset 类型
             else if (@this.GetType().Equals(typeof(DateTime)) && (underlyingType ?? type).Equals(typeof(DateTimeOffset)))
@@ -6030,7 +6038,9 @@ namespace ZqUtils.Extensions
             else
             {
                 var converter = TypeDescriptor.GetConverter(type);
-                if (converter.CanConvertFrom(@this.GetType())) return converter.ConvertFrom(@this);
+
+                if (converter.CanConvertFrom(@this.GetType()))
+                    return converter.ConvertFrom(@this);
 
                 var constructor = type.GetConstructor(Type.EmptyTypes);
                 if (constructor != null)
@@ -6047,9 +6057,11 @@ namespace ZqUtils.Extensions
                             property.SetValue(o, ChangeType(p.GetValue(@this, null), property.PropertyType), null);
                         }
                     }
+
                     return o;
                 }
             }
+
             return @this;
         }
         #endregion
