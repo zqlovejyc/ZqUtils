@@ -37,7 +37,7 @@ namespace ZqUtils.Extensions
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static Expression<Func<T, bool>> True<T>() => parameter => true;
+        public static Expression<Func<T, bool>> True<T>() => p => true;
 
         /// <summary>
         /// True
@@ -154,7 +154,7 @@ namespace ZqUtils.Extensions
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static Expression<Func<T, bool>> False<T>() => parameter => false;
+        public static Expression<Func<T, bool>> False<T>() => p => false;
 
         /// <summary>
         /// False
@@ -275,7 +275,7 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static Expression<Func<T, bool>> Or<T>(this Expression<Func<T, bool>> @this, Expression<Func<T, bool>> other)
         {
-            var invokedExpr = Expression.Invoke(other, @this.Parameters.Cast<Expression>());
+            var invokedExpr = Expression.Invoke(other, @this.Parameters);
             return Expression.Lambda<Func<T, bool>>(Expression.OrElse(@this.Body, invokedExpr), @this.Parameters);
         }
 
@@ -289,7 +289,7 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static Expression<Func<T1, T2, bool>> Or<T1, T2>(this Expression<Func<T1, T2, bool>> @this, Expression<Func<T1, T2, bool>> other)
         {
-            var invokedExpr = Expression.Invoke(other, @this.Parameters.Cast<Expression>());
+            var invokedExpr = Expression.Invoke(other, @this.Parameters);
             return Expression.Lambda<Func<T1, T2, bool>>(Expression.OrElse(@this.Body, invokedExpr), @this.Parameters);
         }
 
@@ -304,7 +304,7 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static Expression<Func<T1, T2, T3, bool>> Or<T1, T2, T3>(this Expression<Func<T1, T2, T3, bool>> @this, Expression<Func<T1, T2, T3, bool>> other)
         {
-            var invokedExpr = Expression.Invoke(other, @this.Parameters.Cast<Expression>());
+            var invokedExpr = Expression.Invoke(other, @this.Parameters);
             return Expression.Lambda<Func<T1, T2, T3, bool>>(Expression.OrElse(@this.Body, invokedExpr), @this.Parameters);
         }
 
@@ -320,7 +320,7 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static Expression<Func<T1, T2, T3, T4, bool>> Or<T1, T2, T3, T4>(this Expression<Func<T1, T2, T3, T4, bool>> @this, Expression<Func<T1, T2, T3, T4, bool>> other)
         {
-            var invokedExpr = Expression.Invoke(other, @this.Parameters.Cast<Expression>());
+            var invokedExpr = Expression.Invoke(other, @this.Parameters);
             return Expression.Lambda<Func<T1, T2, T3, T4, bool>>(Expression.OrElse(@this.Body, invokedExpr), @this.Parameters);
         }
 
@@ -337,7 +337,7 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static Expression<Func<T1, T2, T3, T4, T5, bool>> Or<T1, T2, T3, T4, T5>(this Expression<Func<T1, T2, T3, T4, T5, bool>> @this, Expression<Func<T1, T2, T3, T4, T5, bool>> other)
         {
-            var invokedExpr = Expression.Invoke(other, @this.Parameters.Cast<Expression>());
+            var invokedExpr = Expression.Invoke(other, @this.Parameters);
             return Expression.Lambda<Func<T1, T2, T3, T4, T5, bool>>(Expression.OrElse(@this.Body, invokedExpr), @this.Parameters);
         }
 
@@ -355,7 +355,7 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static Expression<Func<T1, T2, T3, T4, T5, T6, bool>> Or<T1, T2, T3, T4, T5, T6>(this Expression<Func<T1, T2, T3, T4, T5, T6, bool>> @this, Expression<Func<T1, T2, T3, T4, T5, T6, bool>> other)
         {
-            var invokedExpr = Expression.Invoke(other, @this.Parameters.Cast<Expression>());
+            var invokedExpr = Expression.Invoke(other, @this.Parameters);
             return Expression.Lambda<Func<T1, T2, T3, T4, T5, T6, bool>>(Expression.OrElse(@this.Body, invokedExpr), @this.Parameters);
         }
 
@@ -374,7 +374,7 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static Expression<Func<T1, T2, T3, T4, T5, T6, T7, bool>> Or<T1, T2, T3, T4, T5, T6, T7>(this Expression<Func<T1, T2, T3, T4, T5, T6, T7, bool>> @this, Expression<Func<T1, T2, T3, T4, T5, T6, T7, bool>> other)
         {
-            var invokedExpr = Expression.Invoke(other, @this.Parameters.Cast<Expression>());
+            var invokedExpr = Expression.Invoke(other, @this.Parameters);
             return Expression.Lambda<Func<T1, T2, T3, T4, T5, T6, T7, bool>>(Expression.OrElse(@this.Body, invokedExpr), @this.Parameters);
         }
 
@@ -394,7 +394,7 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>> Or<T1, T2, T3, T4, T5, T6, T7, T8>(this Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>> @this, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>> other)
         {
-            var invokedExpr = Expression.Invoke(other, @this.Parameters.Cast<Expression>());
+            var invokedExpr = Expression.Invoke(other, @this.Parameters);
             return Expression.Lambda<Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>>(Expression.OrElse(@this.Body, invokedExpr), @this.Parameters);
         }
 
@@ -415,7 +415,7 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>> Or<T1, T2, T3, T4, T5, T6, T7, T8, T9>(this Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>> @this, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>> other)
         {
-            var invokedExpr = Expression.Invoke(other, @this.Parameters.Cast<Expression>());
+            var invokedExpr = Expression.Invoke(other, @this.Parameters);
             return Expression.Lambda<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>>(Expression.OrElse(@this.Body, invokedExpr), @this.Parameters);
         }
 
@@ -437,7 +437,7 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, bool>> Or<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, bool>> @this, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, bool>> other)
         {
-            var invokedExpr = Expression.Invoke(other, @this.Parameters.Cast<Expression>());
+            var invokedExpr = Expression.Invoke(other, @this.Parameters);
             return Expression.Lambda<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, bool>>(Expression.OrElse(@this.Body, invokedExpr), @this.Parameters);
         }
         #endregion
@@ -452,7 +452,7 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static Expression<Func<T, bool>> And<T>(this Expression<Func<T, bool>> @this, Expression<Func<T, bool>> other)
         {
-            var invokedExpr = Expression.Invoke(other, @this.Parameters.Cast<Expression>());
+            var invokedExpr = Expression.Invoke(other, @this.Parameters);
             return Expression.Lambda<Func<T, bool>>(Expression.AndAlso(@this.Body, invokedExpr), @this.Parameters);
         }
 
@@ -466,7 +466,7 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static Expression<Func<T1, T2, bool>> And<T1, T2>(this Expression<Func<T1, T2, bool>> @this, Expression<Func<T1, T2, bool>> other)
         {
-            var invokedExpr = Expression.Invoke(other, @this.Parameters.Cast<Expression>());
+            var invokedExpr = Expression.Invoke(other, @this.Parameters);
             return Expression.Lambda<Func<T1, T2, bool>>(Expression.AndAlso(@this.Body, invokedExpr), @this.Parameters);
         }
 
@@ -481,7 +481,7 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static Expression<Func<T1, T2, T3, bool>> And<T1, T2, T3>(this Expression<Func<T1, T2, T3, bool>> @this, Expression<Func<T1, T2, T3, bool>> other)
         {
-            var invokedExpr = Expression.Invoke(other, @this.Parameters.Cast<Expression>());
+            var invokedExpr = Expression.Invoke(other, @this.Parameters);
             return Expression.Lambda<Func<T1, T2, T3, bool>>(Expression.AndAlso(@this.Body, invokedExpr), @this.Parameters);
         }
 
@@ -497,7 +497,7 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static Expression<Func<T1, T2, T3, T4, bool>> And<T1, T2, T3, T4>(this Expression<Func<T1, T2, T3, T4, bool>> @this, Expression<Func<T1, T2, T3, T4, bool>> other)
         {
-            var invokedExpr = Expression.Invoke(other, @this.Parameters.Cast<Expression>());
+            var invokedExpr = Expression.Invoke(other, @this.Parameters);
             return Expression.Lambda<Func<T1, T2, T3, T4, bool>>(Expression.AndAlso(@this.Body, invokedExpr), @this.Parameters);
         }
 
@@ -514,7 +514,7 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static Expression<Func<T1, T2, T3, T4, T5, bool>> And<T1, T2, T3, T4, T5>(this Expression<Func<T1, T2, T3, T4, T5, bool>> @this, Expression<Func<T1, T2, T3, T4, T5, bool>> other)
         {
-            var invokedExpr = Expression.Invoke(other, @this.Parameters.Cast<Expression>());
+            var invokedExpr = Expression.Invoke(other, @this.Parameters);
             return Expression.Lambda<Func<T1, T2, T3, T4, T5, bool>>(Expression.AndAlso(@this.Body, invokedExpr), @this.Parameters);
         }
 
@@ -532,7 +532,7 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static Expression<Func<T1, T2, T3, T4, T5, T6, bool>> And<T1, T2, T3, T4, T5, T6>(this Expression<Func<T1, T2, T3, T4, T5, T6, bool>> @this, Expression<Func<T1, T2, T3, T4, T5, T6, bool>> other)
         {
-            var invokedExpr = Expression.Invoke(other, @this.Parameters.Cast<Expression>());
+            var invokedExpr = Expression.Invoke(other, @this.Parameters);
             return Expression.Lambda<Func<T1, T2, T3, T4, T5, T6, bool>>(Expression.AndAlso(@this.Body, invokedExpr), @this.Parameters);
         }
 
@@ -551,7 +551,7 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static Expression<Func<T1, T2, T3, T4, T5, T6, T7, bool>> And<T1, T2, T3, T4, T5, T6, T7>(this Expression<Func<T1, T2, T3, T4, T5, T6, T7, bool>> @this, Expression<Func<T1, T2, T3, T4, T5, T6, T7, bool>> other)
         {
-            var invokedExpr = Expression.Invoke(other, @this.Parameters.Cast<Expression>());
+            var invokedExpr = Expression.Invoke(other, @this.Parameters);
             return Expression.Lambda<Func<T1, T2, T3, T4, T5, T6, T7, bool>>(Expression.AndAlso(@this.Body, invokedExpr), @this.Parameters);
         }
 
@@ -571,7 +571,7 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>> And<T1, T2, T3, T4, T5, T6, T7, T8>(this Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>> @this, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>> other)
         {
-            var invokedExpr = Expression.Invoke(other, @this.Parameters.Cast<Expression>());
+            var invokedExpr = Expression.Invoke(other, @this.Parameters);
             return Expression.Lambda<Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>>(Expression.AndAlso(@this.Body, invokedExpr), @this.Parameters);
         }
 
@@ -592,7 +592,7 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>> And<T1, T2, T3, T4, T5, T6, T7, T8, T9>(this Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>> @this, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>> other)
         {
-            var invokedExpr = Expression.Invoke(other, @this.Parameters.Cast<Expression>());
+            var invokedExpr = Expression.Invoke(other, @this.Parameters);
             return Expression.Lambda<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>>(Expression.AndAlso(@this.Body, invokedExpr), @this.Parameters);
         }
 
@@ -614,7 +614,7 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, bool>> And<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, bool>> @this, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, bool>> other)
         {
-            var invokedExpr = Expression.Invoke(other, @this.Parameters.Cast<Expression>());
+            var invokedExpr = Expression.Invoke(other, @this.Parameters);
             return Expression.Lambda<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, bool>>(Expression.AndAlso(@this.Body, invokedExpr), @this.Parameters);
         }
         #endregion
