@@ -1147,6 +1147,39 @@ namespace ZqUtils.Extensions
         }
 
         /// <summary>
+        /// 忽略大小写的字符串不相等比较，判断是否以任意一个待比较字符串不相等
+        /// </summary>
+        /// <param name="this">当前字符串</param>
+        /// <param name="strs">待比较字符串数组</param>
+        /// <returns>bool</returns>
+        public static bool NotEqualIgnoreCase(this string @this, params string[] strs)
+        {
+            return !@this.EqualIgnoreCase(strs);
+        }
+
+        /// <summary>
+        /// 忽略大小写的字符串开始比较，判断是否不以任意一个待比较字符串开始
+        /// </summary>
+        /// <param name="this">当前字符串</param>
+        /// <param name="strs">待比较字符串数组</param>
+        /// <returns>bool</returns>
+        public static bool NotStartsWithIgnoreCase(this string @this, params string[] strs)
+        {
+            return !@this.StartsWithIgnoreCase(strs);
+        }
+
+        /// <summary>
+        /// 忽略大小写的字符串结束比较，判断是否不以任意一个待比较字符串结束
+        /// </summary>
+        /// <param name="this">当前字符串</param>
+        /// <param name="strs">待比较字符串数组</param>
+        /// <returns>bool</returns>
+        public static bool NotEndsWithIgnoreCase(this string @this, params string[] strs)
+        {
+            return !@this.EndsWithIgnoreCase(strs);
+        }
+
+        /// <summary>
         /// 正则判断是否不包含目标字符串
         /// </summary>
         /// <param name="this">源字符串</param>
@@ -1181,7 +1214,7 @@ namespace ZqUtils.Extensions
         }
 
         /// <summary>
-        /// 忽略大小写的字符串包含比较，判断是否以任意一个待比较字符串是否包含
+        /// 忽略大小写的字符串包含比较，判断是否不以任意一个待比较字符串是否包含
         /// </summary>
         /// <param name="this"></param>
         /// <param name="strs"></param>
