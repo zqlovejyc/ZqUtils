@@ -16,6 +16,7 @@
  */
 #endregion
 
+using ICSharpCode.SharpZipLib.BZip2;
 using ICSharpCode.SharpZipLib.Checksum;
 using ICSharpCode.SharpZipLib.Zip;
 using SevenZip;
@@ -24,6 +25,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using ZqUtils.Extensions;
 /****************************
 * [Author] 张强
@@ -443,6 +445,130 @@ namespace ZqUtils.Helpers
 
             tmp.ExtractArchive(extractFolder);
             tmp?.Dispose();
+
+            return true;
+        }
+        #endregion
+
+        #region BZip2压缩
+        /// <summary>
+        /// BZip2压缩
+        /// </summary>
+        /// <param name="data">源字节数组</param>
+        /// <returns></returns>
+        public static byte[] BZip2(byte[] data)
+        {
+            using var mstream = new MemoryStream();
+
+            using var zipOutStream = new BZip2OutputStream(mstream);
+            zipOutStream.Write(data, 0, data.Length);
+            byte[] result = mstream.ToArray();
+
+            return result;
+        }
+
+        /// <summary>
+        /// BZip2压缩
+        /// </summary>
+        /// <param name="data">源字节数组</param>
+        /// <param name="level">压缩率，1-9，数字越大压缩率越高</param>
+        /// <returns></returns>
+        public static byte[] BZip2(byte[] data, int level)
+        {
+            using var mstream = new MemoryStream();
+
+            using var zipOutStream = new BZip2OutputStream(mstream, level);
+            zipOutStream.Write(data, 0, data.Length);
+            byte[] result = mstream.ToArray();
+
+            return result;
+        }
+
+        /// <summary>
+        /// BZip2压缩
+        /// </summary>
+        /// <param name="fileToZip">要压缩的文件路径</param>
+        /// <param name="zipedFile">压缩后的文件路径</param>
+        /// <returns></returns>
+        public static bool BZip2(string fileToZip, string zipedFile)
+        {
+            if (!File.Exists(fileToZip))
+                return false;
+
+            using var fr = File.OpenRead(fileToZip);
+            var buffer = new byte[fr.Length];
+            fr.Read(buffer, 0, buffer.Length);
+
+            using var fc = File.Create(zipedFile);
+            using var zipStream = new BZip2OutputStream(fc);
+            zipStream.Write(buffer, 0, buffer.Length);
+
+            return true;
+        }
+
+        /// <summary>
+        /// BZip2压缩
+        /// </summary>
+        /// <param name="fileToZip">要压缩的文件路径</param>
+        /// <param name="zipedFile">压缩后的文件路径</param>
+        /// <param name="level">压缩率，1-9，数字越大压缩率越高</param>
+        /// <returns></returns>
+        public static bool BZip2(string fileToZip, string zipedFile, int level)
+        {
+            if (!File.Exists(fileToZip))
+                return false;
+
+            using var fr = File.OpenRead(fileToZip);
+            var buffer = new byte[fr.Length];
+            fr.Read(buffer, 0, buffer.Length);
+
+            using var fc = File.Create(zipedFile);
+            using var zipStream = new BZip2OutputStream(fc, level);
+            zipStream.Write(buffer, 0, buffer.Length);
+
+            return true;
+        }
+        #endregion
+
+        #region BZip2解压缩
+        /// <summary>
+        /// BZip2解压缩
+        /// </summary>
+        /// <param name="data">要解压的字节数组数据</param>
+        /// <returns></returns>
+        public static byte[] UnBZip2(byte[] data)
+        {
+            using var mstream = new MemoryStream(data);
+
+            using var zipInputStream = new BZip2InputStream(mstream);
+            using var readstream = new StreamReader(zipInputStream, Encoding.UTF8);
+            var unzipdata = readstream.ReadToEnd();
+
+            return Encoding.UTF8.GetBytes(unzipdata);
+        }
+
+        /// <summary>
+        /// BZip2解压缩
+        /// </summary>
+        /// <param name="fileToUnZip">要解压的zip文件路径</param>
+        /// <param name="unZipedFile">解压后的文件路径</param>
+        /// <returns></returns>
+        public static bool UnBZip2(string fileToUnZip, string unZipedFile)
+        {
+            if (!File.Exists(fileToUnZip))
+                return false;
+
+            using var fr = File.OpenRead(fileToUnZip);
+            using var zipStream = new BZip2InputStream(fr);
+            using var fc = File.Create(unZipedFile);
+
+            var buffer = new byte[2048];
+            var bytesRead = 0;
+            //每次读取2kb数据，然后写入文件
+            while ((bytesRead = zipStream.Read(buffer, 0, buffer.Length)) != 0)
+            {
+                fc.Write(buffer, 0, bytesRead);
+            }
 
             return true;
         }
