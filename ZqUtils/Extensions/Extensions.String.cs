@@ -1023,6 +1023,35 @@ namespace ZqUtils.Extensions
 
         #region 字符串比较
         /// <summary>
+        /// 字符串相等比较，判断是否以任意一个待比较字符串相等
+        /// </summary>
+        /// <param name="this">当前字符串</param>
+        /// <param name="ignoreCase">是否忽略大小写</param>
+        /// <param name="strs">待比较字符串数组</param>
+        /// <returns></returns>
+        public static bool Equals(this string @this, bool ignoreCase, params string[] strs)
+        {
+            if (strs.IsNotNullOrEmpty())
+            {
+                foreach (var item in strs)
+                {
+                    if (ignoreCase)
+                    {
+                        if (string.Equals(@this, item, StringComparison.OrdinalIgnoreCase))
+                            return true;
+                    }
+                    else
+                    {
+                        if (string.Equals(@this, item))
+                            return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// 忽略大小写的字符串相等比较，判断是否以任意一个待比较字符串相等
         /// </summary>
         /// <param name="this">当前字符串</param>
@@ -1144,6 +1173,18 @@ namespace ZqUtils.Extensions
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// 字符串不相等比较，判断是否以任意一个待比较字符串不相等
+        /// </summary>
+        /// <param name="this">当前字符串</param>
+        /// <param name="ignoreCase">是否忽略大小写</param>
+        /// <param name="strs">待比较字符串数组</param>
+        /// <returns></returns>
+        public static bool NotEquals(this string @this, bool ignoreCase, params string[] strs)
+        {
+            return !@this.Equals(ignoreCase, strs);
         }
 
         /// <summary>
