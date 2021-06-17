@@ -18,7 +18,9 @@
 
 using ICSharpCode.SharpZipLib.BZip2;
 using ICSharpCode.SharpZipLib.Checksum;
-using ICSharpCode.SharpZipLib.Zip;
+using ICSharpCode.SharpZipLib.GZip;
+using ICSharpCode.SharpZipLib.Tar;
+using ICSharpCode.SharpZipLib.Zip.Compression;
 using SevenZip;
 using System;
 using System.Collections.Generic;
@@ -34,6 +36,8 @@ using ZqUtils.Extensions;
 * **************************/
 namespace ZqUtils.Helpers
 {
+    using ICSharpCode.SharpZipLib.Zip;
+
     /// <summary>
     /// Zip解压缩帮助类
     /// </summary>
@@ -487,19 +491,19 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// BZip2压缩
         /// </summary>
-        /// <param name="fileToZip">要压缩的文件路径</param>
-        /// <param name="zipedFile">压缩后的文件路径</param>
+        /// <param name="zipFileName">压缩后的文件路径</param>
+        /// <param name="sourceFileName">要压缩的文件路径</param>
         /// <returns></returns>
-        public static bool BZip2(string fileToZip, string zipedFile)
+        public static bool BZip2(string zipFileName, string sourceFileName)
         {
-            if (!File.Exists(fileToZip))
+            if (!File.Exists(sourceFileName))
                 return false;
 
-            using var fr = File.OpenRead(fileToZip);
+            using var fr = File.OpenRead(sourceFileName);
             var buffer = new byte[fr.Length];
             fr.Read(buffer, 0, buffer.Length);
 
-            using var fc = File.Create(zipedFile);
+            using var fc = File.Create(zipFileName);
             using var zipStream = new BZip2OutputStream(fc);
             zipStream.Write(buffer, 0, buffer.Length);
 
@@ -509,20 +513,20 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// BZip2压缩
         /// </summary>
-        /// <param name="fileToZip">要压缩的文件路径</param>
-        /// <param name="zipedFile">压缩后的文件路径</param>
+        /// <param name="zipFileName">压缩后的文件路径</param>
+        /// <param name="sourceFileName">要压缩的文件路径</param>
         /// <param name="level">压缩率，1-9，数字越大压缩率越高</param>
         /// <returns></returns>
-        public static bool BZip2(string fileToZip, string zipedFile, int level)
+        public static bool BZip2(string zipFileName, string sourceFileName, int level)
         {
-            if (!File.Exists(fileToZip))
+            if (!File.Exists(sourceFileName))
                 return false;
 
-            using var fr = File.OpenRead(fileToZip);
+            using var fr = File.OpenRead(sourceFileName);
             var buffer = new byte[fr.Length];
             fr.Read(buffer, 0, buffer.Length);
 
-            using var fc = File.Create(zipedFile);
+            using var fc = File.Create(zipFileName);
             using var zipStream = new BZip2OutputStream(fc, level);
             zipStream.Write(buffer, 0, buffer.Length);
 
@@ -550,17 +554,17 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// BZip2解压缩
         /// </summary>
-        /// <param name="fileToUnZip">要解压的zip文件路径</param>
-        /// <param name="unZipedFile">解压后的文件路径</param>
+        /// <param name="sourceFileName">要解压的zip文件路径</param>
+        /// <param name="destFileName">解压后的文件路径</param>
         /// <returns></returns>
-        public static bool UnBZip2(string fileToUnZip, string unZipedFile)
+        public static bool UnBZip2(string sourceFileName, string destFileName)
         {
-            if (!File.Exists(fileToUnZip))
+            if (!File.Exists(sourceFileName))
                 return false;
 
-            using var fr = File.OpenRead(fileToUnZip);
+            using var fr = File.OpenRead(sourceFileName);
             using var zipStream = new BZip2InputStream(fr);
-            using var fc = File.Create(unZipedFile);
+            using var fc = File.Create(destFileName);
 
             var buffer = new byte[2048];
             var bytesRead = 0;
@@ -571,6 +575,116 @@ namespace ZqUtils.Helpers
             }
 
             return true;
+        }
+        #endregion
+
+        #region FastZip
+        /// <summary>
+        /// FastZip
+        /// </summary>
+        public static FastZip FastZip() => new();
+
+        /// <summary>
+        /// FastZip
+        /// </summary>
+        /// <param name="password"></param>
+        /// <param name="compressionLevel"></param>
+        /// <param name="createEmptyDirectories"></param>
+        /// <param name="useZip64"></param>
+        /// <param name="restoreDateTimeOnExtract"></param>
+        /// <param name="restoreAttributesOnExtract"></param>
+        /// <param name="entryEncryptionMethod"></param>
+        /// <returns></returns>
+        public static FastZip FastZip(
+            string password,
+            Deflater.CompressionLevel compressionLevel = Deflater.CompressionLevel.NO_COMPRESSION,
+            bool createEmptyDirectories = false,
+            UseZip64 useZip64 = UseZip64.Off,
+            bool restoreDateTimeOnExtract = false,
+            bool restoreAttributesOnExtract = false,
+            ZipEncryptionMethod entryEncryptionMethod = ZipEncryptionMethod.ZipCrypto)
+        => new()
+        {
+            Password = password,
+            CompressionLevel = compressionLevel,
+            CreateEmptyDirectories = createEmptyDirectories,
+            UseZip64 = useZip64,
+            RestoreDateTimeOnExtract = restoreDateTimeOnExtract,
+            RestoreAttributesOnExtract = restoreAttributesOnExtract,
+            EntryEncryptionMethod = entryEncryptionMethod
+        };
+        #endregion
+
+        #region TarGz压缩
+        /// <summary>
+        /// 创建tar.gz压缩文件，如：ZipHelper.CreateTarGZ(@"c:\temp\gzip-test.tar.gz", @"c:\data")
+        /// </summary>
+        /// <param name="tgzFilename">.tar.gz后缀名待压缩文件名</param>
+        /// <param name="sourceDirectory">要压缩的目录</param>
+        public static void CreateTarGz(string tgzFilename, string sourceDirectory)
+        {
+            Stream outStream = File.Create(tgzFilename);
+            Stream gzoStream = new GZipOutputStream(outStream);
+            var tarArchive = TarArchive.CreateOutputTarArchive(gzoStream);
+
+            // Note that the RootPath is currently case sensitive and must be forward slashes e.g. "c:/temp"
+            // and must not end with a slash, otherwise cuts off first char of filename
+            // This is scheduled for fix in next release
+            tarArchive.RootPath = sourceDirectory.Replace('\\', '/');
+            if (tarArchive.RootPath.EndsWith("/"))
+                tarArchive.RootPath = tarArchive.RootPath.Remove(tarArchive.RootPath.Length - 1);
+
+            AddDirectoryFilesToTar(tarArchive, sourceDirectory, true);
+
+            tarArchive.Close();
+        }
+
+        /// <summary>
+        /// 递归压缩目录ToTar
+        /// </summary>
+        /// <param name="tarArchive"></param>
+        /// <param name="sourceDirectory"></param>
+        /// <param name="recurse"></param>
+        private static void AddDirectoryFilesToTar(TarArchive tarArchive, string sourceDirectory, bool recurse)
+        {
+            // Optionally, write an entry for the directory itself.
+            // Specify false for recursion here if we will add the directory's files individually.
+            TarEntry tarEntry = TarEntry.CreateEntryFromFile(sourceDirectory);
+            tarArchive.WriteEntry(tarEntry, false);
+
+            // Write each file to the tar.
+            string[] filenames = Directory.GetFiles(sourceDirectory);
+            foreach (string filename in filenames)
+            {
+                tarEntry = TarEntry.CreateEntryFromFile(filename);
+                tarArchive.WriteEntry(tarEntry, true);
+            }
+
+            if (recurse)
+            {
+                string[] directories = Directory.GetDirectories(sourceDirectory);
+                foreach (string directory in directories)
+                    AddDirectoryFilesToTar(tarArchive, directory, recurse);
+            }
+        }
+
+
+        #endregion
+
+        #region TarGz解压缩
+        /// <summary>
+        /// tar.gz文件解压缩，如：ZipHelper.ExtractTGZ(@"c:\temp\test.tar.gz", @"C:\DestinationFolder")
+        /// </summary>
+        /// <param name="gzArchiveName">.tar.gz后缀名待解压缩文件名</param>
+        /// <param name="destFolder">解压缩的目录</param>
+        /// <param name="nameEncoding">解压编码</param>
+        public static void ExtractTarGz(string gzArchiveName, string destFolder, string nameEncoding = "utf-8")
+        {
+            using var inStream = File.OpenRead(gzArchiveName);
+            using var gzipStream = new GZipInputStream(inStream);
+
+            using var tarArchive = TarArchive.CreateInputTarArchive(gzipStream, Encoding.GetEncoding(nameEncoding));
+            tarArchive.ExtractContents(destFolder);
         }
         #endregion
     }
