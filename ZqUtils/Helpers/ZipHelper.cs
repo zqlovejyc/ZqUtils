@@ -623,9 +623,9 @@ namespace ZqUtils.Helpers
         /// <param name="sourceDirectory">要压缩的目录</param>
         public static void CreateTarGz(string tgzFilename, string sourceDirectory)
         {
-            var outStream = File.Create(tgzFilename);
-            var gzoStream = new GZipOutputStream(outStream);
-            var tarArchive = TarArchive.CreateOutputTarArchive(gzoStream);
+            using var outStream = File.Create(tgzFilename);
+            using var gzoStream = new GZipOutputStream(outStream);
+            using var tarArchive = TarArchive.CreateOutputTarArchive(gzoStream);
 
             // Note that the RootPath is currently case sensitive and must be forward slashes e.g. "c:/temp"
             // and must not end with a slash, otherwise cuts off first char of filename
@@ -635,8 +635,6 @@ namespace ZqUtils.Helpers
                 tarArchive.RootPath = tarArchive.RootPath.Remove(tarArchive.RootPath.Length - 1);
 
             AddDirectoryFilesToTar(tarArchive, sourceDirectory, true);
-
-            tarArchive.Close();
         }
 
         /// <summary>
