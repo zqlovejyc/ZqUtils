@@ -617,7 +617,7 @@ namespace ZqUtils.Helpers
 
         #region TarGz压缩
         /// <summary>
-        /// 创建tar.gz压缩文件，如：ZipHelper.CreateTarGZ(@"c:\temp\gzip-test.tar.gz", @"c:\data")
+        /// 创建tar.gz压缩文件，如：ZipHelper.CreateTarGz(@"c:\temp\gzip-test.tar.gz", @"c:\data")
         /// </summary>
         /// <param name="tgzFilename">.tar.gz后缀名待压缩文件名</param>
         /// <param name="sourceDirectory">要压缩的目录</param>
@@ -671,7 +671,7 @@ namespace ZqUtils.Helpers
 
         #region TarGz解压缩
         /// <summary>
-        /// tar.gz文件解压缩，如：ZipHelper.ExtractTGZ(@"c:\temp\test.tar.gz", @"C:\DestinationFolder")
+        /// tar.gz文件解压缩，如：ZipHelper.ExtractTarGz(@"c:\temp\test.tar.gz", @"C:\DestinationFolder")
         /// </summary>
         /// <param name="gzArchiveName">.tar.gz后缀名待解压缩文件名</param>
         /// <param name="destFolder">解压缩的目录</param>
