@@ -79,5 +79,174 @@ namespace ZqUtils.Extensions
                 : @this;
         }
         #endregion
+
+        #region OrderBy
+        /// <summary>
+        /// linq正序排序扩展
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="property"></param>
+        /// <returns></returns>
+        public static IOrderedQueryable<T> OrderBy<T>(this IQueryable<T> @this, string property)
+        {
+            return @this.BuildIOrderedQueryable<T>(property, "OrderBy");
+        }
+
+        /// <summary>
+        /// linq倒叙排序扩展
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="property"></param>
+        /// <returns></returns>
+        public static IOrderedQueryable<T> OrderByDescending<T>(this IQueryable<T> @this, string property)
+        {
+            return @this.BuildIOrderedQueryable<T>(property, "OrderByDescending");
+        }
+
+        /// <summary>
+        /// linq正序多列排序扩展
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="property"></param>
+        /// <returns></returns>
+        public static IOrderedQueryable<T> ThenBy<T>(this IOrderedQueryable<T> @this, string property)
+        {
+            return @this.BuildIOrderedQueryable<T>(property, "ThenBy");
+        }
+
+        /// <summary>
+        /// linq倒序多列排序扩展
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="property"></param>
+        /// <returns></returns>
+        public static IOrderedQueryable<T> ThenByDescending<T>(this IOrderedQueryable<T> @this, string property)
+        {
+            return @this.BuildIOrderedQueryable<T>(property, "ThenByDescending");
+        }
+
+        /// <summary>
+        /// 根据属性和排序方法构建IOrderedQueryable
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="property"></param>
+        /// <param name="methodName"></param>
+        /// <returns></returns>
+        public static IOrderedQueryable<T> BuildIOrderedQueryable<T>(this IQueryable<T> @this, string property, string methodName)
+        {
+            var props = property?.Split('.');
+            if (props.IsNullOrEmpty())
+                throw new ArgumentException($"'{property}' can not be null or empty");
+
+            var type = typeof(T);
+            var arg = Expression.Parameter(type, "x");
+            Expression expr = arg;
+
+            foreach (var prop in props)
+            {
+                var pi = type.GetProperty(prop);
+
+                if (pi == null)
+                    continue;
+
+                expr = Expression.Property(expr, pi);
+
+                type = pi.PropertyType;
+            }
+
+            var delegateType = typeof(Func<,>).MakeGenericType(typeof(T), type);
+            var lambda = Expression.Lambda(delegateType, expr, arg);
+
+            var result = typeof(Queryable)
+                .GetMethods()
+                .Single(
+                    method => method.Name == methodName &&
+                    method.IsGenericMethodDefinition &&
+                    method.GetGenericArguments().Length == 2 &&
+                    method.GetParameters().Length == 2)
+                .MakeGenericMethod(typeof(T), type)
+                .Invoke(null, new object[] { @this, lambda });
+
+            return (IOrderedQueryable<T>)result;
+        }
+
+        /// <summary>
+        /// 根据排序字段和排序类型转换为IOrderedQueryable
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="orderField"></param>
+        /// <param name="orderTypes"></param>
+        /// <returns></returns>
+        public static IOrderedQueryable<T> ToOrderedQueryable<T>(this IQueryable<T> @this, Expression<Func<T, object>> orderField, params OrderType[] orderTypes) where T : class
+        {
+            //多个字段排序
+            if (orderField?.Body is NewExpression newExpression)
+            {
+                IOrderedQueryable<T> order = null;
+                for (var i = 0; i < newExpression.Members.Count; i++)
+                {
+                    //指定排序类型
+                    if (i <= orderTypes.Length - 1)
+                    {
+                        if (orderTypes[i] == OrderType.Descending)
+                        {
+                            if (i > 0)
+                                order = order.ThenByDescending(newExpression.Members[i].Name);
+                            else
+                                order = @this.OrderByDescending(newExpression.Members[i].Name);
+                        }
+                        else
+                        {
+                            if (i > 0)
+                                order = order.ThenBy(newExpression.Members[i].Name);
+                            else
+                                order = @this.OrderBy(newExpression.Members[i].Name);
+                        }
+                    }
+                    else
+                    {
+                        if (i > 0)
+                            order = order.ThenBy(newExpression.Members[i].Name);
+                        else
+                            order = @this.OrderBy(newExpression.Members[i].Name);
+                    }
+                }
+
+                return order;
+            }
+            //单个字段排序
+            else
+            {
+                if (orderTypes?.FirstOrDefault() == OrderType.Descending)
+                    return @this.OrderByDescending(orderField);
+                else
+                    return @this.OrderBy(orderField);
+            }
+        }
+        #endregion
+
+        #region OrderType
+        /// <summary>
+        /// 排序方式
+        /// </summary>
+        public enum OrderType
+        {
+            /// <summary>
+            /// 升序
+            /// </summary>
+            Ascending,
+
+            /// <summary>
+            /// 降序
+            /// </summary>
+            Descending
+        }
+        #endregion
     }
 }
