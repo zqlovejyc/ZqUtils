@@ -963,7 +963,7 @@ namespace ZqUtils.Helpers
         }
         #endregion
 
-        #region 构建Excel头部
+        #region 构建Excel表头
         /// <summary>
         /// 构建Excel表头
         /// </summary>
@@ -977,32 +977,33 @@ namespace ZqUtils.Helpers
             currCell.FromCol = prevCell != null ? prevCell.ToCol + 1 : (parentSell != null ? parentSell.FromCol : 1);
             currCell.ToRow = currCell.FromRow;
             currCell.ToCol = currCell.FromCol;
+
             if (currCell.IsRowspan)
-            {
                 currCell.ToRow = currCell.FromRow - 1 + currCell.Rowspan;
-            }
+
             if (currCell.IsColspan)
-            {
                 currCell.ToCol = currCell.FromCol - 1 + currCell.Colspan;
-            }
+
             var sell = sheet.Cells[currCell.FromRow, currCell.FromCol, currCell.ToRow, currCell.ToCol];
+
             //设置单元格属性
             sell.Value = currCell.Title;
             sell.Style.Font.Bold = currCell.Bold;
             sell.Style.Font.Color.SetColor(currCell.FontColor);
+
             if (currCell.HorizontalAlignment != null)
-            {
                 sell.Style.HorizontalAlignment = currCell.HorizontalAlignment.Value;
-            }
+
             if (currCell.VerticalAlignment != null)
-            {
                 sell.Style.VerticalAlignment = currCell.VerticalAlignment.Value;
-            }
+
+            if (currCell.BackgroundColor != null)
+                sell.Style.Fill.SetBackground(currCell.BackgroundColor.Value);
+
             //合并单元格
             if (currCell.IsColspan || currCell.IsRowspan)
-            {
                 sheet.Cells[currCell.FromRow, currCell.FromCol, currCell.ToRow, currCell.ToCol].Merge = true;
-            }
+
             //判断是否有子元素，递归调用
             if (currCell.ChildHeaderCells?.Count > 0)
             {
@@ -1035,6 +1036,11 @@ namespace ZqUtils.Helpers
         /// 字体颜色，默认黑色
         /// </summary>
         public Color FontColor { get; set; } = Color.Black;
+
+        /// <summary>
+        /// 背景色
+        /// </summary>
+        public Color? BackgroundColor { get; set; }
 
         /// <summary>
         /// 水平方向布局
