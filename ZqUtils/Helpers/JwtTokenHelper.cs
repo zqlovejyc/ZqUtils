@@ -16,12 +16,12 @@
  */
 #endregion
 
+using Microsoft.IdentityModel.Tokens;
 using System;
-using System.Text;
-using System.Security.Claims;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
+using System.Text;
 using ZqUtils.Extensions;
 /****************************
 * [Author] 张强
@@ -36,6 +36,14 @@ namespace ZqUtils.Helpers
     public class JwtTokenHelper
     {
         /// <summary>
+        /// 确定字符串是否是有效格式的Json Web Token (JWT)。 
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public static bool CanReadToken(string token) =>
+            new JwtSecurityTokenHandler().CanReadToken(token);
+
+        /// <summary>
         /// 创建Token
         /// </summary>
         /// <param name="claims">声明集合</param>
@@ -47,7 +55,7 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public static string CreateToken(
             IEnumerable<Claim> claims,
-            int expires,
+            int? expires,
             string secret,
             string issuer = null,
             string audience = null,
@@ -59,7 +67,7 @@ namespace ZqUtils.Helpers
                 issuer: issuer,
                 audience: audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddSeconds(expires),
+                expires: expires != null ? DateTime.Now.AddSeconds(expires.Value) : null,
                 signingCredentials: signingCredentials);
 
             return new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
@@ -79,13 +87,14 @@ namespace ZqUtils.Helpers
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var securityToken = tokenHandler.ReadJwtToken(token);
+
             if (!secret.IsNullOrEmpty())
             {
                 //签名
                 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
 
                 //判断是否有自定义TokenValidationParameters
-                validationParameters = validationParameters ?? new TokenValidationParameters
+                validationParameters ??= new TokenValidationParameters
                 {
                     ValidateIssuer = false,//是否校验issuer
                     ValidateAudience = false,//是否校验audience
@@ -94,10 +103,12 @@ namespace ZqUtils.Helpers
                     ValidateIssuerSigningKey = true,//是否校验securityKey
                     IssuerSigningKey = key//securityKey
                 };
+
                 var principal = tokenHandler.ValidateToken(token, validationParameters, out _);
 
                 return (securityToken, principal);
             }
+
             return (securityToken, null);
         }
     }
