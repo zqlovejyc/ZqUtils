@@ -53,11 +53,11 @@
     <Reference Include="DeepCloner, Version=0.10.0.0, Culture=neutral, PublicKeyToken=dc0b95cf99bf4e99, processorArchitecture=MSIL">
       <HintPath>..\packages\DeepCloner.0.10.2\lib\net40\DeepCloner.dll</HintPath>
     </Reference>
-    <Reference Include="DnsClient, Version=1.4.0.0, Culture=neutral, PublicKeyToken=4574bb5573c51424, processorArchitecture=MSIL">
-      <HintPath>..\packages\DnsClient.1.4.0\lib\net45\DnsClient.dll</HintPath>
+    <Reference Include="DnsClient, Version=1.5.0.0, Culture=neutral, PublicKeyToken=4574bb5573c51424, processorArchitecture=MSIL">
+      <HintPath>..\packages\DnsClient.1.5.0\lib\net45\DnsClient.dll</HintPath>
     </Reference>
-    <Reference Include="EPPlus, Version=5.6.4.0, Culture=neutral, PublicKeyToken=ea159fdaa78159a1, processorArchitecture=MSIL">
-      <HintPath>..\packages\EPPlus.5.6.4\lib\net45\EPPlus.dll</HintPath>
+    <Reference Include="EPPlus, Version=5.7.1.0, Culture=neutral, PublicKeyToken=ea159fdaa78159a1, processorArchitecture=MSIL">
+      <HintPath>..\packages\EPPlus.5.7.1\lib\net45\EPPlus.dll</HintPath>
     </Reference>
     <Reference Include="FreeRedis, Version=0.3.5.0, Culture=neutral, PublicKeyToken=9aa6a3079358d437, processorArchitecture=MSIL">
       <HintPath>..\packages\FreeRedis.0.3.5\lib\net45\FreeRedis.dll</HintPath>
