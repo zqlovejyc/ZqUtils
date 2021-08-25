@@ -47,31 +47,30 @@ namespace ZqUtils.Helpers
         /// 创建Token
         /// </summary>
         /// <param name="claims">声明集合</param>
-        /// <param name="expires">过期时间，单位秒</param>
+        /// <param name="expires">jwt过期时间，例如：DateTime.UtcNow.AddSeconds(7200)</param>
         /// <param name="secret">密钥</param>
         /// <param name="issuer">jwt签发者</param>
         /// <param name="audience">jwt接收方</param>
-        /// <param name="now">当前时间，用于设置expires时使用，默认：null，为null自动赋值DateTime.UtcNow</param>
+        /// <param name="notBefore">jwt生效时间，例如：DateTime.UtcNow</param>
         /// <param name="securityAlgorithms">加密类型</param>
         /// <returns></returns>
         public static string CreateToken(
             IEnumerable<Claim> claims,
-            int? expires,
+            DateTime? expires,
             string secret,
             string issuer = null,
             string audience = null,
-            DateTime? now = null,
+            DateTime? notBefore = null,
             string securityAlgorithms = SecurityAlgorithms.HmacSha256)
         {
-            now ??= DateTime.UtcNow;
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
             var signingCredentials = new SigningCredentials(key, securityAlgorithms);
             var jwtSecurityToken = new JwtSecurityToken(
                 issuer: issuer,
                 audience: audience,
                 claims: claims,
-                notBefore: now,
-                expires: expires != null ? now.Value.AddSeconds(expires.Value) : null,
+                notBefore: notBefore,
+                expires: expires,
                 signingCredentials: signingCredentials);
 
             return new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
