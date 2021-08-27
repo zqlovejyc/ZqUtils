@@ -241,19 +241,15 @@ namespace ZqUtils.Helpers
         {
             if (table?.Rows.Count > 0)
             {
-                using (var package = new ExcelPackage())
-                {
-                    using (var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? "Sheet1" : table.TableName))
-                    {
-                        sheet.Cells["A1"].LoadFromDataTable(table, true, styles);
-                        //单元格自动适应大小
-                        sheet.Cells.AutoFitColumns();
-                        //单独设置单元格
-                        action?.Invoke(sheet);
+                using var package = new ExcelPackage();
+                using var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? "Sheet1" : table.TableName);
+                sheet.Cells["A1"].LoadFromDataTable(table, true, styles);
+                //单元格自动适应大小
+                sheet.Cells.AutoFitColumns();
+                //单独设置单元格
+                action?.Invoke(sheet);
 
-                        return package.GetAsByteArray();
-                    }
-                }
+                return package.GetAsByteArray();
             }
 
             return null;
@@ -270,32 +266,28 @@ namespace ZqUtils.Helpers
         {
             if (table?.Rows.Count > 0)
             {
-                using (var package = new ExcelPackage())
-                {
-                    using (var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? "Sheet1" : table.TableName))
-                    {
-                        //设置边框样式
-                        sheet.Cells.Style.Border.Top.Style = ExcelBorderStyle.Thin;
-                        sheet.Cells.Style.Border.Right.Style = ExcelBorderStyle.Thin;
-                        sheet.Cells.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
-                        sheet.Cells.Style.Border.Left.Style = ExcelBorderStyle.Thin;
-                        //水平居中
-                        sheet.Cells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
-                        //垂直居中
-                        sheet.Cells.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-                        //单元格自动适应大小
-                        sheet.Cells.AutoFitColumns();
-                        //构建表头
-                        BuildExcelHeader(null, null, headerCell, sheet);
-                        //加载数据
-                        var firstCell = headerCell.ChildHeaderCells.FirstOrDefault();
-                        sheet.Cells[firstCell.ToRow + 1, firstCell.ToCol].LoadFromDataTable(table, false);
-                        //单独设置单元格
-                        action?.Invoke(sheet);
+                using var package = new ExcelPackage();
+                using var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? "Sheet1" : table.TableName);
+                //设置边框样式
+                sheet.Cells.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+                sheet.Cells.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+                sheet.Cells.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+                sheet.Cells.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+                //水平居中
+                sheet.Cells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
+                //垂直居中
+                sheet.Cells.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                //单元格自动适应大小
+                sheet.Cells.AutoFitColumns();
+                //构建表头
+                BuildExcelHeader(null, null, headerCell, sheet);
+                //加载数据
+                var firstCell = headerCell.ChildHeaderCells.FirstOrDefault();
+                sheet.Cells[firstCell.ToRow + 1, firstCell.ToCol].LoadFromDataTable(table, false);
+                //单独设置单元格
+                action?.Invoke(sheet);
 
-                        return package.GetAsByteArray();
-                    }
-                }
+                return package.GetAsByteArray();
             }
 
             return null;
@@ -312,24 +304,22 @@ namespace ZqUtils.Helpers
         {
             if (dataSet?.Tables.Count > 0)
             {
-                using (var package = new ExcelPackage())
+                using var package = new ExcelPackage();
+                for (var i = 0; i < dataSet.Tables.Count; i++)
                 {
-                    for (var i = 0; i < dataSet.Tables.Count; i++)
+                    var table = dataSet.Tables[i];
+                    if (table != null && table.Rows.Count > 0)
                     {
-                        var table = dataSet.Tables[i];
-                        if (table != null && table.Rows.Count > 0)
-                        {
-                            var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? $"Sheet{i + 1}" : table.TableName);
-                            sheet.Cells["A1"].LoadFromDataTable(table, true, styles);
-                            //单元格自动适应大小
-                            sheet.Cells.AutoFitColumns();
-                            //单独设置单元格
-                            action?.Invoke(sheet);
-                        }
+                        var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? $"Sheet{i + 1}" : table.TableName);
+                        sheet.Cells["A1"].LoadFromDataTable(table, true, styles);
+                        //单元格自动适应大小
+                        sheet.Cells.AutoFitColumns();
+                        //单独设置单元格
+                        action?.Invoke(sheet);
                     }
-
-                    return package.GetAsByteArray();
                 }
+
+                return package.GetAsByteArray();
             }
 
             return null;
@@ -347,64 +337,11 @@ namespace ZqUtils.Helpers
         {
             if (list?.Count() > 0)
             {
-                using (var package = new ExcelPackage())
-                {
-                    using (var sheet = package.Workbook.Worksheets.Add("Sheet1"))
-                    {
-                        //获取导出列
-                        var props = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(x =>
-                        {
-                            var attribute = x.GetAttribute<ExcelColumnAttribute>();
-                            return attribute == null || attribute.IsExport;
-                        }).ToArray();
-                        sheet.Cells["A1"].LoadFromCollection(list, true, styles, BindingFlags.Public | BindingFlags.Instance, props);
-                        //设置Excel头部标题
-                        var colStart = sheet.Dimension.Start.Column;//工作区开始列
-                        var colEnd = sheet.Dimension.End.Column;//工作区结束列
-                        for (var col = colStart; col <= colEnd; col++)
-                        {
-                            //修复Epplus自动转换实体字段中的下划线为空格导致无法获取PropertyInfo问题
-                            var prop = typeof(T).GetProperty(sheet.Cells[1, col].Value.ToString().Replace(" ", "_"));
-                            var attribute = prop.GetAttribute<ExcelColumnAttribute>();
-                            if (attribute != null)
-                            {
-                                sheet.Cells[1, col].Value = attribute.ColumnName;
+                using var package = new ExcelPackage();
 
-                                //公式
-                                if (!attribute.Formula.IsNullOrEmpty())
-                                    sheet.Cells[2, col, sheet.Dimension.End.Row, col].Formula = attribute.Formula;
+                ExcelCellFormat(list, action, styles, package);
 
-                                //格式化
-                                if (!attribute.Format.IsNullOrEmpty())
-                                {
-                                    var format = attribute.Format.Split('@');
-                                    //日期
-                                    if (format[0] == "date")
-                                    {
-                                        sheet.Cells[2, col, sheet.Dimension.End.Row, col].Style.Numberformat.Format = format[1];
-                                    }
-                                    //字典
-                                    else if (format[0] == "dic")
-                                    {
-                                        var dic = format[1].Split(',').ToDictionary(k => k.Split(':')[0], v => v.Split(':')[1]);
-                                        for (int i = 2; i <= sheet.Dimension.End.Row; i++)
-                                        {
-                                            var v = sheet.Cells[i, col].Value?.ToString();
-                                            if (v != null && dic.Keys.Contains(v))
-                                                sheet.Cells[i, col].Value = dic[v];
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        //单元格自动适应大小
-                        sheet.Cells.AutoFitColumns();
-                        //单独设置单元格
-                        action?.Invoke(sheet);
-
-                        return package.GetAsByteArray();
-                    }
-                }
+                return package.GetAsByteArray();
             }
 
             return null;
@@ -422,27 +359,23 @@ namespace ZqUtils.Helpers
         {
             if (list?.Count() > 0)
             {
-                using (var package = new ExcelPackage())
+                using var package = new ExcelPackage();
+                using var sheet = package.Workbook.Worksheets.Add("Sheet1");
+                sheet.Cells["A1"].LoadFromCollection(list, true, styles);
+                //设置Excel头部标题
+                if (columnName?.Length > 0)
                 {
-                    using (var sheet = package.Workbook.Worksheets.Add("Sheet1"))
+                    for (var i = 0; i < columnName.Length; i++)
                     {
-                        sheet.Cells["A1"].LoadFromCollection(list, true, styles);
-                        //设置Excel头部标题
-                        if (columnName?.Length > 0)
-                        {
-                            for (var i = 0; i < columnName.Length; i++)
-                            {
-                                sheet.Cells[1, i + 1].Value = columnName[i];
-                            }
-                        }
-                        //单元格自动适应大小
-                        sheet.Cells.AutoFitColumns();
-                        //单独设置单元格
-                        action?.Invoke(sheet);
-
-                        return package.GetAsByteArray();
+                        sheet.Cells[1, i + 1].Value = columnName[i];
                     }
                 }
+                //单元格自动适应大小
+                sheet.Cells.AutoFitColumns();
+                //单独设置单元格
+                action?.Invoke(sheet);
+
+                return package.GetAsByteArray();
             }
 
             return null;
@@ -459,32 +392,28 @@ namespace ZqUtils.Helpers
         {
             if (list?.Count() > 0)
             {
-                using (var package = new ExcelPackage())
-                {
-                    using (var sheet = package.Workbook.Worksheets.Add("Sheet1"))
-                    {
-                        //设置边框样式
-                        sheet.Cells.Style.Border.Top.Style = ExcelBorderStyle.Thin;
-                        sheet.Cells.Style.Border.Right.Style = ExcelBorderStyle.Thin;
-                        sheet.Cells.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
-                        sheet.Cells.Style.Border.Left.Style = ExcelBorderStyle.Thin;
-                        //水平居中
-                        sheet.Cells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
-                        //垂直居中
-                        sheet.Cells.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-                        //单元格自动适应大小
-                        sheet.Cells.AutoFitColumns();
-                        //构建表头
-                        BuildExcelHeader(null, null, headerCell, sheet);
-                        //加载数据
-                        var firstCell = headerCell.ChildHeaderCells.FirstOrDefault();
-                        sheet.Cells[firstCell.ToRow + 1, firstCell.ToCol].LoadFromCollection(list, false);
-                        //单独设置单元格
-                        action?.Invoke(sheet);
+                using var package = new ExcelPackage();
+                using var sheet = package.Workbook.Worksheets.Add("Sheet1");
+                //设置边框样式
+                sheet.Cells.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+                sheet.Cells.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+                sheet.Cells.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+                sheet.Cells.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+                //水平居中
+                sheet.Cells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
+                //垂直居中
+                sheet.Cells.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                //单元格自动适应大小
+                sheet.Cells.AutoFitColumns();
+                //构建表头
+                BuildExcelHeader(null, null, headerCell, sheet);
+                //加载数据
+                var firstCell = headerCell.ChildHeaderCells.FirstOrDefault();
+                sheet.Cells[firstCell.ToRow + 1, firstCell.ToCol].LoadFromCollection(list, false);
+                //单独设置单元格
+                action?.Invoke(sheet);
 
-                        return package.GetAsByteArray();
-                    }
-                }
+                return package.GetAsByteArray();
             }
 
             return null;
@@ -729,18 +658,14 @@ namespace ZqUtils.Helpers
         {
             if (table?.Rows.Count > 0)
             {
-                using (var package = new ExcelPackage(new FileInfo(savePath)))
-                {
-                    using (var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? "Sheet1" : table.TableName))
-                    {
-                        sheet.Cells["A1"].LoadFromDataTable(table, true, styles);
-                        //单元格自动适应大小
-                        sheet.Cells.AutoFitColumns();
-                        //单独设置单元格
-                        action?.Invoke(sheet);
-                        package.Save();
-                    }
-                }
+                using var package = new ExcelPackage(new FileInfo(savePath));
+                using var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? "Sheet1" : table.TableName);
+                sheet.Cells["A1"].LoadFromDataTable(table, true, styles);
+                //单元格自动适应大小
+                sheet.Cells.AutoFitColumns();
+                //单独设置单元格
+                action?.Invoke(sheet);
+                package.Save();
             }
         }
 
@@ -755,31 +680,27 @@ namespace ZqUtils.Helpers
         {
             if (table?.Rows.Count > 0)
             {
-                using (var package = new ExcelPackage(new FileInfo(savePath)))
-                {
-                    using (var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? "Sheet1" : table.TableName))
-                    {
-                        //设置边框样式
-                        sheet.Cells.Style.Border.Top.Style = ExcelBorderStyle.Thin;
-                        sheet.Cells.Style.Border.Right.Style = ExcelBorderStyle.Thin;
-                        sheet.Cells.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
-                        sheet.Cells.Style.Border.Left.Style = ExcelBorderStyle.Thin;
-                        //水平居中
-                        sheet.Cells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
-                        //垂直居中
-                        sheet.Cells.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-                        //单元格自动适应大小
-                        sheet.Cells.AutoFitColumns();
-                        //构建表头
-                        BuildExcelHeader(null, null, headerCell, sheet);
-                        //加载数据
-                        var firstCell = headerCell.ChildHeaderCells.FirstOrDefault();
-                        sheet.Cells[firstCell.ToRow + 1, firstCell.ToCol].LoadFromDataTable(table, false);
-                        //单独设置单元格
-                        action?.Invoke(sheet);
-                        package.Save();
-                    }
-                }
+                using var package = new ExcelPackage(new FileInfo(savePath));
+                using var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? "Sheet1" : table.TableName);
+                //设置边框样式
+                sheet.Cells.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+                sheet.Cells.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+                sheet.Cells.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+                sheet.Cells.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+                //水平居中
+                sheet.Cells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
+                //垂直居中
+                sheet.Cells.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                //单元格自动适应大小
+                sheet.Cells.AutoFitColumns();
+                //构建表头
+                BuildExcelHeader(null, null, headerCell, sheet);
+                //加载数据
+                var firstCell = headerCell.ChildHeaderCells.FirstOrDefault();
+                sheet.Cells[firstCell.ToRow + 1, firstCell.ToCol].LoadFromDataTable(table, false);
+                //单独设置单元格
+                action?.Invoke(sheet);
+                package.Save();
             }
         }
 
@@ -794,23 +715,21 @@ namespace ZqUtils.Helpers
         {
             if (dataSet?.Tables.Count > 0)
             {
-                using (var package = new ExcelPackage(new FileInfo(savePath)))
+                using var package = new ExcelPackage(new FileInfo(savePath));
+                for (var i = 0; i < dataSet.Tables.Count; i++)
                 {
-                    for (var i = 0; i < dataSet.Tables.Count; i++)
+                    var table = dataSet.Tables[i];
+                    if (table != null && table.Rows.Count > 0)
                     {
-                        var table = dataSet.Tables[i];
-                        if (table != null && table.Rows.Count > 0)
-                        {
-                            var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? $"Sheet{i + 1}" : table.TableName);
-                            sheet.Cells["A1"].LoadFromDataTable(table, true, styles);
-                            //单元格自动适应大小
-                            sheet.Cells.AutoFitColumns();
-                            //单独设置单元格
-                            action?.Invoke(sheet);
-                        }
+                        var sheet = package.Workbook.Worksheets.Add(table.TableName.IsNullOrEmpty() ? $"Sheet{i + 1}" : table.TableName);
+                        sheet.Cells["A1"].LoadFromDataTable(table, true, styles);
+                        //单元格自动适应大小
+                        sheet.Cells.AutoFitColumns();
+                        //单独设置单元格
+                        action?.Invoke(sheet);
                     }
-                    package.Save();
                 }
+                package.Save();
             }
         }
 
@@ -826,63 +745,11 @@ namespace ZqUtils.Helpers
         {
             if (list?.Count() > 0)
             {
-                using (var package = new ExcelPackage(new FileInfo(savePath)))
-                {
-                    using (var sheet = package.Workbook.Worksheets.Add("Sheet1"))
-                    {
-                        //获取导出列
-                        var props = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(x =>
-                        {
-                            var attribute = x.GetAttribute<ExcelColumnAttribute>();
-                            return attribute == null || attribute.IsExport;
-                        }).ToArray();
-                        sheet.Cells["A1"].LoadFromCollection(list, true, styles, BindingFlags.Public | BindingFlags.Instance, props);
-                        //设置Excel头部标题
-                        var colStart = sheet.Dimension.Start.Column;//工作区开始列
-                        var colEnd = sheet.Dimension.End.Column;//工作区结束列
-                        for (var col = colStart; col <= colEnd; col++)
-                        {
-                            //修复Epplus自动转换实体字段中的下划线为空格导致无法获取PropertyInfo问题
-                            var prop = typeof(T).GetProperty(sheet.Cells[1, col].Value.ToString().Replace(" ", "_"));
-                            var attribute = prop.GetAttribute<ExcelColumnAttribute>();
-                            if (attribute != null)
-                            {
-                                sheet.Cells[1, col].Value = attribute.ColumnName;
+                using var package = new ExcelPackage(new FileInfo(savePath));
 
-                                //公式
-                                if (!attribute.Formula.IsNullOrEmpty())
-                                    sheet.Cells[2, col, sheet.Dimension.End.Row, col].Formula = attribute.Formula;
+                ExcelCellFormat(list, action, styles, package);
 
-                                //格式化
-                                if (!attribute.Format.IsNullOrEmpty())
-                                {
-                                    var format = attribute.Format.Split('@');
-                                    //日期
-                                    if (format[0] == "date")
-                                    {
-                                        sheet.Cells[2, col, sheet.Dimension.End.Row, col].Style.Numberformat.Format = format[1];
-                                    }
-                                    //字典
-                                    else if (format[0] == "dic")
-                                    {
-                                        var dic = format[1].Split(',').ToDictionary(k => k.Split(':')[0], v => v.Split(':')[1]);
-                                        for (int i = 2; i <= sheet.Dimension.End.Row; i++)
-                                        {
-                                            var v = sheet.Cells[i, col].Value?.ToString();
-                                            if (v != null && dic.Keys.Contains(v))
-                                                sheet.Cells[i, col].Value = dic[v];
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        //单元格自动适应大小
-                        sheet.Cells.AutoFitColumns();
-                        //单独设置单元格
-                        action?.Invoke(sheet);
-                        package.Save();
-                    }
-                }
+                package.Save();
             }
         }
 
@@ -899,26 +766,22 @@ namespace ZqUtils.Helpers
         {
             if (list?.Count() > 0)
             {
-                using (var package = new ExcelPackage(new FileInfo(savePath)))
+                using var package = new ExcelPackage(new FileInfo(savePath));
+                using var sheet = package.Workbook.Worksheets.Add("Sheet1");
+                sheet.Cells["A1"].LoadFromCollection(list, true, styles);
+                //设置Excel头部标题
+                if (columnName?.Length > 0)
                 {
-                    using (var sheet = package.Workbook.Worksheets.Add("Sheet1"))
+                    for (var i = 0; i < columnName.Length; i++)
                     {
-                        sheet.Cells["A1"].LoadFromCollection(list, true, styles);
-                        //设置Excel头部标题
-                        if (columnName?.Length > 0)
-                        {
-                            for (var i = 0; i < columnName.Length; i++)
-                            {
-                                sheet.Cells[1, i + 1].Value = columnName[i];
-                            }
-                        }
-                        //单元格自动适应大小
-                        sheet.Cells.AutoFitColumns();
-                        //单独设置单元格
-                        action?.Invoke(sheet);
-                        package.Save();
+                        sheet.Cells[1, i + 1].Value = columnName[i];
                     }
                 }
+                //单元格自动适应大小
+                sheet.Cells.AutoFitColumns();
+                //单独设置单元格
+                action?.Invoke(sheet);
+                package.Save();
             }
         }
 
@@ -934,31 +797,27 @@ namespace ZqUtils.Helpers
         {
             if (list?.Count() > 0)
             {
-                using (var package = new ExcelPackage(new FileInfo(savePath)))
-                {
-                    using (var sheet = package.Workbook.Worksheets.Add("Sheet1"))
-                    {
-                        //设置边框样式
-                        sheet.Cells.Style.Border.Top.Style = ExcelBorderStyle.Thin;
-                        sheet.Cells.Style.Border.Right.Style = ExcelBorderStyle.Thin;
-                        sheet.Cells.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
-                        sheet.Cells.Style.Border.Left.Style = ExcelBorderStyle.Thin;
-                        //水平居中
-                        sheet.Cells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
-                        //垂直居中
-                        sheet.Cells.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-                        //单元格自动适应大小
-                        sheet.Cells.AutoFitColumns();
-                        //构建表头
-                        BuildExcelHeader(null, null, headerCell, sheet);
-                        //加载数据
-                        var firstCell = headerCell.ChildHeaderCells.FirstOrDefault();
-                        sheet.Cells[firstCell.ToRow + 1, firstCell.ToCol].LoadFromCollection(list, false);
-                        //单独设置单元格
-                        action?.Invoke(sheet);
-                        package.Save();
-                    }
-                }
+                using var package = new ExcelPackage(new FileInfo(savePath));
+                using var sheet = package.Workbook.Worksheets.Add("Sheet1");
+                //设置边框样式
+                sheet.Cells.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+                sheet.Cells.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+                sheet.Cells.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+                sheet.Cells.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+                //水平居中
+                sheet.Cells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
+                //垂直居中
+                sheet.Cells.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                //单元格自动适应大小
+                sheet.Cells.AutoFitColumns();
+                //构建表头
+                BuildExcelHeader(null, null, headerCell, sheet);
+                //加载数据
+                var firstCell = headerCell.ChildHeaderCells.FirstOrDefault();
+                sheet.Cells[firstCell.ToRow + 1, firstCell.ToCol].LoadFromCollection(list, false);
+                //单独设置单元格
+                action?.Invoke(sheet);
+                package.Save();
             }
         }
         #endregion
@@ -1013,6 +872,100 @@ namespace ZqUtils.Helpers
                     BuildExcelHeader(index == 0 ? null : currCell.ChildHeaderCells[index - 1], currCell, item, sheet);
                 }
             }
+        }
+        #endregion
+
+        #region 格式化单元格数据
+        /// <summary>
+        /// 格式化单元格数据
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="list"></param>
+        /// <param name="action"></param>
+        /// <param name="styles"></param>
+        /// <param name="package"></param>
+        /// <returns></returns>
+        private static void ExcelCellFormat<T>(IEnumerable<T> list, Action<ExcelWorksheet> action, TableStyles styles, ExcelPackage package) where T : class, new()
+        {
+            var sheet = package.Workbook.Worksheets.Add("Sheet1");
+
+            //获取导出列
+            var props = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(x =>
+            {
+                var attribute = x.GetAttribute<ExcelColumnAttribute>();
+                return attribute == null || attribute.IsExport;
+            }).ToArray();
+
+            sheet.Cells["A1"].LoadFromCollection(list, true, styles, BindingFlags.Public | BindingFlags.Instance, props);
+
+            //设置Excel头部标题
+            var colStart = sheet.Dimension.Start.Column;//工作区开始列
+            var colEnd = sheet.Dimension.End.Column;//工作区结束列
+            for (var col = colStart; col <= colEnd; col++)
+            {
+                //修复Epplus自动转换实体字段中的下划线为空格导致无法获取PropertyInfo问题
+                var prop = typeof(T).GetProperty(sheet.Cells[1, col].Value.ToString().Replace(" ", "_"));
+                var attribute = prop.GetAttribute<ExcelColumnAttribute>();
+                if (attribute != null)
+                {
+                    sheet.Cells[1, col].Value = attribute.ColumnName;
+
+                    //公式
+                    if (!attribute.Formula.IsNullOrEmpty())
+                        sheet.Cells[2, col, sheet.Dimension.End.Row, col].Formula = attribute.Formula;
+
+                    //格式化
+                    if (!attribute.Format.IsNullOrEmpty())
+                    {
+                        var format = attribute.Format.Split('@');
+                        //日期
+                        if (format[0] == "date")
+                        {
+                            sheet.Cells[2, col, sheet.Dimension.End.Row, col].Style.Numberformat.Format = format[1];
+                        }
+                        //字典
+                        else if (format[0] == "dic")
+                        {
+                            var dic = format[1].Split(',').ToDictionary(k => k.Split(':')[0], v => v.Split(':')[1]);
+                            for (int i = 2; i <= sheet.Dimension.End.Row; i++)
+                            {
+                                var v = sheet.Cells[i, col].Value?.ToString();
+                                if (v != null && dic.Keys.Contains(v))
+                                    sheet.Cells[i, col].Value = dic[v];
+                            }
+                        }
+                        //图片
+                        else if (format[0] == "image")
+                        {
+                            var dic = format[1].Split(',').ToDictionary(k => k.Split(':')[0], v => v.Split(':')[1]);
+                            var rowOffsetPixels = int.Parse(dic.FirstOrDefault(x => x.Key == "rop").Value ?? "0");
+                            var columnOffsetPixels = int.Parse(dic.FirstOrDefault(x => x.Key == "cop").Value ?? "0");
+                            for (int i = 0; i < list.Count(); i++)
+                            {
+                                var item = list.ElementAt(i);
+                                if (item == null)
+                                    continue;
+
+                                var imageValue = prop.GetValue(item);
+                                if (imageValue != null && imageValue is byte[] imgeBytes)
+                                {
+                                    using var image = Image.FromStream(new MemoryStream(imgeBytes));
+                                    sheet.Row(i + 2).Height = image.Height;
+                                    var pic = sheet.Drawings.AddPicture($"image_{i}", image);
+                                    pic.SetPosition(i + 1, rowOffsetPixels, col, columnOffsetPixels);
+                                    sheet.Cells[i + 2, col].Value = null;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            //单元格自动适应大小
+            sheet.Cells.AutoFitColumns();
+
+            //单独设置单元格
+            action?.Invoke(sheet);
         }
         #endregion
     }
@@ -1124,7 +1077,7 @@ namespace ZqUtils.Helpers
         public bool IsExport { get; set; } = true;
 
         /// <summary>
-        /// 格式化，暂支持 日期：date@yyyy-MM-dd HH:mm:ss；字典：dic@0:失败,1:成功
+        /// 格式化，暂支持 日期：date@yyyy-MM-dd HH:mm:ss；字典：dic@0:失败,1:成功；图片：image@rop:1,cop:1
         /// </summary>
         public string Format { get; set; }
 
