@@ -890,25 +890,31 @@ namespace ZqUtils.Helpers
             var sheet = package.Workbook.Worksheets.Add("Sheet1");
 
             //获取导出列
-            var props = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(x =>
-            {
-                var attribute = x.GetAttribute<ExcelColumnAttribute>();
-                return attribute == null || attribute.IsExport;
-            }).ToArray();
+            var props = typeof(T)
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(x => x.GetAttribute<ExcelColumnAttribute>()?.IsExport is true or null)
+                .ToArray();
 
+            //加载数据
             sheet.Cells["A1"].LoadFromCollection(list, true, styles, BindingFlags.Public | BindingFlags.Instance, props);
 
             //设置Excel头部标题
             var colStart = sheet.Dimension.Start.Column;//工作区开始列
             var colEnd = sheet.Dimension.End.Column;//工作区结束列
+
+            //遍历列
             for (var col = colStart; col <= colEnd; col++)
             {
                 //修复Epplus自动转换实体字段中的下划线为空格导致无法获取PropertyInfo问题
                 var prop = typeof(T).GetProperty(sheet.Cells[1, col].Value.ToString().Replace(" ", "_"));
                 var attribute = prop.GetAttribute<ExcelColumnAttribute>();
+
+                //判断是否设定ExcelColumn特性
                 if (attribute != null)
                 {
-                    sheet.Cells[1, col].Value = attribute.ColumnName;
+                    //列名
+                    if (attribute.ColumnName.IsNotNullOrEmpty())
+                        sheet.Cells[1, col].Value = attribute.ColumnName;
 
                     //公式
                     if (!attribute.Formula.IsNullOrEmpty())
@@ -917,43 +923,61 @@ namespace ZqUtils.Helpers
                     //格式化
                     if (!attribute.Format.IsNullOrEmpty())
                     {
+                        //格式化字符串
                         var format = attribute.Format.Split('@');
+
                         //日期
                         if (format[0] == "date")
-                        {
                             sheet.Cells[2, col, sheet.Dimension.End.Row, col].Style.Numberformat.Format = format[1];
-                        }
+
                         //字典
                         else if (format[0] == "dic")
                         {
-                            var dic = format[1].Split(',').ToDictionary(k => k.Split(':')[0], v => v.Split(':')[1]);
+                            var dic = format[1].Split(',').ToDictionary(
+                                k => k.Split(':')[0],
+                                v => v.Split(':')[1]);
+
+                            //遍历行
                             for (int i = 2; i <= sheet.Dimension.End.Row; i++)
                             {
-                                var v = sheet.Cells[i, col].Value?.ToString();
-                                if (v != null && dic.Keys.Contains(v))
-                                    sheet.Cells[i, col].Value = dic[v];
+                                var cellValue = sheet.Cells[i, col].Value?.ToString();
+                                if (cellValue != null && dic.Keys.Contains(cellValue))
+                                    sheet.Cells[i, col].Value = dic[cellValue];
                             }
                         }
+
                         //图片
                         else if (format[0] == "image")
                         {
-                            var dic = format[1].Split(',').ToDictionary(k => k.Split(':')[0], v => v.Split(':')[1]);
-                            var rowOffsetPixels = int.Parse(dic.FirstOrDefault(x => x.Key == "rop").Value ?? "0");
-                            var columnOffsetPixels = int.Parse(dic.FirstOrDefault(x => x.Key == "cop").Value ?? "0");
-                            for (int i = 0; i < list.Count(); i++)
-                            {
-                                var item = list.ElementAt(i);
-                                if (item == null)
-                                    continue;
+                            var dic = format[1].Split(',').ToDictionary(
+                                k => k.Split(':')[0],
+                                v => v.Split(':')[1]);
 
-                                var imageValue = prop.GetValue(item);
+                            //行偏移像素
+                            var rowOffsetPixels = int.Parse(dic["rop"]);
+                            //列偏移像素
+                            var columnOffsetPixels = int.Parse(dic["cop"]);
+
+                            //遍历行
+                            for (int i = 2; i <= sheet.Dimension.End.Row; i++)
+                            {
+                                var imageValue = sheet.Cells[i, col].Value;
                                 if (imageValue != null && imageValue is byte[] imgeBytes)
                                 {
+                                    //获取图片
                                     using var image = Image.FromStream(new MemoryStream(imgeBytes));
-                                    sheet.Row(i + 2).Height = image.Height;
+
+                                    //设置行高
+                                    sheet.Row(i).Height = image.Height;
+
+                                    //添加图片
                                     var pic = sheet.Drawings.AddPicture($"image_{DateTime.Now.Ticks}", image);
-                                    pic.SetPosition(i + 1, rowOffsetPixels, col - 1, columnOffsetPixels);
-                                    sheet.Cells[i + 2, col].Value = null;
+
+                                    //设定图片位置
+                                    pic.SetPosition(i - 1, rowOffsetPixels, col - 1, columnOffsetPixels);
+
+                                    //置空
+                                    sheet.Cells[i, col].Value = null;
                                 }
                             }
                         }
