@@ -951,8 +951,8 @@ namespace ZqUtils.Helpers
                                 {
                                     using var image = Image.FromStream(new MemoryStream(imgeBytes));
                                     sheet.Row(i + 2).Height = image.Height;
-                                    var pic = sheet.Drawings.AddPicture($"image_{i}", image);
-                                    pic.SetPosition(i + 1, rowOffsetPixels, col, columnOffsetPixels);
+                                    var pic = sheet.Drawings.AddPicture($"image_{DateTime.Now.Ticks}", image);
+                                    pic.SetPosition(i + 1, rowOffsetPixels, col - 1, columnOffsetPixels);
                                     sheet.Cells[i + 2, col].Value = null;
                                 }
                             }
