@@ -20,6 +20,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using ZqUtils.Extensions;
 /****************************
 * [Author] 张强
 * [Date] 2019-02-27
@@ -41,7 +42,7 @@ namespace ZqUtils.Helpers
         {
             var result = value;
             var param = GetParameters(result).FirstOrDefault();
-            if (!string.IsNullOrEmpty(param))
+            if (param.IsNotNullOrEmpty())
             {
                 var env = Environment.GetEnvironmentVariable(param);
                 result = env;
@@ -51,6 +52,11 @@ namespace ZqUtils.Helpers
                     result = arrayData.Length == 2 ? arrayData[1] : env;
                 }
             }
+            else
+            {
+                result = Environment.GetEnvironmentVariable(value);
+            }
+
             return result;
         }
 
