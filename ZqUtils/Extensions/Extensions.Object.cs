@@ -534,7 +534,7 @@ namespace ZqUtils.Extensions
                 }
             }
 
-            return (T)@this;
+            return default;
         }
 
         /// <summary>
