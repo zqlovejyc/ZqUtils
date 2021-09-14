@@ -1743,10 +1743,9 @@ namespace ZqUtils.Extensions
         /// <summary>
         /// 系统当前时间
         /// </summary>
-        /// <param name="this"></param>
         /// <param name="utc"></param>
         /// <returns></returns>
-        public static DateTime Now(this DateTime @this, bool utc = false)
+        public static DateTime Now(bool utc = false)
         {
             if (utc)
                 return DateTime.UtcNow;
@@ -1757,10 +1756,9 @@ namespace ZqUtils.Extensions
         /// <summary>
         /// 系统当前时间
         /// </summary>
-        /// <param name="this"></param>
         /// <param name="utc"></param>
         /// <returns></returns>
-        public static DateTimeOffset Now(this DateTimeOffset @this, bool utc = false)
+        public static DateTimeOffset OffsetNow(bool utc = false)
         {
             if (utc)
                 return DateTimeOffset.UtcNow;
