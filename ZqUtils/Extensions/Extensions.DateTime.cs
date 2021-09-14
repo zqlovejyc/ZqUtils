@@ -1738,5 +1738,35 @@ namespace ZqUtils.Extensions
             return @this.AddDays(-1);
         }
         #endregion
+
+        #region Now
+        /// <summary>
+        /// 系统当前时间
+        /// </summary>
+        /// <param name="this"></param>
+        /// <param name="utc"></param>
+        /// <returns></returns>
+        public static DateTime Now(this DateTime @this, bool utc = false)
+        {
+            if (utc)
+                return DateTime.UtcNow;
+
+            return DateTime.Now;
+        }
+
+        /// <summary>
+        /// 系统当前时间
+        /// </summary>
+        /// <param name="this"></param>
+        /// <param name="utc"></param>
+        /// <returns></returns>
+        public static DateTimeOffset Now(this DateTimeOffset @this, bool utc = false)
+        {
+            if (utc)
+                return DateTimeOffset.UtcNow;
+
+            return DateTimeOffset.Now;
+        }
+        #endregion
     }
 }
