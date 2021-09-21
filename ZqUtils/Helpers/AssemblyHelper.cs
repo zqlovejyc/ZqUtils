@@ -79,7 +79,7 @@ namespace ZqUtils.Helpers
         {
             var types = new List<Type>();
             var assemblies = GetAssemblies(path, condition);
-            if (assemblies?.Count() > 0)
+            if (assemblies?.Length > 0)
             {
                 foreach (var assembly in assemblies)
                 {
