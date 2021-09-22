@@ -2420,10 +2420,23 @@ namespace ZqUtils.Helpers
             return Database.KeyExpire(key, expiry);
         }
         #endregion
+
+        #region KeyTtl
+        /// <summary>
+        /// 获取key过期时间
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public TimeSpan? KeyTtl(string key)
+        {
+            key = AddKeyPrefix(key);
+            return Database.KeyTimeToLive(key);
+        }
+        #endregion
         #endregion
 
         #region 异步方法
-        #region Keys
+        #region KeysAsync
         /// <summary>
         /// 模式匹配获取key
         /// </summary>
@@ -2545,6 +2558,19 @@ namespace ZqUtils.Helpers
         {
             key = AddKeyPrefix(key);
             return await Database.KeyExpireAsync(key, expiry);
+        }
+        #endregion
+
+        #region KeyTtlAsync
+        /// <summary>
+        /// 获取key过期时间
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public async Task<TimeSpan?> KeyTtlAsync(string key)
+        {
+            key = AddKeyPrefix(key);
+            return await Database.KeyTimeToLiveAsync(key);
         }
         #endregion
         #endregion
