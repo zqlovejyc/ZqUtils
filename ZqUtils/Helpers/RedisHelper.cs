@@ -56,11 +56,6 @@ namespace ZqUtils.Helpers
         /// redis连接线程池
         /// </summary>
         private static RedisConnectionPoolManager _poolManager;
-
-        /// <summary>
-        /// 是否释放
-        /// </summary>
-        private bool _disposed;
         #endregion
 
         #region 公有属性
