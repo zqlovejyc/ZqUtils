@@ -34,7 +34,7 @@ namespace ZqUtils.Helpers
     /// <summary>
     /// Redis帮助工具类
     /// </summary>
-    public class RedisHelper
+    public class RedisHelper : IDisposable
     {
         #region 私有字段
         /// <summary>
@@ -56,6 +56,11 @@ namespace ZqUtils.Helpers
         /// redis连接线程池
         /// </summary>
         private static RedisConnectionPoolManager _poolManager;
+
+        /// <summary>
+        /// 是否释放
+        /// </summary>
+        private bool _disposed;
         #endregion
 
         #region 公有属性
@@ -2828,13 +2833,34 @@ namespace ZqUtils.Helpers
             sub.Subscribe(channelFrom, (channel, message) => subscribeFn?.Invoke(message));
         }
         #endregion
+
+        #region 释放资源
+        /// <summary>
+        /// 释放资源
+        /// </summary>
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+
+            if (_connectionMultiplexer != null)
+                _connectionMultiplexer.Dispose();
+
+            if (_poolManager != null)
+                _poolManager.Dispose();
+
+            GC.SuppressFinalize(this);
+
+            _disposed = true;
+        }
+        #endregion
         #endregion
     }
 
     /// <summary>
     /// Redis连接池
     /// </summary>
-    public class RedisConnectionPoolManager
+    public class RedisConnectionPoolManager : IDisposable
     {
         private readonly IConnectionMultiplexer[] _connections;
         private static readonly object _lock = new();
