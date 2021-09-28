@@ -34,7 +34,7 @@ namespace ZqUtils.Helpers
     /// <summary>
     /// Redis帮助工具类
     /// </summary>
-    public class RedisHelper : IDisposable
+    public class RedisHelper
     {
         #region 私有字段
         /// <summary>
@@ -2855,27 +2855,6 @@ namespace ZqUtils.Helpers
         {
             var sub = GetConnectionMultiplexer().GetSubscriber();
             await sub.SubscribeAsync(channelFrom, (channel, message) => subscribeFn?.Invoke(message));
-        }
-        #endregion
-
-        #region 释放资源
-        /// <summary>
-        /// 释放资源
-        /// </summary>
-        public void Dispose()
-        {
-            if (_disposed)
-                return;
-
-            if (_poolManager != null)
-                _poolManager.Dispose();
-
-            else if (_connectionMultiplexer != null)
-                _connectionMultiplexer.Dispose();
-
-            GC.SuppressFinalize(this);
-
-            _disposed = true;
         }
         #endregion
         #endregion
