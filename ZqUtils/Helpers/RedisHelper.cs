@@ -2808,7 +2808,7 @@ namespace ZqUtils.Helpers
         #endregion
         #endregion
 
-        #region  发布/订阅[当作消息代理中间件使用 一般使用更专业的消息队列来处理这种业务场景]
+        #region  发布/订阅
         /// <summary>
         /// 当作消息代理中间件使用
         /// 消息组建中,重要的概念便是生产者,消费者,消息中间件
@@ -2823,6 +2823,19 @@ namespace ZqUtils.Helpers
         }
 
         /// <summary>
+        /// 当作消息代理中间件使用
+        /// 消息组建中,重要的概念便是生产者,消费者,消息中间件
+        /// </summary>
+        /// <param name="channel">通道</param>
+        /// <param name="message">消息</param>
+        /// <returns>返回收到消息的客户端数量</returns>
+        public async Task<long> PublishAsync(string channel, string message)
+        {
+            var sub = GetConnectionMultiplexer().GetSubscriber();
+            return await sub.PublishAsync(channel, message);
+        }
+
+        /// <summary>
         /// 在消费者端得到该消息并输出
         /// </summary>
         /// <param name="channelFrom">通道来源</param>
@@ -2831,6 +2844,17 @@ namespace ZqUtils.Helpers
         {
             var sub = GetConnectionMultiplexer().GetSubscriber();
             sub.Subscribe(channelFrom, (channel, message) => subscribeFn?.Invoke(message));
+        }
+
+        /// <summary>
+        /// 在消费者端得到该消息并输出
+        /// </summary>
+        /// <param name="channelFrom">通道来源</param>
+        /// <param name="subscribeFn">订阅处理委托</param>
+        public async Task SubscribeAsync(string channelFrom, Action<RedisValue> subscribeFn)
+        {
+            var sub = GetConnectionMultiplexer().GetSubscriber();
+            await sub.SubscribeAsync(channelFrom, (channel, message) => subscribeFn?.Invoke(message));
         }
         #endregion
 
@@ -2843,11 +2867,11 @@ namespace ZqUtils.Helpers
             if (_disposed)
                 return;
 
-            if (_connectionMultiplexer != null)
-                _connectionMultiplexer.Dispose();
-
             if (_poolManager != null)
                 _poolManager.Dispose();
+
+            else if (_connectionMultiplexer != null)
+                _connectionMultiplexer.Dispose();
 
             GC.SuppressFinalize(this);
 
