@@ -39,7 +39,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 线程对象，线程锁使用
         /// </summary>
-        private static readonly object locker = new object();
+        private static readonly object _locker = new();
         #endregion
 
         #region 公有方法
@@ -51,7 +51,7 @@ namespace ZqUtils.Helpers
         {
             if (_instance == null)
             {
-                lock (locker)
+                lock (_locker)
                 {
                     if (_instance == null)
                     {
@@ -71,7 +71,7 @@ namespace ZqUtils.Helpers
         {
             if (_instance == null)
             {
-                lock (locker)
+                lock (_locker)
                 {
                     if (_instance == null)
                     {

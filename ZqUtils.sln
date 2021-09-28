@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31702.278
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZqUtils", "ZqUtils\ZqUtils.csproj", "{DAC1FDE4-0672-4543-9E25-1532A9283EF3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZqUtils.ConsoleApp", "ZqUtils.ConsoleApp\ZqUtils.ConsoleApp.csproj", "{DB7010AA-2EBC-43F6-8D7D-B5752719A884}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,12 +13,19 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{DAC1FDE4-0672-4543-9E25-1532A9283EF3}.Debug|Any CPU.ActiveCfg = Release|Any CPU
-		{DAC1FDE4-0672-4543-9E25-1532A9283EF3}.Debug|Any CPU.Build.0 = Release|Any CPU
+		{DAC1FDE4-0672-4543-9E25-1532A9283EF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DAC1FDE4-0672-4543-9E25-1532A9283EF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DAC1FDE4-0672-4543-9E25-1532A9283EF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DAC1FDE4-0672-4543-9E25-1532A9283EF3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DB7010AA-2EBC-43F6-8D7D-B5752719A884}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DB7010AA-2EBC-43F6-8D7D-B5752719A884}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DB7010AA-2EBC-43F6-8D7D-B5752719A884}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DB7010AA-2EBC-43F6-8D7D-B5752719A884}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {180F293E-5774-4957-ADCE-AF8938156234}
 	EndGlobalSection
 EndGlobal
