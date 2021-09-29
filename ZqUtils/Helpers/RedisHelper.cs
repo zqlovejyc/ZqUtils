@@ -48,14 +48,19 @@ namespace ZqUtils.Helpers
         private static readonly SemaphoreSlim _semaphoreSlim = new(1, 1);
 
         /// <summary>
-        /// redis连接对象
+        /// redis单例连接对象
         /// </summary>
         private static IConnectionMultiplexer _connectionMultiplexer;
 
         /// <summary>
-        /// redis连接线程池
+        /// redis连接池
         /// </summary>
-        private static RedisConnectionPoolManager _poolManager;
+        private readonly RedisConnectionPoolManager _poolManager;
+
+        /// <summary>
+        /// redis连接池创建的连接对象
+        /// </summary>
+        private readonly IConnectionMultiplexer _poolMultiplexer;
         #endregion
 
         #region 公有属性
@@ -67,7 +72,8 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// IConnectionMultiplexer对象
         /// </summary>
-        public IConnectionMultiplexer IConnectionMultiplexer => _connectionMultiplexer;
+        public IConnectionMultiplexer IConnectionMultiplexer =>
+            _poolManager != null ? _poolMultiplexer : _connectionMultiplexer;
 
         /// <summary>
         /// Redis连接池
@@ -150,7 +156,7 @@ namespace ZqUtils.Helpers
             string redisConnectionString,
             Action<IConnectionMultiplexer> action = null,
             TextWriter log = null) =>
-            Database = GetConnectionMultiplexer(poolSize, redisConnectionString, action, log).GetDatabase();
+            Database = (_poolMultiplexer = GetConnectionMultiplexer(poolSize, redisConnectionString, out _poolManager, action, log)).GetDatabase();
 
         /// <summary>
         /// 构造函数
@@ -180,7 +186,7 @@ namespace ZqUtils.Helpers
             int defaultDatabase,
             Action<IConnectionMultiplexer> action = null,
             TextWriter log = null) =>
-            Database = GetConnectionMultiplexer(poolSize, redisConnectionString, action, log).GetDatabase(defaultDatabase);
+            Database = (_poolMultiplexer = GetConnectionMultiplexer(poolSize, redisConnectionString, out _poolManager, action, log)).GetDatabase(defaultDatabase);
 
         /// <summary>
         /// 构造函数
@@ -206,7 +212,23 @@ namespace ZqUtils.Helpers
             ConfigurationOptions configurationOptions,
             Action<IConnectionMultiplexer> action = null,
             TextWriter log = null) =>
-            Database = GetConnectionMultiplexer(poolSize, configurationOptions, action, log).GetDatabase();
+            Database = (_poolMultiplexer = GetConnectionMultiplexer(poolSize, configurationOptions, out _poolManager, action, log)).GetDatabase();
+
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="poolSize">redis连接池大小</param>  
+        /// <param name="defaultDatabase">数据库索引</param>
+        /// <param name="configurationOptions">连接配置</param>
+        /// <param name="action">自定义委托</param>
+        /// <param name="log">redis连接日志</param>
+        public RedisHelper(
+            int poolSize,
+            int defaultDatabase,
+            ConfigurationOptions configurationOptions,
+            Action<IConnectionMultiplexer> action = null,
+            TextWriter log = null) =>
+            Database = (_poolMultiplexer = GetConnectionMultiplexer(poolSize, configurationOptions, out _poolManager, action, log)).GetDatabase(defaultDatabase);
         #endregion 构造函数
 
         #region 连接对象
@@ -265,33 +287,6 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 获取redis连接对象
         /// </summary>
-        /// <param name="poolSize">redis连接池大小</param>
-        /// <param name="redisConnectionString">redis连接字符串</param>
-        /// <param name="action">自定义委托</param>
-        /// <param name="log">redis连接日志</param>
-        /// <returns>返回IConnectionMultiplexer</returns>
-        public static IConnectionMultiplexer GetConnectionMultiplexer(
-            int poolSize,
-            string redisConnectionString,
-            Action<IConnectionMultiplexer> action = null,
-            TextWriter log = null)
-        {
-            if (_connectionMultiplexer != null && _connectionMultiplexer.IsConnected)
-                return _connectionMultiplexer;
-
-            if (_poolManager == null)
-                _poolManager = RedisConnectionPoolManager.CreateInstance(poolSize, redisConnectionString, log);
-
-            _connectionMultiplexer = _poolManager.GetConnection();
-
-            action?.Invoke(_connectionMultiplexer);
-
-            return _connectionMultiplexer;
-        }
-
-        /// <summary>
-        /// 获取redis连接对象
-        /// </summary>
         /// <param name="configurationOptions">连接配置</param>
         /// <param name="action">自定义委托</param>
         /// <param name="log">redis连接日志</param>
@@ -323,27 +318,50 @@ namespace ZqUtils.Helpers
         /// 获取redis连接对象
         /// </summary>
         /// <param name="poolSize">redis连接池大小</param>
+        /// <param name="redisConnectionString">redis连接字符串</param>
+        /// <param name="poolManager">redis连接池</param>
+        /// <param name="action">自定义委托</param>
+        /// <param name="log">redis连接日志</param>
+        /// <returns>返回IConnectionMultiplexer</returns>
+        public static IConnectionMultiplexer GetConnectionMultiplexer(
+            int poolSize,
+            string redisConnectionString,
+            out RedisConnectionPoolManager poolManager,
+            Action<IConnectionMultiplexer> action = null,
+            TextWriter log = null)
+        {
+            poolManager = RedisConnectionPoolManager.CreateInstance(poolSize, redisConnectionString, log);
+
+            var connection = poolManager.GetConnection();
+
+            action?.Invoke(connection);
+
+            return connection;
+        }
+
+        /// <summary>
+        /// 获取redis连接对象
+        /// </summary>
+        /// <param name="poolSize">redis连接池大小</param>
         /// <param name="configurationOptions">连接配置</param>
+        /// <param name="poolManager">redis连接池</param>
         /// <param name="action">自定义委托</param>
         /// <param name="log">redis连接日志</param>
         /// <returns>返回IConnectionMultiplexer</returns>
         public static IConnectionMultiplexer GetConnectionMultiplexer(
             int poolSize,
             ConfigurationOptions configurationOptions,
+            out RedisConnectionPoolManager poolManager,
             Action<IConnectionMultiplexer> action = null,
             TextWriter log = null)
         {
-            if (_connectionMultiplexer != null && _connectionMultiplexer.IsConnected)
-                return _connectionMultiplexer;
+            poolManager = RedisConnectionPoolManager.CreateInstance(poolSize, configurationOptions, log);
 
-            if (_poolManager == null)
-                _poolManager = RedisConnectionPoolManager.CreateInstance(poolSize, configurationOptions, log);
+            var connection = poolManager.GetConnection();
 
-            _connectionMultiplexer = _poolManager.GetConnection();
+            action?.Invoke(connection);
 
-            action?.Invoke(_connectionMultiplexer);
-
-            return _connectionMultiplexer;
+            return connection;
         }
         #endregion
 
