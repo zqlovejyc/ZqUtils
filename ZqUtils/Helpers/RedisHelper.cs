@@ -2884,8 +2884,6 @@ namespace ZqUtils.Helpers
             {
                 this._connections = new IConnectionMultiplexer[this._poolSize];
                 this.EmitConnections();
-
-                Console.WriteLine($"Redis Pool create,the thread id: {Thread.CurrentThread.ManagedThreadId}");
             }
         }
 
