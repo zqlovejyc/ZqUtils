@@ -32,7 +32,7 @@ using ZqUtils.Extensions;
 namespace ZqUtils.Helpers
 {
     /// <summary>
-    /// Redis帮助工具类
+    /// Redis工具类，支持Redis单例连接和连接池两种模式
     /// </summary>
     public class RedisHelper
     {
@@ -561,7 +561,7 @@ namespace ZqUtils.Helpers
         /// <returns>返回添加前缀后的key</returns>
         private string AddKeyPrefix(string key)
         {
-            return string.IsNullOrEmpty(KeyPrefix) ? key : $"{KeyPrefix}:{key}";
+            return KeyPrefix.IsNullOrEmpty() ? key : $"{KeyPrefix}:{key}";
         }
         #endregion
 
