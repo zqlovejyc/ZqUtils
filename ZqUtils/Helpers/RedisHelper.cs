@@ -24,6 +24,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ZqUtils.Extensions;
+using ZqUtils.Redis;
 /****************************
 * [Author] 张强
 * [Date] 2018-03-21
@@ -146,20 +147,6 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 构造函数
         /// </summary>
-        /// <param name="poolSize">redis连接池大小</param>
-        /// <param name="redisConnectionString">redis连接字符串</param>
-        /// <param name="action">自定义委托</param>
-        /// <param name="log">redis连接日志</param>
-        public RedisHelper(
-            int poolSize,
-            string redisConnectionString,
-            Action<IConnectionMultiplexer> action = null,
-            TextWriter log = null) =>
-            Database = (_poolConnection = GetConnection(poolSize, redisConnectionString, out _poolManager, action, log)).GetDatabase();
-
-        /// <summary>
-        /// 构造函数
-        /// </summary>
         /// <param name="redisConnectionString">redis连接字符串</param>
         /// <param name="defaultDatabase">数据库索引</param>
         /// <param name="action">自定义委托</param>
@@ -170,22 +157,6 @@ namespace ZqUtils.Helpers
             Action<IConnectionMultiplexer> action = null,
             TextWriter log = null) =>
             Database = GetConnection(redisConnectionString, action, log).GetDatabase(defaultDatabase);
-
-        /// <summary>
-        /// 构造函数
-        /// </summary>
-        /// <param name="poolSize">redis连接池大小</param>
-        /// <param name="redisConnectionString">redis连接字符串</param>
-        /// <param name="defaultDatabase">数据库索引</param>
-        /// <param name="action">自定义委托</param>
-        /// <param name="log">redis连接日志</param>
-        public RedisHelper(
-            int poolSize,
-            string redisConnectionString,
-            int defaultDatabase,
-            Action<IConnectionMultiplexer> action = null,
-            TextWriter log = null) =>
-            Database = (_poolConnection = GetConnection(poolSize, redisConnectionString, out _poolManager, action, log)).GetDatabase(defaultDatabase);
 
         /// <summary>
         /// 构造函数
@@ -207,11 +178,8 @@ namespace ZqUtils.Helpers
         /// <param name="action">自定义委托</param>
         /// <param name="log">redis连接日志</param>
         public RedisHelper(
-            int poolSize,
-            ConfigurationOptions configurationOptions,
-            Action<IConnectionMultiplexer> action = null,
-            TextWriter log = null) =>
-            Database = (_poolConnection = GetConnection(poolSize, configurationOptions, out _poolManager, action, log)).GetDatabase();
+            RedisConfiguration configuration) =>
+            Database = (_poolConnection = GetConnection(configuration, out _poolManager)).GetDatabase();
 
         /// <summary>
         /// 构造函数
@@ -222,12 +190,9 @@ namespace ZqUtils.Helpers
         /// <param name="action">自定义委托</param>
         /// <param name="log">redis连接日志</param>
         public RedisHelper(
-            int poolSize,
             int defaultDatabase,
-            ConfigurationOptions configurationOptions,
-            Action<IConnectionMultiplexer> action = null,
-            TextWriter log = null) =>
-            Database = (_poolConnection = GetConnection(poolSize, configurationOptions, out _poolManager, action, log)).GetDatabase(defaultDatabase);
+            RedisConfiguration configuration) =>
+            Database = (_poolConnection = GetConnection(configuration, out _poolManager)).GetDatabase(defaultDatabase);
         #endregion 构造函数
 
         #region 连接对象
@@ -316,49 +281,16 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 获取redis连接对象
         /// </summary>
-        /// <param name="poolSize">redis连接池大小</param>
-        /// <param name="redisConnectionString">redis连接字符串</param>
+        /// <param name="configuration">redis连接池配置</param>
         /// <param name="poolManager">redis连接池</param>
-        /// <param name="action">自定义委托</param>
-        /// <param name="log">redis连接日志</param>
         /// <returns>返回IConnectionMultiplexer</returns>
         public static IConnectionMultiplexer GetConnection(
-            int poolSize,
-            string redisConnectionString,
-            out RedisConnectionPoolManager poolManager,
-            Action<IConnectionMultiplexer> action = null,
-            TextWriter log = null)
+            RedisConfiguration configuration,
+            out RedisConnectionPoolManager poolManager)
         {
-            poolManager = RedisConnectionPoolManager.CreateInstance(poolSize, redisConnectionString, log);
+            poolManager = RedisConnectionPoolManager.CreateInstance(configuration);
 
             var connection = poolManager.GetConnection();
-
-            action?.Invoke(connection);
-
-            return connection;
-        }
-
-        /// <summary>
-        /// 获取redis连接对象
-        /// </summary>
-        /// <param name="poolSize">redis连接池大小</param>
-        /// <param name="configurationOptions">连接配置</param>
-        /// <param name="poolManager">redis连接池</param>
-        /// <param name="action">自定义委托</param>
-        /// <param name="log">redis连接日志</param>
-        /// <returns>返回IConnectionMultiplexer</returns>
-        public static IConnectionMultiplexer GetConnection(
-            int poolSize,
-            ConfigurationOptions configurationOptions,
-            out RedisConnectionPoolManager poolManager,
-            Action<IConnectionMultiplexer> action = null,
-            TextWriter log = null)
-        {
-            poolManager = RedisConnectionPoolManager.CreateInstance(poolSize, configurationOptions, log);
-
-            var connection = poolManager.GetConnection();
-
-            action?.Invoke(connection);
 
             return connection;
         }
@@ -2821,179 +2753,5 @@ namespace ZqUtils.Helpers
         }
         #endregion
         #endregion
-    }
-
-    /// <summary>
-    /// Redis连接池
-    /// </summary>
-    public class RedisConnectionPoolManager : IDisposable
-    {
-        private readonly IConnectionMultiplexer[] _connections;
-        private static readonly object _lock = new();
-        private readonly int _poolSize;
-        private readonly string _redisConnectionString;
-        private readonly ConfigurationOptions _configuration;
-        private readonly TextWriter _log;
-        private bool _disposed;
-
-        /// <summary>
-        /// 构造函数
-        /// </summary>
-        public RedisConnectionPoolManager(
-            int poolSize,
-            string redisConnectionString,
-            TextWriter log = null)
-        {
-            this._poolSize = poolSize;
-            this._redisConnectionString = redisConnectionString;
-            this._log = log;
-
-            lock (_lock)
-            {
-                this._connections = new IConnectionMultiplexer[this._poolSize];
-                this.EmitConnections();
-            }
-        }
-
-        /// <summary>
-        /// 构造函数
-        /// </summary>
-        public RedisConnectionPoolManager(
-            int poolSize,
-            ConfigurationOptions configuration,
-            TextWriter log = null)
-        {
-            this._poolSize = poolSize;
-            this._configuration = configuration;
-            this._log = log;
-
-            lock (_lock)
-            {
-                this._connections = new IConnectionMultiplexer[this._poolSize];
-                this.EmitConnections();
-            }
-        }
-
-        /// <summary>
-        /// 创建实例
-        /// </summary>
-        public static RedisConnectionPoolManager CreateInstance(
-            int poolSize,
-            string redisConnectionString,
-            TextWriter log = null) =>
-            SingletonHelper<RedisConnectionPoolManager>.GetInstance(
-                poolSize, redisConnectionString, log);
-
-        /// <summary>
-        /// 创建实例
-        /// </summary>
-        public static RedisConnectionPoolManager CreateInstance(
-            int poolSize,
-            ConfigurationOptions configuration,
-            TextWriter log = null) =>
-            SingletonHelper<RedisConnectionPoolManager>.GetInstance(
-                poolSize, configuration, log);
-
-        /// <summary>
-        /// 释放资源
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// 是否资源
-        /// </summary>
-        /// <param name="disposing"></param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (_disposed)
-                return;
-
-            if (disposing)
-            {
-                foreach (var connection in this._connections)
-                    connection?.Dispose();
-            }
-
-            _disposed = true;
-        }
-
-        /// <summary>
-        /// 获取IConnectionMultiplexer连接
-        /// </summary>
-        /// <returns></returns>
-        public IConnectionMultiplexer GetConnection()
-        {
-            var connection = this._connections.OrderBy(x => x.GetCounters().TotalOutstanding).First();
-
-            LogHelper.Debug("Using connection {0} with {1} outstanding!", connection.GetHashCode(), connection.GetCounters().TotalOutstanding);
-
-            return connection;
-        }
-
-        /// <summary>
-        /// 获取连接池信息
-        /// </summary>
-        /// <returns></returns>
-        public (int requiredPoolSize, int activeConnections, int invalidConnections) GetConnectionInformations()
-        {
-            var activeConnections = 0;
-            var invalidConnections = 0;
-
-            foreach (var connection in this._connections)
-            {
-                if (!connection.IsConnected)
-                {
-                    invalidConnections++;
-                    continue;
-                }
-
-                activeConnections++;
-            }
-
-            return (this._poolSize, activeConnections, invalidConnections);
-        }
-
-        /// <summary>
-        /// 初始化线程池连接
-        /// </summary>
-        private void EmitConnections()
-        {
-            for (var i = 0; i < this._poolSize; i++)
-            {
-                IConnectionMultiplexer connection = null;
-
-                if (this._redisConnectionString.IsNotNullOrEmpty())
-                    connection = ConnectionMultiplexer.Connect(this._redisConnectionString, this._log);
-
-                if (this._configuration != null)
-                    connection = ConnectionMultiplexer.Connect(this._configuration, this._log);
-
-                if (connection == null)
-                    throw new Exception($"Create the {i + 1} `IConnectionMultiplexer` connection fail");
-
-                if (ConfigHelper.GetAppSettings("Redis.RegisterEvent", true))
-                {
-                    var hashCode = connection.GetHashCode();
-
-                    connection.ConnectionFailed +=
-                        (s, e) => LogHelper.Error(e.Exception, $"Redis(hash:{hashCode}) connection error {e.FailureType}.");
-
-                    connection.ConnectionRestored +=
-                        (s, e) => LogHelper.Error($"Redis(hash:{hashCode}) connection error restored.");
-
-                    connection.InternalError +=
-                        (s, e) => LogHelper.Error(e.Exception, $"Redis(hash:{hashCode}) internal error {e.Origin}.");
-
-                    connection.ErrorMessage +=
-                        (s, e) => LogHelper.Error($"Redis(hash:{hashCode}) error: {e.Message}");
-                }
-
-                this._connections[i] = connection;
-            }
-        }
     }
 }
