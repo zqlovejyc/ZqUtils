@@ -50,7 +50,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// redis单例连接对象
         /// </summary>
-        private static IConnectionMultiplexer _connectionMultiplexer;
+        private static IConnectionMultiplexer _singleConnection;
 
         /// <summary>
         /// redis连接池
@@ -60,20 +60,19 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// redis连接池创建的连接对象
         /// </summary>
-        private readonly IConnectionMultiplexer _poolMultiplexer;
+        private readonly IConnectionMultiplexer _poolConnection;
         #endregion
 
         #region 公有属性
         /// <summary>
-        /// 静态单例，注意单例对象慎重修改对象公有属性，建议不进行修改操作
+        /// 静态单例
         /// </summary>
         public static RedisHelper Instance => SingletonHelper<RedisHelper>.GetInstance();
 
         /// <summary>
-        /// IConnectionMultiplexer对象
+        /// 当前Redis连接对象
         /// </summary>
-        public IConnectionMultiplexer IConnectionMultiplexer =>
-            _poolManager != null ? _poolMultiplexer : _connectionMultiplexer;
+        public IConnectionMultiplexer RedisConnection => _poolConnection ?? _singleConnection;
 
         /// <summary>
         /// Redis连接池
@@ -81,7 +80,7 @@ namespace ZqUtils.Helpers
         public RedisConnectionPoolManager RedisConnectionPoolManager => _poolManager;
 
         /// <summary>
-        /// 数据库，注意单例对象不建议修改
+        /// 数据库
         /// </summary>
         public IDatabase Database { get; set; }
 
@@ -98,7 +97,7 @@ namespace ZqUtils.Helpers
         /// <param name="connection">redis连接对象</param>
         public RedisHelper(
             IConnectionMultiplexer connection) =>
-            Database = (_connectionMultiplexer = connection).GetDatabase();
+            Database = (_singleConnection = connection).GetDatabase();
 
         /// <summary>
         /// 构造函数
@@ -108,7 +107,7 @@ namespace ZqUtils.Helpers
         public RedisHelper(
             int defaultDatabase,
             IConnectionMultiplexer connection) =>
-            Database = (_connectionMultiplexer = connection).GetDatabase(defaultDatabase);
+            Database = (_singleConnection = connection).GetDatabase(defaultDatabase);
 
         /// <summary>
         /// 构造函数
@@ -156,7 +155,7 @@ namespace ZqUtils.Helpers
             string redisConnectionString,
             Action<IConnectionMultiplexer> action = null,
             TextWriter log = null) =>
-            Database = (_poolMultiplexer = GetConnection(poolSize, redisConnectionString, out _poolManager, action, log)).GetDatabase();
+            Database = (_poolConnection = GetConnection(poolSize, redisConnectionString, out _poolManager, action, log)).GetDatabase();
 
         /// <summary>
         /// 构造函数
@@ -186,7 +185,7 @@ namespace ZqUtils.Helpers
             int defaultDatabase,
             Action<IConnectionMultiplexer> action = null,
             TextWriter log = null) =>
-            Database = (_poolMultiplexer = GetConnection(poolSize, redisConnectionString, out _poolManager, action, log)).GetDatabase(defaultDatabase);
+            Database = (_poolConnection = GetConnection(poolSize, redisConnectionString, out _poolManager, action, log)).GetDatabase(defaultDatabase);
 
         /// <summary>
         /// 构造函数
@@ -212,7 +211,7 @@ namespace ZqUtils.Helpers
             ConfigurationOptions configurationOptions,
             Action<IConnectionMultiplexer> action = null,
             TextWriter log = null) =>
-            Database = (_poolMultiplexer = GetConnection(poolSize, configurationOptions, out _poolManager, action, log)).GetDatabase();
+            Database = (_poolConnection = GetConnection(poolSize, configurationOptions, out _poolManager, action, log)).GetDatabase();
 
         /// <summary>
         /// 构造函数
@@ -228,7 +227,7 @@ namespace ZqUtils.Helpers
             ConfigurationOptions configurationOptions,
             Action<IConnectionMultiplexer> action = null,
             TextWriter log = null) =>
-            Database = (_poolMultiplexer = GetConnection(poolSize, configurationOptions, out _poolManager, action, log)).GetDatabase(defaultDatabase);
+            Database = (_poolConnection = GetConnection(poolSize, configurationOptions, out _poolManager, action, log)).GetDatabase(defaultDatabase);
         #endregion 构造函数
 
         #region 连接对象
@@ -266,22 +265,22 @@ namespace ZqUtils.Helpers
             Action<IConnectionMultiplexer> action = null,
             TextWriter log = null)
         {
-            if (_connectionMultiplexer != null && _connectionMultiplexer.IsConnected)
-                return _connectionMultiplexer;
+            if (_singleConnection != null && _singleConnection.IsConnected)
+                return _singleConnection;
 
             lock (_lock)
             {
-                if (_connectionMultiplexer != null && _connectionMultiplexer.IsConnected)
-                    return _connectionMultiplexer;
+                if (_singleConnection != null && _singleConnection.IsConnected)
+                    return _singleConnection;
 
-                _connectionMultiplexer = ConnectionMultiplexer.Connect(redisConnectionString, log);
+                _singleConnection = ConnectionMultiplexer.Connect(redisConnectionString, log);
 
-                action?.Invoke(_connectionMultiplexer);
+                action?.Invoke(_singleConnection);
 
-                RegisterEvents(_connectionMultiplexer);
+                RegisterEvents(_singleConnection);
             }
 
-            return _connectionMultiplexer;
+            return _singleConnection;
         }
 
         /// <summary>
@@ -296,22 +295,22 @@ namespace ZqUtils.Helpers
             Action<IConnectionMultiplexer> action = null,
             TextWriter log = null)
         {
-            if (_connectionMultiplexer != null && _connectionMultiplexer.IsConnected)
-                return _connectionMultiplexer;
+            if (_singleConnection != null && _singleConnection.IsConnected)
+                return _singleConnection;
 
             lock (_lock)
             {
-                if (_connectionMultiplexer != null && _connectionMultiplexer.IsConnected)
-                    return _connectionMultiplexer;
+                if (_singleConnection != null && _singleConnection.IsConnected)
+                    return _singleConnection;
 
-                _connectionMultiplexer = ConnectionMultiplexer.Connect(configurationOptions, log);
+                _singleConnection = ConnectionMultiplexer.Connect(configurationOptions, log);
 
-                action?.Invoke(_connectionMultiplexer);
+                action?.Invoke(_singleConnection);
 
-                RegisterEvents(_connectionMultiplexer);
+                RegisterEvents(_singleConnection);
             }
 
-            return _connectionMultiplexer;
+            return _singleConnection;
         }
 
         /// <summary>
@@ -399,21 +398,21 @@ namespace ZqUtils.Helpers
             Action<IConnectionMultiplexer> action = null,
             TextWriter log = null)
         {
-            if (_connectionMultiplexer != null && _connectionMultiplexer.IsConnected)
-                return _connectionMultiplexer;
+            if (_singleConnection != null && _singleConnection.IsConnected)
+                return _singleConnection;
 
             try
             {
                 await _semaphoreSlim.WaitAsync().ConfigureAwait(false);
 
-                if (_connectionMultiplexer != null && _connectionMultiplexer.IsConnected)
-                    return _connectionMultiplexer;
+                if (_singleConnection != null && _singleConnection.IsConnected)
+                    return _singleConnection;
 
-                _connectionMultiplexer = await ConnectionMultiplexer.ConnectAsync(redisConnectionString, log);
+                _singleConnection = await ConnectionMultiplexer.ConnectAsync(redisConnectionString, log);
 
-                action?.Invoke(_connectionMultiplexer);
+                action?.Invoke(_singleConnection);
 
-                RegisterEvents(_connectionMultiplexer);
+                RegisterEvents(_singleConnection);
             }
             catch (Exception)
             {
@@ -424,7 +423,7 @@ namespace ZqUtils.Helpers
                 _semaphoreSlim.Release();
             }
 
-            return _connectionMultiplexer;
+            return _singleConnection;
         }
 
         /// <summary>
@@ -439,21 +438,21 @@ namespace ZqUtils.Helpers
             Action<IConnectionMultiplexer> action = null,
             TextWriter log = null)
         {
-            if (_connectionMultiplexer != null && _connectionMultiplexer.IsConnected)
-                return _connectionMultiplexer;
+            if (_singleConnection != null && _singleConnection.IsConnected)
+                return _singleConnection;
 
             try
             {
                 await _semaphoreSlim.WaitAsync().ConfigureAwait(false);
 
-                if (_connectionMultiplexer != null && _connectionMultiplexer.IsConnected)
-                    return _connectionMultiplexer;
+                if (_singleConnection != null && _singleConnection.IsConnected)
+                    return _singleConnection;
 
-                _connectionMultiplexer = await ConnectionMultiplexer.ConnectAsync(configurationOptions, log);
+                _singleConnection = await ConnectionMultiplexer.ConnectAsync(configurationOptions, log);
 
-                action?.Invoke(_connectionMultiplexer);
+                action?.Invoke(_singleConnection);
 
-                RegisterEvents(_connectionMultiplexer);
+                RegisterEvents(_singleConnection);
             }
             catch (Exception)
             {
@@ -464,7 +463,7 @@ namespace ZqUtils.Helpers
                 _semaphoreSlim.Release();
             }
 
-            return _connectionMultiplexer;
+            return _singleConnection;
         }
         #endregion
 
@@ -476,7 +475,7 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public static async Task SetConnectionAsync(
             Action<IConnectionMultiplexer> action = null) =>
-            _connectionMultiplexer = await GetConnectionAsync(action);
+            _singleConnection = await GetConnectionAsync(action);
 
         /// <summary>
         /// 设置IConnectionMultiplexer
@@ -487,7 +486,7 @@ namespace ZqUtils.Helpers
         public static async Task SetConnectionAsync(
             string redisConnectionString,
             Action<IConnectionMultiplexer> action = null) =>
-            _connectionMultiplexer = await GetConnectionAsync(redisConnectionString, action);
+            _singleConnection = await GetConnectionAsync(redisConnectionString, action);
 
         /// <summary>
         /// 设置IConnectionMultiplexer
@@ -498,7 +497,7 @@ namespace ZqUtils.Helpers
         public static async Task SetConnectionAsync(
             ConfigurationOptions configurationOptions,
             Action<IConnectionMultiplexer> action = null) =>
-            _connectionMultiplexer = await GetConnectionAsync(configurationOptions, action);
+            _singleConnection = await GetConnectionAsync(configurationOptions, action);
         #endregion
         #endregion
 
@@ -575,8 +574,7 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public RedisHelper UseDatabase(int database)
         {
-            if (_connectionMultiplexer != null && _connectionMultiplexer.IsConnected)
-                Database = _connectionMultiplexer.GetDatabase(database);
+            Database = RedisConnection.GetDatabase(database);
 
             return this;
         }
@@ -2370,12 +2368,12 @@ namespace ZqUtils.Helpers
         public List<string> Keys(string pattern, int database = 0, bool configuredOnly = false)
         {
             var result = new List<string>();
-            var points = _connectionMultiplexer.GetEndPoints(configuredOnly);
+            var points = RedisConnection.GetEndPoints(configuredOnly);
             if (points?.Length > 0)
             {
                 foreach (var point in points)
                 {
-                    var server = _connectionMultiplexer.GetServer(point);
+                    var server = RedisConnection.GetServer(point);
                     var keys = server.Keys(database: database, pattern: pattern);
                     result.AddRange(keys.Select(x => (string)x));
                 }
@@ -2421,12 +2419,12 @@ namespace ZqUtils.Helpers
         public long KeyDeleteByPattern(string pattern, int database = 0, bool configuredOnly = false)
         {
             var result = 0L;
-            var points = _connectionMultiplexer.GetEndPoints(configuredOnly);
+            var points = RedisConnection.GetEndPoints(configuredOnly);
             if (points?.Length > 0)
             {
                 foreach (var point in points)
                 {
-                    var server = _connectionMultiplexer.GetServer(point);
+                    var server = RedisConnection.GetServer(point);
                     var keys = server.Keys(database: database, pattern: pattern);
 
                     if (keys.IsNotNullOrEmpty())
@@ -2504,12 +2502,12 @@ namespace ZqUtils.Helpers
         public async Task<List<string>> KeysAsync(string pattern, int database = 0, bool configuredOnly = false)
         {
             var result = new List<string>();
-            var points = _connectionMultiplexer.GetEndPoints(configuredOnly);
+            var points = RedisConnection.GetEndPoints(configuredOnly);
             if (points?.Length > 0)
             {
                 foreach (var point in points)
                 {
-                    var server = _connectionMultiplexer.GetServer(point);
+                    var server = RedisConnection.GetServer(point);
                     var keys = server.Keys(database: database, pattern: pattern);
                     result.AddRange(keys.Select(x => (string)x));
                 }
@@ -2555,12 +2553,12 @@ namespace ZqUtils.Helpers
         public async Task<long> KeyDeleteByPatternAsync(string pattern, int database = 0, bool configuredOnly = false)
         {
             var result = 0L;
-            var points = _connectionMultiplexer.GetEndPoints(configuredOnly);
+            var points = RedisConnection.GetEndPoints(configuredOnly);
             if (points?.Length > 0)
             {
                 foreach (var point in points)
                 {
-                    var server = _connectionMultiplexer.GetServer(point);
+                    var server = RedisConnection.GetServer(point);
                     var keys = server.Keys(database: database, pattern: pattern);
                     var keyDeletes = new List<RedisKey>();
                     foreach (var key in keys)
@@ -2641,10 +2639,10 @@ namespace ZqUtils.Helpers
         /// <param name="configuredOnly">默认：false</param>
         public void Clear(bool configuredOnly = false)
         {
-            var points = _connectionMultiplexer.GetEndPoints(configuredOnly);
+            var points = RedisConnection.GetEndPoints(configuredOnly);
             foreach (var point in points)
             {
-                var server = _connectionMultiplexer.GetServer(point);
+                var server = RedisConnection.GetServer(point);
                 server.FlushAllDatabases();
             }
         }
@@ -2656,7 +2654,7 @@ namespace ZqUtils.Helpers
         /// <param name="port">端口号</param>
         public void Clear(string host, int port)
         {
-            var server = _connectionMultiplexer.GetServer(host, port);
+            var server = RedisConnection.GetServer(host, port);
             server.FlushAllDatabases();
         }
 
@@ -2668,7 +2666,7 @@ namespace ZqUtils.Helpers
         /// <param name="database">数据库</param>
         public void Clear(string host, int port, int database)
         {
-            var server = _connectionMultiplexer.GetServer(host, port);
+            var server = RedisConnection.GetServer(host, port);
             server.FlushDatabase(database);
         }
         #endregion
@@ -2680,10 +2678,10 @@ namespace ZqUtils.Helpers
         /// <param name="configuredOnly">默认：false</param>
         public async Task ClearAsync(bool configuredOnly = false)
         {
-            var points = _connectionMultiplexer.GetEndPoints(configuredOnly);
+            var points = RedisConnection.GetEndPoints(configuredOnly);
             foreach (var point in points)
             {
-                var server = _connectionMultiplexer.GetServer(point);
+                var server = RedisConnection.GetServer(point);
                 await server.FlushAllDatabasesAsync();
             }
         }
@@ -2695,7 +2693,7 @@ namespace ZqUtils.Helpers
         /// <param name="port">端口号</param>
         public async Task ClearAsync(string host, int port)
         {
-            var server = _connectionMultiplexer.GetServer(host, port);
+            var server = RedisConnection.GetServer(host, port);
             await server.FlushAllDatabasesAsync();
         }
 
@@ -2707,7 +2705,7 @@ namespace ZqUtils.Helpers
         /// <param name="database">数据库</param>
         public async Task ClearAsync(string host, int port, int database)
         {
-            var server = _connectionMultiplexer.GetServer(host, port);
+            var server = RedisConnection.GetServer(host, port);
             await server.FlushDatabaseAsync(database);
         }
         #endregion
@@ -2783,7 +2781,7 @@ namespace ZqUtils.Helpers
         /// <returns>返回收到消息的客户端数量</returns>
         public long Publish(string channel, string message)
         {
-            var sub = GetConnection().GetSubscriber();
+            var sub = RedisConnection.GetSubscriber();
             return sub.Publish(channel, message);
         }
 
@@ -2796,7 +2794,7 @@ namespace ZqUtils.Helpers
         /// <returns>返回收到消息的客户端数量</returns>
         public async Task<long> PublishAsync(string channel, string message)
         {
-            var sub = GetConnection().GetSubscriber();
+            var sub = RedisConnection.GetSubscriber();
             return await sub.PublishAsync(channel, message);
         }
 
@@ -2807,7 +2805,7 @@ namespace ZqUtils.Helpers
         /// <param name="subscribeFn">订阅处理委托</param>
         public void Subscribe(string channelFrom, Action<RedisValue> subscribeFn)
         {
-            var sub = GetConnection().GetSubscriber();
+            var sub = RedisConnection.GetSubscriber();
             sub.Subscribe(channelFrom, (channel, message) => subscribeFn?.Invoke(message));
         }
 
@@ -2818,7 +2816,7 @@ namespace ZqUtils.Helpers
         /// <param name="subscribeFn">订阅处理委托</param>
         public async Task SubscribeAsync(string channelFrom, Action<RedisValue> subscribeFn)
         {
-            var sub = GetConnection().GetSubscriber();
+            var sub = RedisConnection.GetSubscriber();
             await sub.SubscribeAsync(channelFrom, (channel, message) => subscribeFn?.Invoke(message));
         }
         #endregion
