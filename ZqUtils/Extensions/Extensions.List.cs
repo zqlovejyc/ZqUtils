@@ -40,27 +40,51 @@ namespace ZqUtils.Extensions
     {
         #region Default
         /// <summary>
-        /// 若当前集合为null时，返回空集合；若不为null时，返回集合本身；
+        /// 若当前集合为null时，返回默认值或空集合；若不为null时，返回集合本身；
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="this"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        public static List<T> Default<T>(this List<T> @this, List<T> defaultValue = null)
+        public static List<T> DefaultIfNull<T>(this List<T> @this, List<T> defaultValue = null)
         {
             return @this ?? defaultValue ?? new List<T>();
         }
 
         /// <summary>
-        /// 若当前集合为null时，返回空集合；若不为null时，返回集合本身；
+        /// 若当前集合为null时，返回默认值或空集合；若不为null时，返回集合本身；
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="this"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        public static IEnumerable<T> Default<T>(this IEnumerable<T> @this, IEnumerable<T> defaultValue = null)
+        public static IEnumerable<T> DefaultIfNull<T>(this IEnumerable<T> @this, IEnumerable<T> defaultValue = null)
         {
             return @this ?? defaultValue ?? new List<T>();
+        }
+
+        /// <summary>
+        /// 若当前集合为null或empty时，返回默认值或空集合；若不为null且不为empty时，返回集合本身；
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="defaultValue"></param>
+        /// <returns></returns>
+        public static List<T> DefaultIfNullOrEmpty<T>(this List<T> @this, List<T> defaultValue = null)
+        {
+            return @this.IsNullOrEmpty() ? (defaultValue ?? new List<T>()) : @this;
+        }
+
+        /// <summary>
+        /// 若当前集合为null或empty时，返回默认值或空集合；若不为null且不为empty时，返回集合本身；
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="defaultValue"></param>
+        /// <returns></returns>
+        public static IEnumerable<T> DefaultIfNullOrEmpty<T>(this IEnumerable<T> @this, IEnumerable<T> defaultValue = null)
+        {
+            return @this.IsNullOrEmpty() ? (defaultValue ?? new List<T>()) : @this;
         }
         #endregion
 
