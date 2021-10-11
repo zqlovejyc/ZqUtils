@@ -173,10 +173,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 构造函数
         /// </summary>
-        /// <param name="poolSize">redis连接池大小</param>        
-        /// <param name="configurationOptions">连接配置</param>
-        /// <param name="action">自定义委托</param>
-        /// <param name="log">redis连接日志</param>
+        /// <param name="configuration">连接配置</param>
         public RedisHelper(
             RedisConfiguration configuration) =>
             Database = (_poolConnection = GetConnection(configuration, out _poolManager)).GetDatabase();
@@ -184,11 +181,8 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 构造函数
         /// </summary>
-        /// <param name="poolSize">redis连接池大小</param>  
         /// <param name="defaultDatabase">数据库索引</param>
-        /// <param name="configurationOptions">连接配置</param>
-        /// <param name="action">自定义委托</param>
-        /// <param name="log">redis连接日志</param>
+        /// <param name="configuration">连接配置</param>
         public RedisHelper(
             int defaultDatabase,
             RedisConfiguration configuration) =>
