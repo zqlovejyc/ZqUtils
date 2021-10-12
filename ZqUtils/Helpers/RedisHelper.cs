@@ -2301,7 +2301,7 @@ namespace ZqUtils.Helpers
                 {
                     var server = RedisConnection.GetServer(point);
                     var keys = server.Keys(database: database, pattern: pattern);
-                    result.AddRange(keys.Select(x => (string)x));
+                    result.AddRangeIfNotContains(keys.Select(x => (string)x).ToArray());
                 }
             }
 
@@ -2429,19 +2429,7 @@ namespace ZqUtils.Helpers
         /// <returns></returns>
         public async Task<List<string>> KeysAsync(string pattern, int database = 0, bool configuredOnly = false)
         {
-            var result = new List<string>();
-            var points = RedisConnection.GetEndPoints(configuredOnly);
-            if (points?.Length > 0)
-            {
-                foreach (var point in points)
-                {
-                    var server = RedisConnection.GetServer(point);
-                    var keys = server.Keys(database: database, pattern: pattern);
-                    result.AddRange(keys.Select(x => (string)x));
-                }
-            }
-
-            return await Task.FromResult(result);
+            return await Task.FromResult(Keys(pattern, database, configuredOnly));
         }
         #endregion
 
