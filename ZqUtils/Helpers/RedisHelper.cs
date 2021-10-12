@@ -2348,13 +2348,15 @@ namespace ZqUtils.Helpers
             var points = RedisConnection.GetEndPoints(configuredOnly);
             if (points?.Length > 0)
             {
+                var db = RedisConnection.GetDatabase(database);
+
                 foreach (var point in points)
                 {
                     var server = RedisConnection.GetServer(point);
                     var keys = server.Keys(database: database, pattern: pattern);
 
                     if (keys.IsNotNullOrEmpty())
-                        result += KeyDelete(keys.Select(x => (string)x));
+                        result += db.KeyDelete(keys.ToArray());
                 }
             }
             return result;
@@ -2482,6 +2484,8 @@ namespace ZqUtils.Helpers
             var points = RedisConnection.GetEndPoints(configuredOnly);
             if (points?.Length > 0)
             {
+                var db = RedisConnection.GetDatabase(database);
+
                 foreach (var point in points)
                 {
                     var server = RedisConnection.GetServer(point);
@@ -2493,7 +2497,7 @@ namespace ZqUtils.Helpers
                     }
 
                     if (keys.IsNotNullOrEmpty())
-                        result += await Database.KeyDeleteAsync(keyDeletes.ToArray());
+                        result += await db.KeyDeleteAsync(keyDeletes.ToArray());
                 }
             }
 
