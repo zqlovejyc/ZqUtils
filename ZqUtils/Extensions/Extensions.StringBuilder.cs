@@ -1660,30 +1660,12 @@ namespace ZqUtils.Extensions
         /// <returns>A StringBuilder.</returns>
         public static StringBuilder AppendIf<T>(this StringBuilder @this, Func<T, bool> predicate, params T[] values)
         {
+            if (values.IsNullOrEmpty())
+                return @this;
+
             foreach (var value in values)
             {
                 if (predicate(value))
-                {
-                    @this.Append(value);
-                }
-            }
-
-            return @this;
-        }
-
-        /// <summary>
-        /// A StringBuilder extension method that appends a when.
-        /// </summary>
-        /// <typeparam name="T">Generic type parameter.</typeparam>
-        /// <param name="this">The @this to act on.</param>
-        /// <param name="predicate">The predicate.</param>
-        /// <param name="values">A variable-length parameters list containing values.</param>
-        /// <returns>A StringBuilder.</returns>
-        public static StringBuilder AppendIf<T>(this StringBuilder @this, Func<T, bool> predicate, params Func<T>[] values)
-        {
-            foreach (var value in values)
-            {
-                if (predicate(value()))
                 {
                     @this.Append(value);
                 }
@@ -1703,6 +1685,9 @@ namespace ZqUtils.Extensions
         /// <returns>A StringBuilder.</returns>
         public static StringBuilder AppendIf<T>(this StringBuilder @this, Func<T, bool> predicate, Action callback, params T[] values)
         {
+            if (values.IsNullOrEmpty())
+                return @this;
+
             foreach (var value in values)
             {
                 if (predicate(value))
@@ -1727,6 +1712,9 @@ namespace ZqUtils.Extensions
         /// <returns>A StringBuilder.</returns>
         public static StringBuilder AppendIf<T>(this StringBuilder @this, Func<T, bool> predicate, Action callback, params Func<T>[] values)
         {
+            if (values.IsNullOrEmpty())
+                return @this;
+
             foreach (var value in values)
             {
                 if (predicate(value()))
@@ -1807,29 +1795,12 @@ namespace ZqUtils.Extensions
         /// <returns>A StringBuilder.</returns>
         public static StringBuilder AppendLineIf<T>(this StringBuilder @this, Func<T, bool> predicate, params T[] values)
         {
+            if (values.IsNullOrEmpty())
+                return @this;
+
             foreach (var value in values)
             {
                 if (predicate(value))
-                {
-                    @this.AppendLine(value.ToString());
-                }
-            }
-            return @this;
-        }
-
-        /// <summary>
-        /// A StringBuilder extension method that appends a line when.
-        /// </summary>
-        /// <typeparam name="T">Generic type parameter.</typeparam>
-        /// <param name="this">The @this to act on.</param>
-        /// <param name="predicate">The predicate.</param>
-        /// <param name="values">A variable-length parameters list containing values.</param>
-        /// <returns>A StringBuilder.</returns>
-        public static StringBuilder AppendLineIf<T>(this StringBuilder @this, Func<T, bool> predicate, params Func<T>[] values)
-        {
-            foreach (var value in values)
-            {
-                if (predicate(value()))
                 {
                     @this.AppendLine(value.ToString());
                 }
@@ -1848,6 +1819,9 @@ namespace ZqUtils.Extensions
         /// <returns>A StringBuilder.</returns>
         public static StringBuilder AppendLineIf<T>(this StringBuilder @this, Func<T, bool> predicate, Action callback, params T[] values)
         {
+            if (values.IsNullOrEmpty())
+                return @this;
+
             foreach (var value in values)
             {
                 if (predicate(value))
@@ -1871,6 +1845,9 @@ namespace ZqUtils.Extensions
         /// <returns>A StringBuilder.</returns>
         public static StringBuilder AppendLineIf<T>(this StringBuilder @this, Func<T, bool> predicate, Action callback, params Func<T>[] values)
         {
+            if (values.IsNullOrEmpty())
+                return @this;
+
             foreach (var value in values)
             {
                 if (predicate(value()))
