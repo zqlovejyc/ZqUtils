@@ -135,13 +135,11 @@ namespace ZqUtils.Helpers
         public SnowflakeHelper(long datacenterId, long workerId)
         {
             if (datacenterId > maxDatacenterId || datacenterId < 0)
-            {
-                throw new Exception(string.Format("datacenter Id can't be greater than {0} or less than 0", maxDatacenterId));
-            }
+                throw new Exception($"datacenter Id can't be greater than {maxDatacenterId} or less than 0");
+
             if (workerId > maxWorkerId || workerId < 0)
-            {
-                throw new Exception(string.Format("worker Id can't be greater than {0} or less than 0", maxWorkerId));
-            }
+                throw new Exception($"worker Id can't be greater than {maxWorkerId} or less than 0");
+
             this.WorkerId = workerId;
             this.DatacenterId = datacenterId;
             this.Sequence = 0L;
@@ -157,39 +155,34 @@ namespace ZqUtils.Helpers
             lock (this)
             {
                 long timestamp = GetCurrentTimestamp();
+
                 if (timestamp > LastTimestamp) //时间戳改变，毫秒内序列重置
-                {
                     Sequence = 0L;
-                }
                 else if (timestamp == LastTimestamp) //如果是同一时间生成的，则进行毫秒内序列
                 {
                     Sequence = (Sequence + 1) & sequenceMask;
                     if (Sequence == 0) //毫秒内序列溢出
-                    {
                         timestamp = GetNextTimestamp(LastTimestamp); //阻塞到下一个毫秒,获得新的时间戳
-                    }
                 }
-                else   //当前时间小于上一次ID生成的时间戳，证明系统时钟被回拨，此时需要做回拨处理
+                else //当前时间小于上一次ID生成的时间戳，证明系统时钟被回拨，此时需要做回拨处理  
                 {
                     Sequence = (Sequence + 1) & sequenceMask;
                     if (Sequence > 0)
-                    {
-                        timestamp = LastTimestamp;     //停留在最后一次时间戳上，等待系统时间追上后即完全度过了时钟回拨问题。
-                    }
-                    else   //毫秒内序列溢出
-                    {
-                        timestamp = LastTimestamp + 1;   //直接进位到下一个毫秒                          
-                    }
-                    //throw new Exception(string.Format("Clock moved backwards.  Refusing to generate id for {0} milliseconds", lastTimestamp - timestamp));
+                        timestamp = LastTimestamp; //停留在最后一次时间戳上，等待系统时间追上后即完全度过了时钟回拨问题。
+                    else //毫秒内序列溢出
+                        timestamp = LastTimestamp + 1; //直接进位到下一个毫秒
+
+                    //throw new Exception($"InvalidSystemClock: Clock moved backwards, Refusing to generate id for {LastTimestamp - timestamp} milliseconds");
                 }
 
-                LastTimestamp = timestamp;       //上次生成ID的时间截
+                LastTimestamp = timestamp; //上次生成ID的时间截
 
                 //移位并通过或运算拼到一起组成64位的ID
                 var id = ((timestamp - twepoch) << timestampLeftShift)
                         | (DatacenterId << datacenterIdShift)
                         | (WorkerId << workerIdShift)
                         | Sequence;
+
                 return id;
             }
         }
@@ -232,10 +225,10 @@ namespace ZqUtils.Helpers
         private static long GetNextTimestamp(long lastTimestamp)
         {
             long timestamp = GetCurrentTimestamp();
+
             while (timestamp <= lastTimestamp)
-            {
                 timestamp = GetCurrentTimestamp();
-            }
+
             return timestamp;
         }
 
