@@ -670,6 +670,11 @@ namespace ZqUtils.Extensions
         /// <returns>T</returns>
         public static T ToObject<T>(this string @this)
         {
+            if (@this.IsNullOrEmpty())
+                return default;
+
+            @this = @this.Trim(new[] { ' ', '\r', '\n', '\t' });
+
             if (typeof(T) == typeof(string))
             {
                 return @this.ToOrDefault<T>();
@@ -692,6 +697,11 @@ namespace ZqUtils.Extensions
         /// <returns>object</returns>
         public static object ToObject(this string @this, Type type)
         {
+            if (@this.IsNullOrEmpty())
+                return default;
+
+            @this = @this.Trim(new[] { ' ', '\r', '\n', '\t' });
+
             return JsonConvert.DeserializeObject(@this, type);
         }
         #endregion
@@ -781,14 +791,15 @@ namespace ZqUtils.Extensions
         /// <returns>JObject</returns>
         public static JObject ToJObject(this string @this)
         {
+            if (@this.IsNullOrEmpty())
+                return default;
+
+            @this = @this.Trim(new[] { ' ', '\r', '\n', '\t' });
+
             if (@this.IsJsonObjectString())
-            {
                 return JObject.Parse(@this);
-            }
-            else
-            {
-                return null;
-            }
+
+            return default;
         }
         #endregion
 
@@ -800,14 +811,15 @@ namespace ZqUtils.Extensions
         /// <returns>JArray</returns>
         public static JArray ToJArray(this string @this)
         {
+            if (@this.IsNullOrEmpty())
+                return default;
+
+            @this = @this.Trim(new[] { ' ', '\r', '\n', '\t' });
+
             if (@this.IsJsonArrayString())
-            {
                 return JArray.Parse(@this);
-            }
-            else
-            {
-                return null;
-            }
+
+            return default;
         }
         #endregion
 
