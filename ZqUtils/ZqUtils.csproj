@@ -182,7 +182,7 @@
     <Compile Include="Extensions\Extensions.DateTime.cs" />
     <Compile Include="Extensions\Extensions.Dictionary.cs" />
     <Compile Include="Extensions\Extensions.IDataReader.cs" />
-    <Compile Include="Extensions\Extensions.Int.cs" />
+    <Compile Include="Extensions\Extensions.Number.cs" />
     <Compile Include="Extensions\Extensions.Linq.cs" />
     <Compile Include="Extensions\Extensions.IQueryable.cs" />
     <Compile Include="Extensions\Extensions.Object.cs" />

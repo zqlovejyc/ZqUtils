@@ -23,15 +23,34 @@ using System.Security.Cryptography;
 /****************************
 * [Author] 张强
 * [Date] 2018-05-15
-* [Describe] Int扩展类
+* [Describe] 数值扩展类
 * **************************/
 namespace ZqUtils.Extensions
 {
     /// <summary>
-    /// Int扩展类
+    /// 数值扩展类
     /// </summary>
-    public static class IntExtensions
+    public static class NumberExtensions
     {
+        #region 随机数
+        /// <summary>
+        /// 创建指定界限和位数的随机小数
+        /// </summary>
+        /// <param name="this">小数位数</param>
+        /// <param name="minValue">随机小数最小值</param>
+        /// <param name="maxValue">随机小数最大值</param>
+        /// <returns></returns>
+        /// <remarks>
+        ///     <code>
+        ///         var number= 2.BuildRandomNumber(10.1,10.9);
+        ///     </code>
+        /// </remarks>
+        public static double BuildRandomNumber(this int @this, double minValue, double maxValue)
+        {
+            return Math.Round(new Random().NextDouble() * (maxValue - minValue) + minValue, @this);
+        }
+        #endregion
+
         #region 随机字符串
         /// <summary>
         /// 创建随机字符串
