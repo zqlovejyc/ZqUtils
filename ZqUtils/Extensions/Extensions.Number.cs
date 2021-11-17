@@ -42,7 +42,7 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         /// <remarks>
         ///     <code>
-        ///         var number= 2.BuildRandomNumber(10.1,10.9);
+        ///         var number = 2.BuildRandomNumber(10.1,10.9);
         ///     </code>
         /// </remarks>
         public static double BuildRandomNumber(this int @this, double minValue, double maxValue)
