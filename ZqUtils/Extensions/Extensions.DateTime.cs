@@ -269,6 +269,103 @@ namespace ZqUtils.Extensions
         {
             return @this.ToDateTime(ci.DateTimeFormat.FirstDayOfWeek, ci.DateTimeFormat.CalendarWeekRule, lastYear);
         }
+
+        /// <summary>
+        /// GMT字符串/日期字符串/时间戳 转DateTime
+        /// </summary>
+        /// <param name="this">日期字符串</param>
+        /// <returns>DateTime</returns>
+        public static DateTime? ToDateTime(this string @this)
+        {
+            if (@this.IsNotNullOrEmpty())
+            {
+                #region GMT日期
+                if (@this.ContainsIgnoreCase("GMT"))
+                {
+                    var pattern = string.Empty;
+
+                    if (@this.IndexOf("+0") != -1)
+                    {
+                        @this = @this.Replace("GMT", "").Replace("gmt", "");
+                        pattern = "ddd, dd MMM yyyy HH':'mm':'ss zzz";
+                    }
+
+                    if (@this.ContainsIgnoreCase("GMT"))
+                        pattern = "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'";
+
+                    if (pattern.IsNotNullOrEmpty())
+                    {
+                        var dt = DateTime.ParseExact(@this, pattern, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal);
+                        return dt.ToLocalTime();
+                    }
+                    else
+                    {
+                        return Convert.ToDateTime(@this);
+                    }
+                }
+                #endregion
+
+                #region 日期字符串
+                else if (@this.ContainsIgnoreCase("-", ":", "/"))
+                {
+                    if (DateTime.TryParse(@this, out DateTime time))
+                        return time;
+                }
+                #endregion
+
+                #region 时间戳
+                else
+                {
+                    var start = TimeZoneInfo.ConvertTime(new DateTime(1970, 1, 1), TimeZoneInfo.Local);
+                    var type = @this.Length;
+                    if (type == 10)
+                    {
+                        var ticks = long.Parse(@this + "0000000");
+                        var time = new TimeSpan(ticks);
+                        return start.Add(time);
+                    }
+                    else if (type == 13)
+                    {
+                        var ticks = long.Parse(@this + "0000");
+                        var time = new TimeSpan(ticks);
+                        return start.Add(time);
+                    }
+                }
+                #endregion
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// 自定义格式转换日期字符串
+        /// </summary>
+        /// <param name="this"></param>
+        /// <param name="format">日期字符串格式化</param>
+        /// <param name="provider">格式化驱动</param>
+        /// <param name="style">日期类型</param>
+        /// <returns></returns>
+        public static DateTime? ToDateTime(
+            this string @this, 
+            string format, 
+            IFormatProvider provider = null,
+            DateTimeStyles style = DateTimeStyles.None)
+        {
+            if (format.IsNotNullOrEmpty())
+            {
+                var res = DateTime.TryParseExact(@this, format, provider, style, out var time);
+                if (res)
+                    return time;
+            }
+            else
+            {
+                var res = DateTime.TryParse(@this, out var time);
+                if (res)
+                    return time;
+            }
+
+            return null;
+        }
         #endregion
 
         #region ToGMT
