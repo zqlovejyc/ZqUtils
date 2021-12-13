@@ -20,6 +20,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using ZqUtils.Extensions;
 /****************************
 * [Author] 张强
 * [Date] 2019-05-06
@@ -135,25 +136,33 @@ namespace ZqUtils.Helpers
         /// </summary>
         private void DealQueue()
         {
-            while (true)
+            try
             {
-                if (this.Dequeue(out T entity))
+                while (true)
                 {
-                    if (this._endThreadFlag && Equals(entity, default(T)))
+                    if (this.Dequeue(out T entity))
                     {
-                        return;
-                    }
+                        if (this._endThreadFlag && Equals(entity, default(T)))
+                            return;
 
-                    try
-                    {
-                        this.DealAction?.Invoke(entity);
+                        try
+                        {
+                            this.DealAction?.Invoke(entity);
+                        }
+                        catch (Exception ex)
+                        {
+                            LogHelper.Error(ex, $"`{this.DealAction?.Method}` -> Entity({typeof(T).Name}) -> {entity.ToJson()}");
+                        }
                     }
-                    catch { }
+                    else
+                    {
+                        this._autoResetEvent.WaitOne();
+                    }
                 }
-                else
-                {
-                    this._autoResetEvent.WaitOne();
-                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Error(ex, "DealQueue()");
             }
         }
         #endregion
