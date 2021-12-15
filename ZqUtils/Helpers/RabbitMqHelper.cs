@@ -1780,8 +1780,14 @@ namespace ZqUtils.Helpers
                 item.Value?.Dispose();
             }
 
+            foreach (var item in _queueHelperDic)
+            {
+                item.Value?.Dispose();
+            }
+
             _connection?.Dispose();
-            _channelDic?.Clear();
+            _channelDic.Clear();
+            _queueHelperDic.Clear();
         }
         #endregion
     }

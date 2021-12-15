@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ZqUtils.Extensions;
 using ZqUtils.Helpers;
@@ -12,18 +13,23 @@ namespace ZqUtils.ConsoleApp
         static void Main(string[] args)
         {
             #region RabbitMq
-            var rabbitMq = new RabbitMqHelper(new MqConfig());
-            rabbitMq.Subscribe<string>("exchange11", "queue11", $"exchange11__queue11",
-                (message, para) => { Console.WriteLine(message); return true; },
-                (msg, retry, ex) => Console.WriteLine(ex));
-
-            Parallel.For(0, 10, x =>
+            using (var rabbitMq = new RabbitMqHelper(new MqConfig()))
             {
-                for (int i = 0; i < 100; i++)
+                rabbitMq.Subscribe<string>("exchange11", "queue11", $"exchange11__queue11",
+                   (message, para) => { Console.WriteLine(message); return true; },
+                   (msg, retry, ex) => Console.WriteLine(ex));
+
+                Parallel.For(0, 10, x =>
                 {
-                    rabbitMq.Publish("exchange11", "queue11", $"exchange11__queue11", $"test{i + 1}");
-                }
-            });
+                    for (int i = 0; i < 100; i++)
+                    {
+                        rabbitMq.Publish("exchange11", "queue11", $"exchange11__queue11", $"test{i + 1}");
+                    }
+                });
+
+                Thread.Sleep(5000);
+            }
+
             #endregion
 
             #region Redis
