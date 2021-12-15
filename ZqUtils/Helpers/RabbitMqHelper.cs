@@ -79,34 +79,38 @@ namespace ZqUtils.Helpers
         /// <param name="config">RabbitMq配置</param>
         public RabbitMqHelper(MqConfig config)
         {
-            if (_connection != null)
-                return;
+            if (config == null)
+                throw new ArgumentNullException(nameof(config));
 
-            lock (_locker)
+            if (_connection == null)
             {
-                _connection ??= new ConnectionFactory
+                lock (_locker)
                 {
-                    //设置主机名
-                    HostName = config.HostName,
+                    if (_connection == null)
+                        _connection = new ConnectionFactory
+                        {
+                            //设置主机名
+                            HostName = config.HostName,
 
-                    //虚拟主机
-                    VirtualHost = config.VirtualHost,
+                            //虚拟主机
+                            VirtualHost = config.VirtualHost,
 
-                    //设置心跳时间
-                    RequestedHeartbeat = config.RequestedHeartbeat,
+                            //设置心跳时间
+                            RequestedHeartbeat = config.RequestedHeartbeat,
 
-                    //设置自动重连
-                    AutomaticRecoveryEnabled = config.AutomaticRecoveryEnabled,
+                            //设置自动重连
+                            AutomaticRecoveryEnabled = config.AutomaticRecoveryEnabled,
 
-                    //重连时间
-                    NetworkRecoveryInterval = config.NetworkRecoveryInterval,
+                            //重连时间
+                            NetworkRecoveryInterval = config.NetworkRecoveryInterval,
 
-                    //用户名
-                    UserName = config.UserName,
+                            //用户名
+                            UserName = config.UserName,
 
-                    //密码
-                    Password = config.Password
-                }.CreateConnection();
+                            //密码
+                            Password = config.Password
+                        }.CreateConnection();
+                }
             }
         }
 
@@ -116,12 +120,16 @@ namespace ZqUtils.Helpers
         /// <param name="factory">RabbitMq连接工厂</param>
         public RabbitMqHelper(ConnectionFactory factory)
         {
-            if (_connection != null || factory == null)
-                return;
+            if (factory == null)
+                throw new ArgumentNullException(nameof(factory));
 
-            lock (_locker)
+            if (_connection == null)
             {
-                _connection ??= factory.CreateConnection();
+                lock (_locker)
+                {
+                    if (_connection == null)
+                        _connection = factory.CreateConnection();
+                }
             }
         }
         #endregion
@@ -602,8 +610,13 @@ namespace ZqUtils.Helpers
             {
                 lock (_locker)
                 {
-                    _routeDic.AddOrUpdate(key, (exchange, queue, routeKey));
-                    return false;
+                    if (!_routeDic.ContainsKey(key))
+                    {
+                        _routeDic.AddOrUpdate(key, (exchange, queue, routeKey));
+                        return false;
+                    }
+
+                    return true;
                 }
             }
         }
@@ -621,7 +634,8 @@ namespace ZqUtils.Helpers
             {
                 lock (_locker)
                 {
-                    _routeDic.TryRemove(key, out var _);
+                    if (_routeDic.ContainsKey(key))
+                        _routeDic.TryRemove(key, out var _);
                 }
             }
         }
@@ -636,10 +650,13 @@ namespace ZqUtils.Helpers
             {
                 lock (_locker)
                 {
-                    var keys = _routeDic.Keys.Where(x => x.Split('.')[1] == queue);
-                    foreach (var key in keys)
+                    if (!_routeDic.IsEmpty && _routeDic.Values.Any(x => x.queue == queue))
                     {
-                        _routeDic.TryRemove(key, out var _);
+                        var keys = _routeDic.Keys.Where(x => x.Split('.')[1] == queue);
+                        foreach (var key in keys)
+                        {
+                            _routeDic.TryRemove(key, out var _);
+                        }
                     }
                 }
             }
@@ -655,10 +672,13 @@ namespace ZqUtils.Helpers
             {
                 lock (_locker)
                 {
-                    var keys = _routeDic.Keys.Where(x => x.Split('.')[0] == exchange);
-                    foreach (var key in keys)
+                    if (!_routeDic.IsEmpty && _routeDic.Values.Any(x => x.exchange == exchange))
                     {
-                        _routeDic.TryRemove(key, out var _);
+                        var keys = _routeDic.Keys.Where(x => x.Split('.')[0] == exchange);
+                        foreach (var key in keys)
+                        {
+                            _routeDic.TryRemove(key, out var _);
+                        }
                     }
                 }
             }

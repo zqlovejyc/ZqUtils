@@ -54,11 +54,10 @@ namespace ZqUtils.Helpers
                 lock (_locker)
                 {
                     if (_instance == null)
-                    {
                         _instance = Activator.CreateInstance<T>();
-                    }
                 }
             }
+
             return _instance;
         }
 
@@ -74,11 +73,10 @@ namespace ZqUtils.Helpers
                 lock (_locker)
                 {
                     if (_instance == null)
-                    {
                         _instance = (T)Activator.CreateInstance(typeof(T), args);
-                    }
                 }
             }
+
             return _instance;
         }
         #endregion

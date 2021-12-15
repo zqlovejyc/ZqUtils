@@ -44,10 +44,16 @@ namespace ZqUtils.Redis
         {
             this._redisConfiguration = configuration;
 
-            lock (_lock)
+            if (this._connections.IsNullOrEmpty())
             {
-                this._connections = new IConnectionMultiplexer[this._redisConfiguration.PoolSize];
-                this.EmitConnections();
+                lock (_lock)
+                {
+                    if (this._connections.IsNullOrEmpty())
+                    {
+                        this._connections = new IConnectionMultiplexer[this._redisConfiguration.PoolSize];
+                        this.EmitConnections();
+                    }
+                }
             }
         }
 
