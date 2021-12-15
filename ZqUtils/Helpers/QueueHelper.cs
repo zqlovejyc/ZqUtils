@@ -90,13 +90,17 @@ namespace ZqUtils.Helpers
         /// Save entity to Queue.
         /// </summary>
         /// <param name="entity">The entity what will be deal.</param>
-        public void Enqueue(T entity)
+        public bool Enqueue(T entity)
         {
             if (!this._endThreadFlag)
             {
                 this._innerQueue.Enqueue(entity);
                 this._autoResetEvent.Set();
+
+                return true;
             }
+
+            return false;
         }
 
         /// <summary>
