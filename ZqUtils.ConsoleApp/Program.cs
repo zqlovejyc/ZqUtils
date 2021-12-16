@@ -23,11 +23,11 @@ namespace ZqUtils.ConsoleApp
                 {
                     for (int i = 0; i < 100; i++)
                     {
-                        rabbitMq.Publish("exchange11", "queue11", $"exchange11__queue11", $"test{i + 1}");
+                        rabbitMq.Publish("exchange11", "queue11", $"exchange11__queue11", $"{x + 1}__test{i + 1}");
                     }
                 });
 
-                Thread.Sleep(5000);
+                Thread.Sleep(10000);
             }
 
             #endregion
