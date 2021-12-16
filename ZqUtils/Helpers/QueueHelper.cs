@@ -53,7 +53,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// The auto reset event.
         /// </summary>
-        private readonly AutoResetEvent _autoResetEvent = new AutoResetEvent(true);
+        private readonly AutoResetEvent _autoResetEvent = new(true);
         #endregion
 
         #region Public Property
@@ -69,7 +69,7 @@ namespace ZqUtils.Helpers
         /// </summary>
         public QueueHelper()
         {
-            this._innerQueue = new ConcurrentQueue<T>();
+            this._innerQueue = new();
             this._dealTask = Task.Run(() => this.DealQueue());
         }
 
@@ -116,6 +116,7 @@ namespace ZqUtils.Helpers
 
                 if (!this._dealTask.IsCompleted)
                     this._dealTask.Wait();
+
                 this._dealTask.Dispose();
 
                 this._autoResetEvent.Dispose();
