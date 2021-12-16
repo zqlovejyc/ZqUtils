@@ -80,7 +80,7 @@ namespace ZqUtils.Helpers
         public QueueHelper(Action<T> DealAction)
         {
             this.DealAction = DealAction;
-            this._innerQueue = new ConcurrentQueue<T>();
+            this._innerQueue = new();
             this._dealTask = Task.Run(() => this.DealQueue());
         }
         #endregion
