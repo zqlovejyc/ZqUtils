@@ -220,7 +220,7 @@ namespace ZqUtils.Helpers
         public QueueHelper<QueueMessage> GetQueueHelper(string queue)
         {
             if (queue.IsNullOrEmpty())
-                queue = "Default";
+                queue = "default";
 
             if (_queueHelperDic.ContainsKey(queue))
                 return _queueHelperDic[queue];

@@ -111,7 +111,7 @@ namespace ZqUtils.Helpers
             if (!this._endThreadFlag)
             {
                 this._endThreadFlag = true;
-                this._innerQueue.Enqueue(default(T));
+                this._innerQueue.Enqueue(default);
                 this._autoResetEvent.Set();
 
                 if (!this._dealTask.IsCompleted)
