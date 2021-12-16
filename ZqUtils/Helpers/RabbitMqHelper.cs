@@ -1992,7 +1992,7 @@ namespace ZqUtils.Helpers
     }
 
     /// <summary>
-    /// 队列发布消息
+    /// 内存队列消息
     /// </summary>
     public class QueueMessage
     {
