@@ -487,7 +487,7 @@ namespace ZqUtils.Helpers
         /// <returns>返回添加前缀后的key</returns>
         private string AddKeyPrefix(string key)
         {
-            return KeyPrefix.IsNullOrEmpty() ? key : $"{KeyPrefix}:{key}";
+            return KeyPrefix.IsNullOrWhiteSpace() ? key : $"{KeyPrefix}:{key}";
         }
         #endregion
 
