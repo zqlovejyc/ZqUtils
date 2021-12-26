@@ -1863,5 +1863,34 @@ namespace ZqUtils.Extensions
             return DateTimeOffset.Now;
         }
         #endregion
+
+        #region GetYear
+        /// <summary>
+        /// 获取编码规则年份，按照苹果规则：2021-12-26为2022年的第1周，即：2201，因此当前年份应该为2022年；否则为：2153，年份为：2021
+        /// </summary>
+        /// <param name="this">当前时间</param>
+        /// <param name="format">格式化规则：yy/yyyy</param>
+        /// <param name="isWeekOfYear">是否计算周别</param>
+        /// <param name="lastFullWeek">当年的最后一周不满一周，是否计算为下年的第一周</param>
+        /// <returns></returns>
+        public static string GetYear(this DateTime @this, string format, bool isWeekOfYear, bool lastFullWeek)
+        {
+            var year = @this.ToString(format);
+
+            if (isWeekOfYear && lastFullWeek)
+            {
+                var weekOfYear = @this.WeekOfYear(DayOfWeek.Sunday, CalendarWeekRule.FirstDay, lastFullWeek);
+                if (weekOfYear == 1)
+                {
+                    var startOfWeek = $"{@this:yy}{weekOfYear.ToString().PadLeft(2, '0')}".ToDateTime(lastYear: lastFullWeek);
+                    var endOfWeek = startOfWeek.Value.AddDays(6);
+                    if (@this > endOfWeek)
+                        year = @this.AddYears(1).ToString(format);
+                }
+            }
+
+            return year;
+        }
+        #endregion
     }
 }
