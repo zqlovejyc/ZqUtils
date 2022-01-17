@@ -33,6 +33,7 @@ namespace ZqUtils.Redis
         private static readonly object _lock = new();
         private readonly IConnectionMultiplexer[] _connections;
         private readonly RedisConfiguration _redisConfiguration;
+        private readonly Random _random = new();
         private bool _disposed;
 
         /// <summary>
@@ -94,7 +95,12 @@ namespace ZqUtils.Redis
         /// <returns></returns>
         public IConnectionMultiplexer GetConnection()
         {
-            var connection = this._connections.OrderBy(x => x.GetCounters().TotalOutstanding).First();
+            var connection = _redisConfiguration.ConnectionSelectionStrategy switch
+            {
+                ConnectionSelectionStrategy.Random => this._connections[_random.Next(0, _redisConfiguration.PoolSize)],
+                ConnectionSelectionStrategy.LeastLoaded => this._connections.OrderBy(x => x.GetCounters().TotalOutstanding).First(),
+                _ => throw new Exception(nameof(_redisConfiguration.ConnectionSelectionStrategy))
+            };
 
             LogHelper.Debug("Using connection {0} with {1} outstanding!", connection.GetHashCode(), connection.GetCounters().TotalOutstanding);
 

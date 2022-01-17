@@ -238,6 +238,7 @@
     <Compile Include="ObjectMethodExecutors\ObjectMethodExecutorFSharpSupport.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Redis\ConnectionPoolInformation.cs" />
+    <Compile Include="Redis\ConnectionSelectionStrategy.cs" />
     <Compile Include="Redis\RedisConfiguration.cs" />
     <Compile Include="Redis\RedisConnectionPoolManager.cs" />
     <Compile Include="Reflection\AssemblyX.cs" />

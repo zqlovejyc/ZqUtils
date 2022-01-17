@@ -57,5 +57,11 @@ namespace ZqUtils.Redis
         /// Gets or sets IConnectionMultiplexer event
         /// </summary>
         public bool RegisterConnectionEvent { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets the every ConnectionSelectionStrategy to use during connection selection,the default is `LeastLoaded`.
+        /// </summary>
+        public ConnectionSelectionStrategy ConnectionSelectionStrategy { get; set; } =
+            ConnectionSelectionStrategy.LeastLoaded;
     }
 }
