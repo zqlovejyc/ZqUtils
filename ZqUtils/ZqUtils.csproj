@@ -199,6 +199,7 @@
     <Compile Include="Helpers\EncodingHelper.cs" />
     <Compile Include="Helpers\EnvironmentHelper.cs" />
     <Compile Include="Helpers\ExcelHelper.cs" />
+    <Compile Include="Helpers\ExpressionHelper.cs" />
     <Compile Include="Helpers\FileHelper.cs" />
     <Compile Include="Helpers\FreeRedisHelper.cs" />
     <Compile Include="Helpers\GpsHelper.cs" />
