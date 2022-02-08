@@ -595,6 +595,74 @@ namespace ZqUtils.Helpers
             return StringGet(key).ToObject<T>();
         }
         #endregion
+
+        #region StringIncrement
+        /// <summary>
+        /// 递增字符串
+        /// </summary>
+        /// <param name="key">字符串key</param>
+        /// <param name="value">递增值</param>
+        /// <param name="flags">命令标志</param>
+        /// <returns>返回字符串递增后的值</returns>
+        public long StringIncrement(
+            string key,
+            long value = 1,
+            CommandFlags flags = CommandFlags.None)
+        {
+            key = AddKeyPrefix(key);
+            return Database.StringIncrement(key, value, flags);
+        }
+
+        /// <summary>
+        /// 递增字符串
+        /// </summary>
+        /// <param name="key">字符串key</param>
+        /// <param name="value">递增值</param>
+        /// <param name="flags">命令标志</param>
+        /// <returns>返回字符串递增后的值</returns>
+        public double StringIncrement(
+            string key,
+            double value = 1,
+            CommandFlags flags = CommandFlags.None)
+        {
+            key = AddKeyPrefix(key);
+            return Database.StringIncrement(key, value, flags);
+        }
+        #endregion
+
+        #region StringDecrement
+        /// <summary>
+        /// 递减字符串
+        /// </summary>
+        /// <param name="key">字符串key</param>
+        /// <param name="value">递减值</param>
+        /// <param name="flags">命令标志</param>
+        /// <returns>返回字符串递减后的值</returns>
+        public long StringDecrement(
+            string key,
+            long value = 1,
+            CommandFlags flags = CommandFlags.None)
+        {
+            key = AddKeyPrefix(key);
+            return Database.StringDecrement(key, value, flags);
+        }
+
+        /// <summary>
+        /// 递减字符串
+        /// </summary>
+        /// <param name="key">字符串key</param>
+        /// <param name="value">递减值</param>
+        /// <param name="flags">命令标志</param>
+        /// <returns>返回字符串递减后的值</returns>
+        public double StringDecrement(
+            string key,
+            double value = 1,
+            CommandFlags flags = CommandFlags.None)
+        {
+            key = AddKeyPrefix(key);
+            return Database.StringDecrement(key, value, flags);
+        }
+        #endregion
         #endregion
 
         #region 异步方法
@@ -661,6 +729,74 @@ namespace ZqUtils.Helpers
         public async Task<T> StringGetAsync<T>(string key)
         {
             return (await StringGetAsync(key)).ToObject<T>();
+        }
+        #endregion
+
+        #region StringIncrementAsync
+        /// <summary>
+        /// 递增字符串
+        /// </summary>
+        /// <param name="key">字符串key</param>
+        /// <param name="value">递增值</param>
+        /// <param name="flags">命令标志</param>
+        /// <returns>返回字符串递增后的值</returns>
+        public async Task<long> StringIncrementAsync(
+            string key,
+            long value = 1,
+            CommandFlags flags = CommandFlags.None)
+        {
+            key = AddKeyPrefix(key);
+            return await Database.StringIncrementAsync(key, value, flags);
+        }
+
+        /// <summary>
+        /// 递增字符串
+        /// </summary>
+        /// <param name="key">字符串key</param>
+        /// <param name="value">递增值</param>
+        /// <param name="flags">命令标志</param>
+        /// <returns>返回字符串递增后的值</returns>
+        public async Task<double> StringIncrementAsync(
+            string key,
+            double value = 1,
+            CommandFlags flags = CommandFlags.None)
+        {
+            key = AddKeyPrefix(key);
+            return await Database.StringIncrementAsync(key, value, flags);
+        }
+        #endregion
+
+        #region StringDecrementAsync
+        /// <summary>
+        /// 递减字符串
+        /// </summary>
+        /// <param name="key">字符串key</param>
+        /// <param name="value">递减值</param>
+        /// <param name="flags">命令标志</param>
+        /// <returns>返回字符串递减后的值</returns>
+        public async Task<long> StringDecrementAsync(
+            string key,
+            long value = 1,
+            CommandFlags flags = CommandFlags.None)
+        {
+            key = AddKeyPrefix(key);
+            return await Database.StringDecrementAsync(key, value, flags);
+        }
+
+        /// <summary>
+        /// 递减字符串
+        /// </summary>
+        /// <param name="key">字符串key</param>
+        /// <param name="value">递减值</param>
+        /// <param name="flags">命令标志</param>
+        /// <returns>返回字符串递减后的值</returns>
+        public async Task<double> StringDecrementAsync(
+            string key,
+            double value = 1,
+            CommandFlags flags = CommandFlags.None)
+        {
+            key = AddKeyPrefix(key);
+            return await Database.StringDecrementAsync(key, value, flags);
         }
         #endregion
         #endregion
