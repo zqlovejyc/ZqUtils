@@ -1341,7 +1341,7 @@ namespace ZqUtils.Extensions
         }
 
         /// <summary>
-        /// 从分隔符开始向尾部截取字符串
+        /// 从分隔符开始向尾部截取字符串，不包含分隔符字符串
         /// </summary>
         /// <param name="this">源字符串</param>
         /// <param name="separator">分隔符</param>
@@ -1359,7 +1359,7 @@ namespace ZqUtils.Extensions
         }
 
         /// <summary>
-        /// 根据开始和结束字符串截取字符串
+        /// 根据开始和结束字符串截取字符串，不包含开始和结束字符串
         /// </summary>
         /// <param name="this">源字符串</param>
         /// <param name="begin">开始字符串</param>
