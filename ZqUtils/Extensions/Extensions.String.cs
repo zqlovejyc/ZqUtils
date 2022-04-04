@@ -1346,8 +1346,9 @@ namespace ZqUtils.Extensions
         /// <param name="this">源字符串</param>
         /// <param name="separator">分隔符</param>
         /// <param name="lastIndexOf">true：从最后一个匹配的分隔符开始截取，false：从第一个匹配的分隔符开始截取，默认：true</param>
+        /// <param name="comparisonType">字符串比较类型，默认区分大小写</param>
         /// <returns>string</returns>
-        public static string Substring(this string @this, string separator, bool lastIndexOf = true)
+        public static string Substring(this string @this, string separator, bool lastIndexOf = true, StringComparison comparisonType = StringComparison.Ordinal)
         {
             if (@this.IsNullOrEmpty())
                 return string.Empty;
@@ -1355,15 +1356,17 @@ namespace ZqUtils.Extensions
             if (separator.IsNullOrEmpty())
                 return string.Empty;
 
+            //分隔符索引
             var startIndex = lastIndexOf
-                ? @this.LastIndexOf(separator, StringComparison.OrdinalIgnoreCase)
-                : @this.IndexOf(separator, StringComparison.OrdinalIgnoreCase);
+                ? @this.LastIndexOf(separator, comparisonType)
+                : @this.IndexOf(separator, comparisonType);
 
             if (startIndex == -1)
                 return string.Empty;
 
             startIndex += separator.Length;
 
+            //截取长度
             var length = @this.Length - startIndex;
 
             return @this.Substring(startIndex, length);
@@ -1373,47 +1376,54 @@ namespace ZqUtils.Extensions
         /// 根据开始和结束字符串截取字符串，不包含开始和结束字符串
         /// </summary>
         /// <param name="this">源字符串</param>
-        /// <param name="begin">开始字符串</param>
+        /// <param name="start">开始字符串</param>
         /// <param name="end">结束字符串</param>
-        /// <param name="beginIsIndexOf">开始字符串是否是IndexOf，默认true，否则LastIndexOf</param>
+        /// <param name="startIsIndexOf">开始字符串是否是IndexOf，默认true，否则LastIndexOf</param>
         /// <param name="endIsIndexOf">结束字符串是否是IndexOf，默认true，否则LastIndexOf</param>
+        /// <param name="comparisonType">字符串比较类型，默认区分大小写</param>
         /// <returns>string</returns>
-        public static string Substring(this string @this, string begin, string end, bool beginIsIndexOf = true, bool endIsIndexOf = true)
+        public static string Substring(this string @this, string start, string end, bool startIsIndexOf = true, bool endIsIndexOf = true, StringComparison comparisonType = StringComparison.Ordinal)
         {
             if (@this.IsNullOrEmpty())
                 return string.Empty;
 
-            if (begin.IsNullOrEmpty())
+            if (start.IsNullOrEmpty())
                 return string.Empty;
 
             if (end.IsNullOrEmpty())
                 return string.Empty;
 
-            int li;
+            //开始字符串索引
+            int startIndex;
 
-            if (beginIsIndexOf)
-                li = @this.IndexOf(begin);
+            if (startIsIndexOf)
+                startIndex = @this.IndexOf(start, comparisonType);
             else
-                li = @this.LastIndexOf(begin);
+                startIndex = @this.LastIndexOf(start, comparisonType);
 
-            if (li == -1)
+            if (startIndex == -1)
                 return string.Empty;
 
-            li += begin.Length;
+            startIndex += start.Length;
 
-            int ri;
+            //结束字符串索引
+            int endIndex;
 
             if (endIsIndexOf)
-                ri = @this.IndexOf(end, li);
+                endIndex = @this.IndexOf(end, startIndex, comparisonType);
             else
-                ri = @this.LastIndexOf(end);
+                endIndex = @this.LastIndexOf(end, comparisonType);
 
-            if (ri == -1)
+            if (endIndex == -1)
                 return string.Empty;
 
-            var length = ri - li;
+            //截取长度
+            var length = endIndex - startIndex;
 
-            return @this.Substring(li, length);
+            if (length < 0)
+                return string.Empty;
+
+            return @this.Substring(startIndex, length);
         }
 
         /// <summary>
