@@ -1051,5 +1051,317 @@ namespace ZqUtils.Extensions
             return list;
         }
         #endregion
+
+        #region PageList
+        /// <summary>
+        /// 获取集合的指定分页数据
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="pageSize">每页数量</param>
+        /// <param name="pageIndex">页码</param>
+        /// <returns>返回分页数据</returns>
+        public static IList<T> PageList<T>(this ICollection<T> @this, int pageSize, int pageIndex)
+        {
+            return @this.PageList(pageSize, pageIndex, out _, out _);
+        }
+
+        /// <summary>
+        /// 获取集合的指定分页数据
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="pageSize">每页数量</param>
+        /// <param name="pageIndex">页码</param>
+        /// <param name="pageCount">返回总页数</param>
+        /// <returns>返回分页数据</returns>
+        public static IList<T> PageList<T>(this ICollection<T> @this, int pageSize, int pageIndex, out int pageCount)
+        {
+            return @this.PageList(pageSize, pageIndex, out _, out pageCount);
+        }
+
+        /// <summary>
+        /// 获取集合的指定分页数据
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="pageSize">每页数量</param>
+        /// <param name="pageIndex">页码</param>
+        /// <param name="recordCount">返回总条数</param>
+        /// <param name="pageCount">返回总页数</param>
+        /// <returns>返回分页数据</returns>
+        public static IList<T> PageList<T>(this ICollection<T> @this, int pageSize, int pageIndex, out int recordCount, out int pageCount)
+        {
+            if (@this == null)
+            {
+                recordCount = 0;
+                pageCount = 0;
+
+                return new List<T>();
+            }
+
+            recordCount = @this.Count;
+
+            if (recordCount < 1)
+            {
+                pageCount = 0;
+
+                return new List<T>();
+            }
+
+            if (pageSize < 1)
+                pageSize = 1;
+
+            if (pageSize > recordCount)
+                pageSize = recordCount;
+
+            pageCount = recordCount / pageSize + (recordCount % pageSize == 0 ? 0 : 1);
+
+            if (pageIndex < 1)
+                pageIndex = 1;
+
+            if (pageIndex > pageCount)
+                pageIndex = pageCount;
+
+            if (pageIndex > 1)
+                return @this.Skip(pageSize * (pageIndex - 1)).Take(pageSize).ToList();
+
+            return @this.Take(pageSize).ToList();
+        }
+
+        /// <summary>
+        /// 获取集合的指定分页数据
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="pageSize">每页数量</param>
+        /// <param name="pageIndex">页码</param>
+        /// <returns>返回分页数据</returns>
+        public static IList<T> PageList<T>(this IEnumerable<T> @this, int pageSize, int pageIndex)
+        {
+            return @this.PageList(pageSize, pageIndex, out _, out _);
+        }
+
+        /// <summary>
+        /// 获取集合的指定分页数据
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="pageSize">每页数量</param>
+        /// <param name="pageIndex">页码</param>
+        /// <param name="pageCount">返回总页数</param>
+        /// <returns>返回分页数据</returns>
+        public static IList<T> PageList<T>(this IEnumerable<T> @this, int pageSize, int pageIndex, out int pageCount)
+        {
+            return @this.PageList(pageSize, pageIndex, out _, out pageCount);
+        }
+
+        /// <summary>
+        /// 获取集合的指定分页数据
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="pageSize">每页数量</param>
+        /// <param name="pageIndex">页码</param>
+        /// <param name="recordCount">返回总条数</param>
+        /// <param name="pageCount">返回总页数</param>
+        /// <returns>返回分页数据</returns>
+        public static IList<T> PageList<T>(this IEnumerable<T> @this, int pageSize, int pageIndex, out int recordCount, out int pageCount)
+        {
+            if (@this == null)
+            {
+                recordCount = 0;
+                pageCount = 0;
+
+                return new List<T>();
+            }
+
+            recordCount = @this.Count();
+
+            if (recordCount < 1)
+            {
+                pageCount = 0;
+
+                return new List<T>();
+            }
+
+            if (pageSize < 1)
+                pageSize = 1;
+
+            if (pageSize > recordCount)
+                pageSize = recordCount;
+
+            pageCount = recordCount / pageSize + (recordCount % pageSize == 0 ? 0 : 1);
+
+            if (pageIndex < 1)
+                pageIndex = 1;
+
+            if (pageIndex > pageCount)
+                pageIndex = pageCount;
+
+            if (pageIndex > 1)
+                return @this.Skip(pageSize * (pageIndex - 1)).Take(pageSize).ToList();
+
+            return @this.Take(pageSize).ToList();
+        }
+        #endregion
+
+        #region PageEach
+        #region Sync
+        /// <summary>
+        /// 集合分页循环处理每页数据
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="pageSize">每页数量</param>
+        /// <param name="action">自定义页数据处理委托</param>
+        public static void PageEach<T>(this ICollection<T> @this, int pageSize, Action<IList<T>> action)
+        {
+            @this.PageEach(pageSize, action, false);
+        }
+
+        /// <summary>
+        /// 集合分页循环处理每页数据
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="pageSize">每页数量</param>
+        /// <param name="action">自定义页数据处理委托</param>
+        /// <param name="isParallel">是否并行执行</param>
+        public static void PageEach<T>(this ICollection<T> @this, int pageSize, Action<IList<T>> action, bool isParallel)
+        {
+            var pageIndex = 1;
+            var list = new List<IList<T>>();
+
+            while (true)
+            {
+                var item = @this.PageList(pageSize, pageIndex, out var recordCount, out var pageCount);
+
+                if (recordCount <= 0)
+                    break;
+
+                list.Add(item);
+
+                if (pageCount <= pageIndex)
+                    break;
+
+                pageIndex++;
+            }
+
+            if (isParallel && list.Count > 1)
+                list.AsParallel().ForAll(action);
+            else
+                list.ForEach(action);
+        }
+
+        /// <summary>
+        /// 集合分页循环处理每页数据
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="pageSize">每页数量</param>
+        /// <param name="action">自定义页数据处理委托</param>
+        public static void PageEach<T>(this IEnumerable<T> @this, int pageSize, Action<IList<T>> action)
+        {
+            @this.PageEach(pageSize, action, false);
+        }
+
+        /// <summary>
+        /// 集合分页循环处理每页数据
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="pageSize">每页数量</param>
+        /// <param name="action">自定义页数据处理委托</param>
+        /// <param name="isParallel">是否并行执行</param>
+        public static void PageEach<T>(this IEnumerable<T> @this, int pageSize, Action<IList<T>> action, bool isParallel)
+        {
+            var pageIndex = 1;
+            var list = new List<IList<T>>();
+
+            while (true)
+            {
+                var item = @this.PageList(pageSize, pageIndex, out var recordCount, out var pageCount);
+
+                if (recordCount <= 0)
+                    break;
+
+                list.Add(item);
+
+                if (pageCount <= pageIndex)
+                    break;
+
+                pageIndex++;
+            }
+
+            if (isParallel && list.Count > 1)
+                list.AsParallel().ForAll(action);
+            else
+                list.ForEach(action);
+        }
+        #endregion
+
+        #region Async
+        /// <summary>
+        /// 集合分页循环处理每页数据
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="pageSize">每页数量</param>
+        /// <param name="action">自定义页数据处理委托</param>
+        public static async Task PageEachAsync<T>(this ICollection<T> @this, int pageSize, Func<IList<T>, Task> action)
+        {
+            if (action == null)
+                return;
+
+            var pageIndex = 1;
+
+            while (true)
+            {
+                var item = @this.PageList(pageSize, pageIndex, out var recordCount, out var pageCount);
+
+                if (recordCount <= 0)
+                    break;
+
+                await action(item).ConfigureAwait(false);
+
+                if (pageCount <= pageIndex)
+                    break;
+
+                pageIndex++;
+            }
+        }
+
+        /// <summary>
+        /// 集合分页循环处理每页数据
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="pageSize">每页数量</param>
+        /// <param name="action">自定义页数据处理委托</param>
+        public static async Task PageEachAsync<T>(this IEnumerable<T> @this, int pageSize, Func<IList<T>, Task> action)
+        {
+            if (action == null)
+                return;
+
+            var pageIndex = 1;
+
+            while (true)
+            {
+                var item = @this.PageList(pageSize, pageIndex, out var recordCount, out var pageCount);
+
+                if (recordCount <= 0)
+                    break;
+
+                await action(item).ConfigureAwait(false);
+
+                if (pageCount <= pageIndex)
+                    break;
+
+                pageIndex++;
+            }
+        }
+        #endregion
+        #endregion
     }
 }
