@@ -1215,6 +1215,68 @@ namespace ZqUtils.Extensions
         /// <param name="this"></param>
         /// <param name="pageSize">每页数量</param>
         /// <param name="action">自定义页数据处理委托</param>
+        public static void PageEach<T>(this ICollection<T> @this, int pageSize, Action<int, IList<T>> action)
+        {
+            if (action == null)
+                return;
+
+            var pageIndex = 1;
+
+            while (true)
+            {
+                var item = @this.PageList(pageSize, pageIndex, out var recordCount, out var pageCount);
+
+                if (recordCount <= 0)
+                    break;
+
+                action(pageIndex, item);
+
+                if (pageCount <= pageIndex)
+                    break;
+
+                pageIndex++;
+            }
+        }
+
+        /// <summary>
+        /// 集合分页循环处理每页数据
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="pageSize">每页数量</param>
+        /// <param name="func">自定义页数据处理委托，当结果为false时跳出循环</param>
+        public static void PageEach<T>(this ICollection<T> @this, int pageSize, Func<int, IList<T>, bool> func)
+        {
+            if (func == null)
+                return;
+
+            var pageIndex = 1;
+
+            while (true)
+            {
+                var item = @this.PageList(pageSize, pageIndex, out var recordCount, out var pageCount);
+
+                if (recordCount <= 0)
+                    break;
+
+                var res = func(pageIndex, item);
+                if (!res)
+                    break;
+
+                if (pageCount <= pageIndex)
+                    break;
+
+                pageIndex++;
+            }
+        }
+
+        /// <summary>
+        /// 集合分页循环处理每页数据
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="pageSize">每页数量</param>
+        /// <param name="action">自定义页数据处理委托</param>
         public static void PageEach<T>(this ICollection<T> @this, int pageSize, Action<IList<T>> action)
         {
             @this.PageEach(pageSize, action, false);
@@ -1230,6 +1292,9 @@ namespace ZqUtils.Extensions
         /// <param name="isParallel">是否并行执行</param>
         public static void PageEach<T>(this ICollection<T> @this, int pageSize, Action<IList<T>> action, bool isParallel)
         {
+            if (action == null)
+                return;
+
             var pageIndex = 1;
             var list = new List<IList<T>>();
 
@@ -1261,6 +1326,68 @@ namespace ZqUtils.Extensions
         /// <param name="this"></param>
         /// <param name="pageSize">每页数量</param>
         /// <param name="action">自定义页数据处理委托</param>
+        public static void PageEach<T>(this IEnumerable<T> @this, int pageSize, Action<int, IList<T>> action)
+        {
+            if (action == null)
+                return;
+
+            var pageIndex = 1;
+
+            while (true)
+            {
+                var item = @this.PageList(pageSize, pageIndex, out var recordCount, out var pageCount);
+
+                if (recordCount <= 0)
+                    break;
+
+                action(pageIndex, item);
+
+                if (pageCount <= pageIndex)
+                    break;
+
+                pageIndex++;
+            }
+        }
+
+        /// <summary>
+        /// 集合分页循环处理每页数据
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="pageSize">每页数量</param>
+        /// <param name="func">自定义页数据处理委托，当结果为false时跳出循环</param>
+        public static void PageEach<T>(this IEnumerable<T> @this, int pageSize, Func<int, IList<T>, bool> func)
+        {
+            if (func == null)
+                return;
+
+            var pageIndex = 1;
+
+            while (true)
+            {
+                var item = @this.PageList(pageSize, pageIndex, out var recordCount, out var pageCount);
+
+                if (recordCount <= 0)
+                    break;
+
+                var res = func(pageIndex, item);
+                if (!res)
+                    break;
+
+                if (pageCount <= pageIndex)
+                    break;
+
+                pageIndex++;
+            }
+        }
+
+        /// <summary>
+        /// 集合分页循环处理每页数据
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="pageSize">每页数量</param>
+        /// <param name="action">自定义页数据处理委托</param>
         public static void PageEach<T>(this IEnumerable<T> @this, int pageSize, Action<IList<T>> action)
         {
             @this.PageEach(pageSize, action, false);
@@ -1276,6 +1403,9 @@ namespace ZqUtils.Extensions
         /// <param name="isParallel">是否并行执行</param>
         public static void PageEach<T>(this IEnumerable<T> @this, int pageSize, Action<IList<T>> action, bool isParallel)
         {
+            if (action == null)
+                return;
+
             var pageIndex = 1;
             var list = new List<IList<T>>();
 
@@ -1308,10 +1438,10 @@ namespace ZqUtils.Extensions
         /// <typeparam name="T"></typeparam>
         /// <param name="this"></param>
         /// <param name="pageSize">每页数量</param>
-        /// <param name="action">自定义页数据处理委托</param>
-        public static async Task PageEachAsync<T>(this ICollection<T> @this, int pageSize, Func<IList<T>, Task> action)
+        /// <param name="func">自定义页数据处理委托</param>
+        public static async Task PageEachAsync<T>(this ICollection<T> @this, int pageSize, Func<int, IList<T>, Task> func)
         {
-            if (action == null)
+            if (func == null)
                 return;
 
             var pageIndex = 1;
@@ -1323,7 +1453,7 @@ namespace ZqUtils.Extensions
                 if (recordCount <= 0)
                     break;
 
-                await action(item).ConfigureAwait(false);
+                await func(pageIndex, item).ConfigureAwait(false);
 
                 if (pageCount <= pageIndex)
                     break;
@@ -1338,10 +1468,10 @@ namespace ZqUtils.Extensions
         /// <typeparam name="T"></typeparam>
         /// <param name="this"></param>
         /// <param name="pageSize">每页数量</param>
-        /// <param name="action">自定义页数据处理委托</param>
-        public static async Task PageEachAsync<T>(this IEnumerable<T> @this, int pageSize, Func<IList<T>, Task> action)
+        /// <param name="func">自定义页数据处理委托，当结果为false时跳出循环</param>
+        public static async Task PageEachAsync<T>(this ICollection<T> @this, int pageSize, Func<int, IList<T>, Task<bool>> func)
         {
-            if (action == null)
+            if (func == null)
                 return;
 
             var pageIndex = 1;
@@ -1353,7 +1483,71 @@ namespace ZqUtils.Extensions
                 if (recordCount <= 0)
                     break;
 
-                await action(item).ConfigureAwait(false);
+                var res = await func(pageIndex, item).ConfigureAwait(false);
+                if (!res)
+                    break;
+
+                if (pageCount <= pageIndex)
+                    break;
+
+                pageIndex++;
+            }
+        }
+
+        /// <summary>
+        /// 集合分页循环处理每页数据
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="pageSize">每页数量</param>
+        /// <param name="func">自定义页数据处理委托</param>
+        public static async Task PageEachAsync<T>(this IEnumerable<T> @this, int pageSize, Func<int, IList<T>, Task> func)
+        {
+            if (func == null)
+                return;
+
+            var pageIndex = 1;
+
+            while (true)
+            {
+                var item = @this.PageList(pageSize, pageIndex, out var recordCount, out var pageCount);
+
+                if (recordCount <= 0)
+                    break;
+
+                await func(pageIndex, item).ConfigureAwait(false);
+
+                if (pageCount <= pageIndex)
+                    break;
+
+                pageIndex++;
+            }
+        }
+
+        /// <summary>
+        /// 集合分页循环处理每页数据
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="pageSize">每页数量</param>
+        /// <param name="func">自定义页数据处理委托，当结果为false时跳出循环</param>
+        public static async Task PageEachAsync<T>(this IEnumerable<T> @this, int pageSize, Func<int, IList<T>, Task<bool>> func)
+        {
+            if (func == null)
+                return;
+
+            var pageIndex = 1;
+
+            while (true)
+            {
+                var item = @this.PageList(pageSize, pageIndex, out var recordCount, out var pageCount);
+
+                if (recordCount <= 0)
+                    break;
+
+                var res = await func(pageIndex, item).ConfigureAwait(false);
+                if (!res)
+                    break;
 
                 if (pageCount <= pageIndex)
                     break;
