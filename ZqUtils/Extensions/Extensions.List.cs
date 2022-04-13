@@ -1288,7 +1288,7 @@ namespace ZqUtils.Extensions
         /// <typeparam name="T"></typeparam>
         /// <param name="this"></param>
         /// <param name="pageSize">每页数量</param>
-        /// <param name="func">自定义页数据处理委托，参数：当前页码、总条数、总页数、当前页数据，当结果为false时跳出循环</param>
+        /// <param name="func">自定义页数据处理委托，当结果为false时跳出循环</param>
         public static void PageEach<T>(this ICollection<T> @this, int pageSize, Func<IList<T>, bool> func)
         {
             if (func == null)
@@ -1431,7 +1431,7 @@ namespace ZqUtils.Extensions
         /// <typeparam name="T"></typeparam>
         /// <param name="this"></param>
         /// <param name="pageSize">每页数量</param>
-        /// <param name="func">自定义页数据处理委托，参数：当前页码、总条数、总页数、当前页数据，当结果为false时跳出循环</param>
+        /// <param name="func">自定义页数据处理委托，当结果为false时跳出循环</param>
         public static void PageEach<T>(this IEnumerable<T> @this, int pageSize, Func<IList<T>, bool> func)
         {
             if (func == null)
@@ -1502,7 +1502,7 @@ namespace ZqUtils.Extensions
         /// <typeparam name="T"></typeparam>
         /// <param name="this"></param>
         /// <param name="pageSize">每页数量</param>
-        /// <param name="func">自定义页数据处理委托，参数：当前页码、总条数、总页数、当前页数据</param>
+        /// <param name="func">自定义页数据处理委托</param>
         public static async Task PageEachAsync<T>(this ICollection<T> @this, int pageSize, Func<IList<T>, Task> func)
         {
             if (func == null)
@@ -1532,7 +1532,7 @@ namespace ZqUtils.Extensions
         /// <typeparam name="T"></typeparam>
         /// <param name="this"></param>
         /// <param name="pageSize">每页数量</param>
-        /// <param name="func">自定义页数据处理委托，参数：当前页码、总条数、总页数、当前页数据，当结果为false时跳出循环</param>
+        /// <param name="func">自定义页数据处理委托，当结果为false时跳出循环</param>
         public static async Task PageEachAsync<T>(this ICollection<T> @this, int pageSize, Func<IList<T>, Task<bool>> func)
         {
             if (func == null)
@@ -1626,7 +1626,7 @@ namespace ZqUtils.Extensions
         /// <typeparam name="T"></typeparam>
         /// <param name="this"></param>
         /// <param name="pageSize">每页数量</param>
-        /// <param name="func">自定义页数据处理委托，参数：当前页码、总条数、总页数、当前页数据</param>
+        /// <param name="func">自定义页数据处理委托</param>
         public static async Task PageEachAsync<T>(this IEnumerable<T> @this, int pageSize, Func<IList<T>, Task> func)
         {
             if (func == null)
@@ -1656,7 +1656,7 @@ namespace ZqUtils.Extensions
         /// <typeparam name="T"></typeparam>
         /// <param name="this"></param>
         /// <param name="pageSize">每页数量</param>
-        /// <param name="func">自定义页数据处理委托，参数：当前页码、总条数、总页数、当前页数据，当结果为false时跳出循环</param>
+        /// <param name="func">自定义页数据处理委托，当结果为false时跳出循环</param>
         public static async Task PageEachAsync<T>(this IEnumerable<T> @this, int pageSize, Func<IList<T>, Task<bool>> func)
         {
             if (func == null)
