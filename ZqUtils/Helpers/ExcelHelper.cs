@@ -88,7 +88,7 @@ namespace ZqUtils.Helpers
                         var rowCount = sheet.Dimension.End.Row;
                         for (var j = 1; j <= colCount; j++)
                         {
-                            table.Columns.Add(new DataColumn(sheet.Cells[1, j].Value.ToString()));
+                            table.Columns.Add(new DataColumn(sheet.Cells[1, j].Value?.ToString().Trim(' ', '\n', '\t', '\r')));
                         }
                         for (var i = 2; i <= rowCount; i++)
                         {
