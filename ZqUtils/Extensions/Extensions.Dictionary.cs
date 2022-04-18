@@ -222,15 +222,54 @@ namespace ZqUtils.Extensions
         /// <param name="key">Key</param>
         /// <param name="value">Value of the key (or default value if key not exists)</param>
         /// <returns>True if key does exists in the dictionary</returns>
-        internal static bool TryGetValue<T>(this IDictionary<string, object> @this, string key, out T value)
+        public static bool TryGetValue<T>(this IDictionary<string, object> @this, string key, out T value)
         {
-            if (@this.TryGetValue(key, out object valueObj) && valueObj is T)
+            if (@this.TryGetValue(key, out object valueObj) && valueObj is T t)
             {
-                value = (T)valueObj;
+                value = t;
+
                 return true;
             }
-            value = default(T);
+
+            value = default;
+
             return false;
+        }
+
+        /// <summary>
+        /// This method is used to try to get a value in a dictionary if it does exists.
+        /// </summary>
+        /// <typeparam name="T">Type of the value</typeparam>
+        /// <param name="this">The collection object</param>
+        /// <param name="key">Key</param>
+        /// <param name="defaultValue">default value if key not exists</param>
+        /// <returns>The value corresponding to the dictionary key otherwise return the defaultValue</returns>
+        public static T TryGetValue<T>(this IDictionary<string, object> @this, string key, T defaultValue = default)
+        {
+            if (@this.IsNull() || !@this.ContainsKey(key))
+                return defaultValue;
+
+            if (@this[key] is T t)
+                return t;
+
+            return defaultValue;
+        }
+
+        /// <summary>
+        /// This method is used to try to get a value in a dictionary if it does exists.
+        /// </summary>
+        /// <typeparam name="TKey">Type of the key</typeparam>
+        /// <typeparam name="TValue">Type of the value</typeparam>
+        /// <param name="this">The collection object</param>
+        /// <param name="key">Key</param>
+        /// <param name="defaultValue">default value if key not exists</param>
+        /// <returns>The value corresponding to the dictionary key otherwise return the defaultValue</returns>
+        public static TValue TryGetValue<TKey, TValue>(this IDictionary<TKey, TValue> @this, TKey key, TValue defaultValue = default)
+        {
+            if (@this.IsNull() || !@this.ContainsKey(key))
+                return defaultValue;
+
+            return @this[key];
         }
         #endregion
 
@@ -245,7 +284,21 @@ namespace ZqUtils.Extensions
         /// <returns>Value if found, default if can not found.</returns>
         public static TValue GetOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> @this, TKey key)
         {
-            return @this.TryGetValue(key, out TValue obj) ? obj : default(TValue);
+            return @this.TryGetValue(key, out TValue obj) ? obj : default;
+        }
+
+        /// <summary>
+        /// Gets a value from the dictionary with given key. Returns default value if can not find.
+        /// </summary>
+        /// <param name="this">Dictionary to check and get</param>
+        /// <param name="key">Key to find the value</param>
+        /// <param name="defaultValue">default value if key not exists</param>
+        /// <typeparam name="TKey">Type of the key</typeparam>
+        /// <typeparam name="TValue">Type of the value</typeparam>
+        /// <returns>Value if found, default if can not found.</returns>
+        public static TValue GetOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> @this, TKey key, TValue defaultValue)
+        {
+            return @this.TryGetValue(key, out TValue obj) ? obj : defaultValue;
         }
         #endregion
 
