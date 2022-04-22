@@ -40,14 +40,20 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static IEnumerable<Type> GetTypes(this IEnumerable<Assembly> assemblies, string implementedInterfaceName)
         {
-            List<Type> rc = new List<Type>();
+            var rc = new List<Type>();
             implementedInterfaceName = implementedInterfaceName?.Trim();
-            if (!string.IsNullOrWhiteSpace(implementedInterfaceName) && assemblies?.Count() > 0)
+
+            if (implementedInterfaceName.IsNotNullOrWhiteSpace() && assemblies.IsNotNullOrEmpty())
             {
                 foreach (var assembly in assemblies)
                 {
-                    var types = assembly?.DefinedTypes?.Where(it => it.ImplementedInterfaces.Any(item => item.Name == implementedInterfaceName)).Select(it => it.UnderlyingSystemType);
-                    if (types?.Count() > 0)
+                    var types = assembly?.DefinedTypes?
+                        .Where(it =>
+                            it.ImplementedInterfaces.Any(item => item.Name == implementedInterfaceName))
+                        .Select(it =>
+                            it.UnderlyingSystemType);
+
+                    if (types.IsNotNullOrEmpty())
                         rc.AddRange(types.ToList());
                 }
             }
@@ -65,11 +71,11 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static IEnumerable<Type> GetTypes(this IEnumerable<Type> types, Type attributeType, string pubPropertyNameInAttribute = "", object pubPropertyValueInAttribute = null)
         {
-            List<Type> rc = new List<Type>();
+            var rc = new List<Type>();
 
             pubPropertyNameInAttribute = pubPropertyNameInAttribute?.Trim();
 
-            if (attributeType != null && types?.Count() > 0)
+            if (attributeType != null && types.IsNotNullOrEmpty())
             {
                 foreach (var type in types)
                 {
@@ -90,7 +96,6 @@ namespace ZqUtils.Extensions
                                         rc.Add(type);
                                 }
                             }
-
                         }
                     }
                 }

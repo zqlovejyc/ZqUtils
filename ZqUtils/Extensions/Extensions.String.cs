@@ -1668,29 +1668,27 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static string Aggregate(this string @this, char separator, string seed, Func<string, string> current, string remove, bool isEnableNullValue = false, bool distinct = true)
         {
-            if (!@this.IsNullOrEmpty())
+            if (@this.IsNullOrEmpty())
+                return @this;
+
+            var sb = new StringBuilder(seed);
+            IEnumerable<string> array = @this.TrimEnd(separator).Split(separator);
+
+            if (!isEnableNullValue)
+                array = array.Where(o => o.IsNotNullOrEmpty());
+
+            if (distinct)
+                array = array.Distinct();
+
+            foreach (var item in array)
             {
-                var sb = new StringBuilder(seed);
-                IEnumerable<string> array = @this.TrimEnd(separator).Split(separator);
-                if (!isEnableNullValue)
-                {
-                    array = array.Where(o => !o.IsNullOrEmpty());
-                }
-                if (distinct)
-                {
-                    array = array.Distinct();
-                }
-                foreach (var item in array)
-                {
-                    sb.Append(current(item));
-                }
-                if (array.Count() > 0 && !remove.IsNullOrEmpty())
-                {
-                    sb = sb.Remove(sb.ToString().LastIndexOf(remove), remove.Length);
-                }
-                return sb.ToString();
+                sb.Append(current(item));
             }
-            return @this;
+
+            if (array.IsNotNullOrEmpty() && remove.IsNotNullOrEmpty())
+                sb = sb.Remove(sb.ToString().LastIndexOf(remove), remove.Length);
+
+            return sb.ToString();
         }
 
         /// <summary>
@@ -1705,28 +1703,26 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static string Aggregate<T>(this IEnumerable<T> @this, string seed, Func<T, string> current, string remove, bool isEnableNullValue = false, bool distinct = true)
         {
-            if (@this?.Count() > 0)
+            if (@this.IsNullOrEmpty())
+                return null;
+
+            var sb = new StringBuilder(seed);
+
+            if (!isEnableNullValue)
+                @this = @this.Where(o => o?.ToString().IsNullOrEmpty() == false);
+
+            if (distinct)
+                @this = @this.Distinct();
+
+            foreach (var item in @this)
             {
-                var sb = new StringBuilder(seed);
-                if (!isEnableNullValue)
-                {
-                    @this = @this.Where(o => o?.ToString().IsNullOrEmpty() == false);
-                }
-                if (distinct)
-                {
-                    @this = @this.Distinct();
-                }
-                foreach (var item in @this)
-                {
-                    sb.Append(current(item));
-                }
-                if (@this.Count() > 0 && !remove.IsNullOrEmpty())
-                {
-                    sb = sb.Remove(sb.ToString().LastIndexOf(remove), remove.Length);
-                }
-                return sb.ToString();
+                sb.Append(current(item));
             }
-            return null;
+
+            if (@this.IsNotNullOrEmpty() && remove.IsNotNullOrEmpty())
+                sb = sb.Remove(sb.ToString().LastIndexOf(remove), remove.Length);
+
+            return sb.ToString();
         }
         #endregion
 
