@@ -38,17 +38,24 @@ namespace ZqUtils.Helpers
         /// 根据指定路径和条件获取程序集
         /// </summary>
         /// <param name="path">程序集路径，默认：AppContext.BaseDirectory</param>
-        /// <param name="condition">程序集筛选条件</param>
+        /// <param name="filter">程序集筛选过滤器</param>
         /// <returns></returns>
-        public static Assembly[] GetAssemblies(string path = null, Func<string, bool> condition = null)
+        public static Assembly[] GetAssemblies(string path = null, Func<string, bool> filter = null)
         {
             var files = Directory
-                            .GetFiles(path ?? AppDomain.CurrentDomain.BaseDirectory, "*.dll")
-                            .Select(x => x.Substring(@"\").Substring(@"/").Replace(".dll", ""));
+                            .GetFiles(path ?? AppDomain.CurrentDomain.BaseDirectory, "*.*")
+                            .Where(x =>
+                                x.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) ||
+                                x.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                            .Select(x => x
+                                .Substring(Path.DirectorySeparatorChar.ToString())
+                                .Replace(".dll", "")
+                                .Replace(".exe", ""))
+                            .Distinct();
 
             //判断筛选条件是否为空
-            if (condition != null)
-                files = files.Where(x => condition(x));
+            if (filter != null)
+                files = files.Where(x => filter(x));
 
             //加载Assembly集
             var assemblies = files.Select(x => Assembly.Load(x));
@@ -65,8 +72,10 @@ namespace ZqUtils.Helpers
         public static IEnumerable<string> GetAssemblyFiles(string folderPath, SearchOption searchOption)
         {
             return Directory
-                .EnumerateFiles(folderPath, "*.*", searchOption)
-                .Where(s => s.EndsWith(".dll") || s.EndsWith(".exe"));
+               .EnumerateFiles(folderPath, "*.*", searchOption)
+               .Where(s =>
+                   s.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) ||
+                   s.EndsWith(".exe", StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>
