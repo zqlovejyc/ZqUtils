@@ -702,16 +702,17 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static DynamicParameters ToDynamicParameters(this IDictionary<string, object> @this)
         {
-            if (@this?.Count > 0)
+            if (@this == null || @this.Count == 0)
+                return null;
+
+            var args = new DynamicParameters();
+
+            foreach (var item in @this)
             {
-                var args = new DynamicParameters();
-                foreach (var item in @this)
-                {
-                    args.Add(item.Key, item.Value);
-                }
-                return args;
+                args.Add(item.Key, item.Value);
             }
-            return null;
+
+            return args;
         }
         #endregion
 
@@ -726,13 +727,20 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static IList<TKey> ToKeyArray<TKey, TValue>(this IDictionary<TKey, TValue> @this, int index = 0)
         {
-            if (@this == null) return null;
-            if (@this is ConcurrentDictionary<TKey, TValue> cdiv) return cdiv.Keys as IList<TKey>;
-            if (@this.Count == 0) return new TKey[0];
+            if (@this == null)
+                return null;
+
+            if (@this is ConcurrentDictionary<TKey, TValue> cdiv)
+                return cdiv.Keys as IList<TKey>;
+
+            if (@this.Count == 0)
+                return new TKey[0];
+
             lock (@this)
             {
                 var arr = new TKey[@this.Count - index];
                 @this.Keys.CopyTo(arr, index);
+
                 return arr;
             }
         }
@@ -749,15 +757,73 @@ namespace ZqUtils.Extensions
         /// <returns></returns>
         public static IList<TValue> ToValueArray<TKey, TValue>(this IDictionary<TKey, TValue> @this, int index = 0)
         {
-            if (@this == null) return null;
-            if (@this is ConcurrentDictionary<TKey, TValue> cdiv) return cdiv.Values as IList<TValue>;
-            if (@this.Count == 0) return new TValue[0];
+            if (@this == null)
+                return null;
+
+            if (@this is ConcurrentDictionary<TKey, TValue> cdiv)
+                return cdiv.Values as IList<TValue>;
+
+            if (@this.Count == 0)
+                return new TValue[0];
+
             lock (@this)
             {
                 var arr = new TValue[@this.Count - index];
                 @this.Values.CopyTo(arr, index);
+
                 return arr;
             }
+        }
+        #endregion
+
+        #region ToGroupDictionary
+        /// <summary>
+        /// 将集合分组并转成字典类型
+        /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="keySelector"></param>
+        /// <param name="keyComparer"></param>
+        /// <returns></returns>
+        public static Dictionary<TKey, List<TValue>> ToGroupDictionary<TKey, TValue>(
+            this IEnumerable<TValue> @this,
+            Func<TValue, TKey> keySelector,
+            IEqualityComparer<TKey> keyComparer = null)
+        {
+            return @this
+                .GroupBy(keySelector, keyComparer)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.ToList(),
+                    keyComparer);
+        }
+
+        /// <summary>
+        /// 将集合分组并转成字典类型
+        /// </summary>
+        /// <typeparam name="TGroupKey"></typeparam>
+        /// <typeparam name="TItemKey"></typeparam>
+        /// <typeparam name="TItemValue"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="groupKeySelector"></param>
+        /// <param name="itemKeySelector"></param>
+        /// <param name="groupKeyComparer"></param>
+        /// <param name="itemKeyComparer"></param>
+        /// <returns></returns>
+        public static Dictionary<TGroupKey, Dictionary<TItemKey, TItemValue>> ToGroupDictionary<TGroupKey, TItemKey, TItemValue>(
+            this IEnumerable<TItemValue> @this,
+            Func<TItemValue, TGroupKey> groupKeySelector,
+            Func<TItemValue, TItemKey> itemKeySelector,
+            IEqualityComparer<TGroupKey> groupKeyComparer = null,
+            IEqualityComparer<TItemKey> itemKeyComparer = null)
+        {
+            return @this
+                .GroupBy(groupKeySelector, groupKeyComparer)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.ToDictionary(itemKeySelector, itemKeyComparer),
+                    groupKeyComparer);
         }
         #endregion
     }
