@@ -1166,7 +1166,7 @@ namespace ZqUtils.Helpers
         /// <returns>bool</returns>
         public static bool SaveBase64ToFile(string data, string filePath)
         {
-            var index = data?.ToLower().IndexOf("base64,") ?? -1;
+            var index = data?.IndexOf("base64,", StringComparison.OrdinalIgnoreCase) ?? -1;
             if (index > -1)
             {
                 data = data.Substring(index + 7);
@@ -1186,7 +1186,7 @@ namespace ZqUtils.Helpers
         /// <returns>bool</returns>
         public static async Task<bool> SaveBase64ToFileAsync(string data, string filePath)
         {
-            var index = data?.ToLower().IndexOf("base64,") ?? -1;
+            var index = data?.IndexOf("base64,", StringComparison.OrdinalIgnoreCase) ?? -1;
             if (index > -1)
             {
                 data = data.Substring(index + 7);

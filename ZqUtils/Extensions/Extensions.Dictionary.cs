@@ -153,7 +153,7 @@ namespace ZqUtils.Extensions
                 foreach (var p in props)
                 {
                     if (!p.CanWrite) continue;
-                    var field = fields.Where(o => o.ToLower() == p.Name.ToLower()).FirstOrDefault();
+                    var field = fields.Where(o => o.EqualIgnoreCase(p.Name)).FirstOrDefault();
                     if (!field.IsNullOrEmpty() && !@this[field].IsNull())
                     {
                         p.SetValue(instance, @this[field].ToSafeValue(p.PropertyType), null);

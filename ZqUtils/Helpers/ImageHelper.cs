@@ -22,6 +22,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Drawing.Drawing2D;
 using System.Collections;
+using ZqUtils.Extensions;
 /****************************
 * [Author] 张强
 * [Date] 2016-09-27
@@ -543,7 +544,7 @@ namespace ZqUtils.Helpers
                     encoderParams.Param[0] = encoderParam;
                     ImageCodecInfo ici = null;
                     var arrayICI = ImageCodecInfo.GetImageEncoders();
-                    var fd = Path.GetExtension(oldFile).ToLower().Contains("png") ? "PNG" : "JPEG";
+                    var fd = Path.GetExtension(oldFile).ContainsIgnoreCase("png") ? "PNG" : "JPEG";
                     for (int i = 0; i < arrayICI.Length; i++)
                     {
                         if (arrayICI[i].FormatDescription.Equals(fd))
