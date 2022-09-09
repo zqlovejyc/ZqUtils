@@ -21,7 +21,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Dynamic;
 using System.Linq;
-using System.Reflection;
+using ZqUtils.FastMember;
 /****************************
 * [Author] 张强
 * [Date] 2018-05-03
@@ -54,19 +54,21 @@ namespace ZqUtils.Extensions
         {
             var res = new List<dynamic>();
 
-            if (@this?.IsClosed == false)
-                using (@this)
+            if (@this.IsNull() || @this.IsClosed || @this.FieldCount == 0)
+                return res;
+
+            using (@this)
+            {
+                while (@this.Read())
                 {
-                    while (@this.Read())
-                    {
-                        var row = new Dictionary<string, object>();
+                    var row = new Dictionary<string, object>();
 
-                        for (var i = 0; i < @this.FieldCount; i++)
-                            row.Add(@this.GetName(i), @this.GetValue(i));
+                    for (var i = 0; i < @this.FieldCount; i++)
+                        row.Add(@this.GetName(i), @this.GetValue(i));
 
-                        res.Add(row);
-                    }
+                    res.Add(row);
                 }
+            }
 
             return res;
         }
@@ -90,19 +92,18 @@ namespace ZqUtils.Extensions
         /// <returns>Dictionary集合</returns>
         public static IEnumerable<Dictionary<string, object>> ToDictionaries(this IDataReader @this)
         {
-            if (@this?.IsClosed == false)
+            if (@this.IsNull() || @this.IsClosed || @this.FieldCount == 0)
+                yield break;
+
+            using (@this)
             {
-                using (@this)
+                while (@this.Read())
                 {
-                    while (@this.Read())
-                    {
-                        var dic = new Dictionary<string, object>();
-                        for (var i = 0; i < @this.FieldCount; i++)
-                        {
-                            dic[@this.GetName(i)] = @this.GetValue(i);
-                        }
-                        yield return dic;
-                    }
+                    var dic = new Dictionary<string, object>();
+                    for (var i = 0; i < @this.FieldCount; i++)
+                        dic[@this.GetName(i)] = @this.GetValue(i);
+
+                    yield return dic;
                 }
             }
         }
@@ -121,7 +122,7 @@ namespace ZqUtils.Extensions
             {
                 return result.FirstOrDefault();
             }
-            return default(T);
+            return default;
         }
 
         /// <summary>
@@ -131,28 +132,46 @@ namespace ZqUtils.Extensions
         /// <returns>强类型实体集合</returns>
         public static IEnumerable<T> ToEntities<T>(this IDataReader @this)
         {
-            if (@this?.IsClosed == false)
+            if (@this.IsNull() || @this.IsClosed || @this.FieldCount == 0)
+                yield break;
+
+            using (@this)
             {
-                using (@this)
+                var fields = new List<string>();
+                for (int i = 0; i < @this.FieldCount; i++)
+                    fields.Add(@this.GetName(i));
+
+                var accessor = TypeAccessor.Create(typeof(T));
+                var members = accessor.GetMembers();
+
+                if (members.IsNullOrEmpty())
+                    yield break;
+
+                var memberMap = members.ToDictionary(k => k.Name, v => v, StringComparer.OrdinalIgnoreCase);
+
+                while (@this.Read())
                 {
-                    var fields = new List<string>();
-                    for (int i = 0; i < @this.FieldCount; i++)
+                    if (accessor.CreateNew() is T instance)
                     {
-                        fields.Add(@this.GetName(i));
-                    }
-                    while (@this.Read())
-                    {
-                        var instance = Activator.CreateInstance<T>();
-                        var props = instance.GetType().GetProperties(BindingFlags.GetProperty | BindingFlags.Public | BindingFlags.Instance);
-                        foreach (var p in props)
+                        foreach (var field in fields)
                         {
-                            if (!p.CanWrite) continue;
-                            var field = fields.Where(o => o.EqualIgnoreCase(p.Name)).FirstOrDefault();
-                            if (!field.IsNullOrEmpty() && !@this[field].IsNull())
+                            if (field.IsNullOrEmpty())
+                                continue;
+
+                            var fieldValue = @this[field];
+
+                            if (fieldValue.IsNull())
+                                continue;
+
+                            if (memberMap.TryGetValue(field, out var member))
                             {
-                                p.SetValue(instance, @this[field].ToSafeValue(p.PropertyType), null);
+                                if (!member.CanWrite)
+                                    continue;
+
+                                accessor[instance, member.Name] = fieldValue.ToSafeValue(member.Type);
                             }
                         }
+
                         yield return instance;
                     }
                 }
@@ -169,36 +188,32 @@ namespace ZqUtils.Extensions
         /// <returns>T类型集合</returns>
         public static List<T> ToList<T>(this IDataReader @this)
         {
+            if (@this.IsNull() || @this.IsClosed || @this.FieldCount == 0)
+                return default;
+
             List<T> list = null;
-            if (@this?.IsClosed == false)
+            var type = typeof(T);
+            if (type.AssignableTo(typeof(Dictionary<,>)))
+                list = @this.ToDictionaries()?.ToList() as List<T>;
+
+            else if (type.AssignableTo(typeof(IDictionary<,>)))
+                list = @this.ToDictionaries()?.Select(o => o as IDictionary<string, object>).ToList() as List<T>;
+
+            else if (type.IsClass && !type.IsDynamicOrObjectType() && !type.IsStringType())
+                list = @this.ToEntities<T>()?.ToList() as List<T>;
+
+            else
             {
-                var type = typeof(T);
-                if (type.AssignableTo(typeof(Dictionary<,>)))
+                var result = @this.ToDynamics();
+                if (result != null && result.Any())
                 {
-                    list = @this.ToDictionaries()?.ToList() as List<T>;
-                }
-                else if (type.AssignableTo(typeof(IDictionary<,>)))
-                {
-                    list = @this.ToDictionaries()?.Select(o => o as IDictionary<string, object>).ToList() as List<T>;
-                }
-                else if (type.IsClass && !type.IsDynamicOrObjectType() && !type.IsStringType())
-                {
-                    list = @this.ToEntities<T>()?.ToList() as List<T>;
-                }
-                else
-                {
-                    var result = @this.ToDynamics();
-                    if (result.IsNotNullOrEmpty())
-                    {
-                        list = result.ToList() as List<T>;
-                        if (list == null && (type.IsStringType() || type.IsValueType))
-                        {
-                            //适合查询单个字段的结果集
-                            list = result.Select(o => (T)(o as IDictionary<string, object>).Select(x => x.Value).FirstOrDefault()).ToList();
-                        }
-                    }
+                    list = result.ToList() as List<T>;
+                    if (list == null && (type.IsStringType() || type.IsValueType))
+                        //适合查询单个字段的结果集
+                        list = result.Select(o => (T)(o as IDictionary<string, object>).Select(x => x.Value).FirstOrDefault()).ToList();
                 }
             }
+
             return list;
         }
 
@@ -211,90 +226,111 @@ namespace ZqUtils.Extensions
         public static List<List<T>> ToLists<T>(this IDataReader @this)
         {
             var result = new List<List<T>>();
-            if (@this?.IsClosed == false)
+
+            if (@this.IsNull() || @this.IsClosed || @this.FieldCount == 0)
+                return result;
+
+            using (@this)
             {
-                using (@this)
+                var type = typeof(T);
+                do
                 {
-                    var type = typeof(T);
-                    do
+                    #region IDictionary
+                    if (type.IsDictionaryType())
                     {
-                        #region IDictionary
-                        if (type.IsDictionaryType())
+                        var list = new List<Dictionary<string, object>>();
+                        while (@this.Read())
                         {
-                            var list = new List<Dictionary<string, object>>();
-                            while (@this.Read())
+                            var dic = new Dictionary<string, object>();
+                            for (var i = 0; i < @this.FieldCount; i++)
                             {
-                                var dic = new Dictionary<string, object>();
-                                for (var i = 0; i < @this.FieldCount; i++)
-                                {
-                                    dic[@this.GetName(i)] = @this.GetValue(i);
-                                }
-                                list.Add(dic);
+                                dic[@this.GetName(i)] = @this.GetValue(i);
                             }
-                            if (!type.AssignableTo(typeof(Dictionary<,>)))
-                            {
-                                result.Add(list.Select(o => o as IDictionary<string, object>).ToList() as List<T>);
-                            }
-                            else
-                            {
-                                result.Add(list as List<T>);
-                            }
+                            list.Add(dic);
                         }
-                        #endregion
-
-                        #region Class T
-                        else if (type.IsClass && !type.IsDynamicOrObjectType() && !type.IsStringType())
+                        if (!type.AssignableTo(typeof(Dictionary<,>)))
                         {
-                            var list = new List<T>();
-                            var fields = new List<string>();
-                            for (int i = 0; i < @this.FieldCount; i++)
-                            {
-                                fields.Add(@this.GetName(i));
-                            }
-                            while (@this.Read())
-                            {
-                                var instance = Activator.CreateInstance<T>();
-                                var props = instance.GetType().GetProperties(BindingFlags.GetProperty | BindingFlags.Public | BindingFlags.Instance);
-                                foreach (var p in props)
-                                {
-                                    if (!p.CanWrite) continue;
-                                    var field = fields.Where(o => o.EqualIgnoreCase(p.Name)).FirstOrDefault();
-                                    if (!field.IsNullOrEmpty() && !@this[field].IsNull())
-                                    {
-                                        p.SetValue(instance, @this[field].ToSafeValue(p.PropertyType), null);
-                                    }
-                                }
-                                list.Add(instance);
-                            }
-                            result.Add(list);
+                            result.Add(list.Select(o => o as IDictionary<string, object>).ToList() as List<T>);
                         }
-                        #endregion
-
-                        #region dynamic
                         else
                         {
-                            var list = new List<dynamic>();
-                            while (@this.Read())
-                            {
-                                var row = new ExpandoObject() as IDictionary<string, object>;
-                                for (var i = 0; i < @this.FieldCount; i++)
-                                {
-                                    row.Add(@this.GetName(i), @this.GetValue(i));
-                                }
-                                list.Add(row);
-                            }
-                            var item = list as List<T>;
-                            if (item == null && (type.IsStringType() || type.IsValueType()))
-                            {
-                                //适合查询单个字段的结果集
-                                item = list.Select(o => (T)(o as IDictionary<string, object>).Select(x => x.Value).FirstOrDefault()).ToList();
-                            }
-                            result.Add(item);
+                            result.Add(list as List<T>);
                         }
-                        #endregion
-                    } while (@this.NextResult());
-                }
+                    }
+                    #endregion
+
+                    #region Class T
+                    else if (type.IsClass && !type.IsDynamicOrObjectType() && !type.IsStringType())
+                    {
+                        var list = new List<T>();
+                        var fields = new List<string>();
+                        for (int i = 0; i < @this.FieldCount; i++)
+                            fields.Add(@this.GetName(i));
+
+                        var accessor = TypeAccessor.Create(type);
+                        var members = accessor.GetMembers();
+
+                        if (members.IsNullOrEmpty())
+                            return result;
+
+                        var memberMap = members.ToDictionary(k => k.Name, v => v, StringComparer.OrdinalIgnoreCase);
+
+                        while (@this.Read())
+                        {
+                            if (accessor.CreateNew() is T instance)
+                            {
+                                foreach (var field in fields)
+                                {
+                                    if (field.IsNullOrEmpty())
+                                        continue;
+
+                                    var fieldValue = @this[field];
+
+                                    if (fieldValue.IsNull())
+                                        continue;
+
+                                    if (memberMap.TryGetValue(field, out var member))
+                                    {
+                                        if (!member.CanWrite)
+                                            continue;
+
+                                        accessor[instance, member.Name] = fieldValue.ToSafeValue(member.Type);
+                                    }
+                                }
+
+                                list.Add(instance);
+                            }
+                        }
+
+                        result.Add(list);
+                    }
+                    #endregion
+
+                    #region dynamic
+                    else
+                    {
+                        var list = new List<dynamic>();
+                        while (@this.Read())
+                        {
+                            var row = new ExpandoObject() as IDictionary<string, object>;
+                            for (var i = 0; i < @this.FieldCount; i++)
+                            {
+                                row.Add(@this.GetName(i), @this.GetValue(i));
+                            }
+                            list.Add(row);
+                        }
+                        var item = list as List<T>;
+                        if (item == null && (type.IsStringType() || type.IsValueType()))
+                        {
+                            //适合查询单个字段的结果集
+                            item = list.Select(o => (T)(o as IDictionary<string, object>).Select(x => x.Value).FirstOrDefault()).ToList();
+                        }
+                        result.Add(item);
+                    }
+                    #endregion
+                } while (@this.NextResult());
             }
+
             return result;
         }
         #endregion
@@ -313,7 +349,7 @@ namespace ZqUtils.Extensions
             {
                 return list.FirstOrDefault();
             }
-            return default(T);
+            return default;
         }
         #endregion
 
@@ -326,13 +362,15 @@ namespace ZqUtils.Extensions
         public static DataTable ToDataTable(this IDataReader @this)
         {
             var table = new DataTable();
-            if (@this?.IsClosed == false)
+
+            if (@this.IsNull() || @this.IsClosed || @this.FieldCount == 0)
+                return table;
+
+            using (@this)
             {
-                using (@this)
-                {
-                    table.Load(@this);
-                }
+                table.Load(@this);
             }
+
             return table;
         }
         #endregion
@@ -346,29 +384,33 @@ namespace ZqUtils.Extensions
         public static DataSet ToDataSet(this IDataReader @this)
         {
             var ds = new DataSet();
-            if (@this?.IsClosed == false)
+
+            if (@this.IsNull() || @this.IsClosed || @this.FieldCount == 0)
+                return ds;
+
+            using (@this)
             {
-                using (@this)
+                do
                 {
-                    do
+                    var schemaTable = @this.GetSchemaTable();
+                    var dt = new DataTable();
+                    for (var i = 0; i < schemaTable.Rows.Count; i++)
                     {
-                        var schemaTable = @this.GetSchemaTable();
-                        var dt = new DataTable();
-                        dt.Columns.AddRange(schemaTable.AsEnumerable().Select(o => new DataColumn((string)o["ColumnName"], (Type)o["DataType"])).ToArray());
-                        while (@this.Read())
-                        {
-                            var dataRow = dt.NewRow();
-                            for (var i = 0; i < @this.FieldCount; i++)
-                            {
-                                dataRow[i] = @this.GetValue(i);
-                            }
-                            dt.Rows.Add(dataRow);
-                        }
-                        ds.Tables.Add(dt);
+                        var row = schemaTable.Rows[i];
+                        dt.Columns.Add(new DataColumn((string)row["ColumnName"], (Type)row["DataType"]));
                     }
-                    while (@this.NextResult());
+                    while (@this.Read())
+                    {
+                        var dataRow = dt.NewRow();
+                        for (var i = 0; i < @this.FieldCount; i++)
+                            dataRow[i] = @this.GetValue(i);
+                        dt.Rows.Add(dataRow);
+                    }
+                    ds.Tables.Add(dt);
                 }
+                while (@this.NextResult());
             }
+
             return ds;
         }
         #endregion

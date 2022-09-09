@@ -26,6 +26,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using ZqUtils.FastMember;
 /****************************
 * [Author] 张强
 * [Date] 2018-05-15
@@ -112,42 +113,48 @@ namespace ZqUtils.Extensions
         /// <returns>DataTable</returns>
         public static DataTable ToDataTable<T>(this List<T> @this)
         {
-            DataTable dt = null;
-            if (@this?.Count > 0)
+            if (@this.IsNullOrEmpty())
+                return default;
+
+            var dt = new DataTable(typeof(T).Name);
+            var type = typeof(T);
+            var first = @this.First();
+            var firstType = first.GetType();
+            if (type.IsDictionaryType() || (type.IsDynamicOrObjectType() && firstType.IsDictionaryType()))
             {
-                dt = new DataTable(typeof(T).Name);
-                var type = typeof(T);
-                var first = @this.First();
-                var firstType = first.GetType();
-                if (type.IsDictionaryType() || (type.IsDynamicOrObjectType() && firstType.IsDictionaryType()))
+                var dic = first as IDictionary<string, object>;
+                dt.Columns.AddRange(dic.Select(o => new DataColumn(o.Key, o.Value?.GetType().GetCoreType() ?? typeof(object))).ToArray());
+                var dics = @this.Select(o => o as IDictionary<string, object>);
+                foreach (var item in dics)
                 {
-                    var dic = first as IDictionary<string, object>;
-                    dt.Columns.AddRange(dic.Select(o => new DataColumn(o.Key, o.Value?.GetType().GetCoreType() ?? typeof(object))).ToArray());
-                    var dics = @this.Select(o => o as IDictionary<string, object>);
-                    foreach (var item in dics)
-                    {
-                        dt.Rows.Add(item.Select(o => o.Value).ToArray());
-                    }
-                }
-                else
-                {
-                    var props = type.IsDynamicOrObjectType() ? firstType.GetProperties() : typeof(T).GetProperties(BindingFlags.GetProperty | BindingFlags.Public | BindingFlags.Instance);
-                    foreach (var prop in props)
-                    {
-                        dt.Columns.Add(prop.Name, prop?.PropertyType.GetCoreType() ?? typeof(object));
-                    }
-                    foreach (var item in @this)
-                    {
-                        var values = new object[props.Length];
-                        for (var i = 0; i < props.Length; i++)
-                        {
-                            if (!props[i].CanRead) continue;
-                            values[i] = props[i].GetValue(item, null);
-                        }
-                        dt.Rows.Add(values);
-                    }
+                    dt.Rows.Add(item.Select(o => o.Value).ToArray());
                 }
             }
+            else
+            {
+                var accessor = TypeAccessor.Create(firstType);
+                var members = accessor.GetMembers();
+
+                if (members.IsNullOrEmpty())
+                    return default;
+
+                foreach (var member in members)
+                    dt.Columns.Add(member.Name, member.Type.GetCoreType());
+
+                foreach (var item in @this)
+                {
+                    var values = new object[members.Count];
+                    for (var i = 0; i < members.Count; i++)
+                    {
+                        if (!members[i].CanRead)
+                            continue;
+
+                        values[i] = accessor[item, members[i].Name];
+                    }
+                    dt.Rows.Add(values);
+                }
+            }
+
             return dt;
         }
         #endregion

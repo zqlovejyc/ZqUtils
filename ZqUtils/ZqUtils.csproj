@@ -176,6 +176,12 @@
     <Compile Include="Extensions\Extensions.SqlCommand.cs" />
     <Compile Include="Extensions\Extensions.SqlConnection.cs" />
     <Compile Include="Extensions\Extensions.SqlParameterCollection.cs" />
+    <Compile Include="FastMember\CallSiteCache.cs" />
+    <Compile Include="FastMember\MemberSet.cs" />
+    <Compile Include="FastMember\ObjectAccessor.cs" />
+    <Compile Include="FastMember\ObjectReader.cs" />
+    <Compile Include="FastMember\OrdinalAttribute.cs" />
+    <Compile Include="FastMember\TypeAccessor.cs" />
     <Compile Include="Helpers\AssemblyHelper.cs" />
     <Compile Include="Helpers\CmdHelper.cs" />
     <Compile Include="Helpers\ConfigHelper.cs" />
@@ -199,10 +205,12 @@
     <Compile Include="Helpers\CookieHelper.cs" />
     <Compile Include="Helpers\CryptHelper.cs" />
     <Compile Include="Helpers\DnsHelper.cs" />
+    <Compile Include="Helpers\EmptyHelper.cs" />
     <Compile Include="Helpers\EncodingHelper.cs" />
     <Compile Include="Helpers\EnvironmentHelper.cs" />
     <Compile Include="Helpers\ExcelHelper.cs" />
     <Compile Include="Helpers\ExpressionHelper.cs" />
+    <Compile Include="Helpers\FastPropertyHelper.cs" />
     <Compile Include="Helpers\FileHelper.cs" />
     <Compile Include="Helpers\FreeRedisHelper.cs" />
     <Compile Include="Helpers\GpsHelper.cs" />
