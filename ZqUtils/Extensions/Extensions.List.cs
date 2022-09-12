@@ -534,51 +534,77 @@ namespace ZqUtils.Extensions
         }
         #endregion
 
-        #region IsNotNullOrEmpty
+        #region IsNullOrEmpty
         /// <summary>
-        /// An ICollection&lt;T&gt; extension method that queries if the collection is not (null or is empty).
-        /// </summary>
-        /// <typeparam name="T">Generic type parameter.</typeparam>
-        /// <param name="this">The @this to act on.</param>
-        /// <returns>true if the collection is not (null or empty), false if not.</returns>
-        public static bool IsNotNullOrEmpty<T>(this ICollection<T> @this)
-        {
-            return @this != null && @this.Count != 0;
-        }
-
-        /// <summary>
-        /// An IEnumerable&lt;T&gt; extension method that queries if a not null or is empty.
+        /// An IEnumerable&lt;T&gt; extension method that queries if the collection is null or is empty.
         /// </summary>
         /// <typeparam name="T">Generic type parameter.</typeparam>
         /// <param name="this">The collection to act on.</param>
-        /// <returns>true if a not null or is t>, false if not.</returns>
-        public static bool IsNotNullOrEmpty<T>(this IEnumerable<T> @this)
+        /// <returns>true if null or empty, false if not.</returns>
+        public static bool IsNullOrEmpty<T>(this IEnumerable<T> @this)
         {
-            return @this != null && @this.Any();
+            return @this is null || !@this.Any();
         }
-        #endregion
 
-        #region IsNullOrEmpty
         /// <summary>
         /// An ICollection&lt;T&gt; extension method that queries if the collection is null or is empty.
         /// </summary>
         /// <typeparam name="T">Generic type parameter.</typeparam>
-        /// <param name="this">The @this to act on.</param>
-        /// <returns>true if null or empty&lt; t&gt;, false if not.</returns>
+        /// <param name="this">The collection to act on.</param>
+        /// <returns>true if null or empty, false if not.</returns>
         public static bool IsNullOrEmpty<T>(this ICollection<T> @this)
         {
-            return @this == null || @this.Count == 0;
+            return @this is null || @this.Count == 0;
         }
 
         /// <summary>
-        ///     An IEnumerable&lt;T&gt; extension method that queries if a null or is empty.
+        /// An IEnumerable extension method that queries if the collection is null or is empty.
+        /// </summary>
+        /// <param name="this">The collection to act on.</param>
+        /// <returns>true if null or empty, false if not.</returns>
+        public static bool IsNullOrEmpty(this IEnumerable @this)
+        {
+            if (@this is null)
+                return true;
+
+            if (@this.GetEnumerator().MoveNext())
+                return false;
+
+            return true;
+        }
+        #endregion
+
+        #region IsNotNullOrEmpty
+        /// <summary>
+        /// An IEnumerable&lt;T&gt; extension method that queries if the collection is not (null or is empty).
         /// </summary>
         /// <typeparam name="T">Generic type parameter.</typeparam>
         /// <param name="this">The collection to act on.</param>
-        /// <returns>true if a null or is t>, false if not.</returns>
-        public static bool IsNullOrEmpty<T>(this IEnumerable<T> @this)
+        /// <returns>true if not null and not empty, false if not.</returns>
+        public static bool IsNotNullOrEmpty<T>(this IEnumerable<T> @this)
         {
-            return @this == null || !@this.Any();
+            return !@this.IsNullOrEmpty();
+        }
+
+        /// <summary>
+        /// An ICollection&lt;T&gt; extension method that queries if the collection is not (null or is empty).
+        /// </summary>
+        /// <typeparam name="T">Generic type parameter.</typeparam>
+        /// <param name="this">The collection to act on.</param>
+        /// <returns>true if not null and not empty, false if not.</returns>
+        public static bool IsNotNullOrEmpty<T>(this ICollection<T> @this)
+        {
+            return !@this.IsNullOrEmpty();
+        }
+
+        /// <summary>
+        /// An IEnumerable extension method that queries if the collection is not (null or is empty).
+        /// </summary>
+        /// <param name="this">The collection to act on.</param>
+        /// <returns>true if not null and not empty, false if not.</returns>
+        public static bool IsNotNullOrEmpty(this IEnumerable @this)
+        {
+            return !@this.IsNullOrEmpty();
         }
         #endregion
 
