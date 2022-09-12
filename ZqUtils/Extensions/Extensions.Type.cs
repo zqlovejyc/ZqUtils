@@ -502,6 +502,23 @@ namespace ZqUtils.Extensions
         {
             return @this.GetTypeInfo().IsAssignableFrom(other.GetTypeInfo());
         }
+
+        /// <summary>
+        /// Determines whether the any one other can be assigned from current type
+        /// </summary>
+        /// <param name="this"></param>
+        /// <param name="others"></param>
+        /// <returns></returns>
+        public static bool AssignableFrom(this Type @this, params Type[] others)
+        {
+            foreach (var other in others)
+            {
+                if (@this.AssignableFrom(other))
+                    return true;
+            }
+
+            return false;
+        }
         #endregion
 
         #region AssignableTo
@@ -522,6 +539,23 @@ namespace ZqUtils.Extensions
             }
 
             return baseTypeInfo.IsAssignableFrom(typeInfo);
+        }
+
+        /// <summary>
+        /// Determines whether the current type can be assigned from any one base type
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="baseTypes"></param>
+        /// <returns></returns>
+        public static bool AssignableTo(this Type type, params Type[] baseTypes)
+        {
+            foreach (var baseType in baseTypes)
+            {
+                if (type.AssignableTo(baseType))
+                    return true;
+            }
+
+            return false;
         }
         #endregion
 
