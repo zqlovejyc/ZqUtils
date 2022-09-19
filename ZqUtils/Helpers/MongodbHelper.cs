@@ -45,7 +45,7 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// 对象池
         /// </summary>
-        private static readonly ConcurrentDictionary<string, Lazy<ObjectPoolHelper<MongodbHelper>>> _pool = new ConcurrentDictionary<string, Lazy<ObjectPoolHelper<MongodbHelper>>>();
+        private static readonly ConcurrentDictionary<string, Lazy<ObjectPoolHelper<MongodbHelper>>> _pool = new();
 
         /// <summary>
         /// 链接字符串
@@ -425,16 +425,10 @@ namespace ZqUtils.Helpers
         /// <returns>返回MongodbHelper实例</returns>
         public MongodbHelper GetInstance(string databaseName)
         {
-            if (!_pool.ContainsKey(databaseName))
-            {
-                var objectPool = new Lazy<ObjectPoolHelper<MongodbHelper>>(() => new ObjectPoolHelper<MongodbHelper>(() => new MongodbHelper(databaseName)));
-                _pool.GetOrAdd(Database.ToString(), objectPool);
-                return objectPool.Value.GetObject();
-            }
-            else
-            {
-                return _pool[databaseName].Value.GetObject();
-            }
+            var pool = _pool.GetOrAdd(Database.ToString(),
+                key => new Lazy<ObjectPoolHelper<MongodbHelper>>(() => new ObjectPoolHelper<MongodbHelper>(() => new MongodbHelper(databaseName)))).Value;
+
+            return pool.GetObject();
         }
         #endregion
 

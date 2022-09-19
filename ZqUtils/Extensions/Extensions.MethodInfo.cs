@@ -37,8 +37,7 @@ namespace ZqUtils.Extensions
         /// <summary>
         /// 缓存ObjectMethodExecutor
         /// </summary>
-        private static readonly ConcurrentDictionary<string, ObjectMethodExecutor> _executors =
-            new ConcurrentDictionary<string, ObjectMethodExecutor>();
+        private static readonly ConcurrentDictionary<string, Lazy<ObjectMethodExecutor>> _executors = new();
         #endregion
 
         #region InvokeAsync
@@ -113,7 +112,9 @@ namespace ZqUtils.Extensions
         public static object Execute(this MethodInfo @this, object obj, params object[] parameters)
         {
             var key = $"{@this.Module.Name}_{@this.ReflectedType.Name}_{@this.MetadataToken}";
-            var executor = _executors.GetOrAdd(key, x => ObjectMethodExecutor.Create(@this, @this.ReflectedType.GetTypeInfo()));
+
+            var executor = _executors.GetOrAdd(key,
+                x => new Lazy<ObjectMethodExecutor>(() => ObjectMethodExecutor.Create(@this, @this.ReflectedType.GetTypeInfo()))).Value;
 
             if (!executor.IsMethodAsync)
                 return executor.Execute(obj, parameters);
@@ -164,7 +165,9 @@ namespace ZqUtils.Extensions
         public static async Task<object> ExecuteAsync(this MethodInfo @this, object obj, params object[] parameters)
         {
             var key = $"{@this.Module.Name}_{@this.ReflectedType.Name}_{@this.MetadataToken}";
-            var executor = _executors.GetOrAdd(key, x => ObjectMethodExecutor.Create(@this, @this.ReflectedType.GetTypeInfo()));
+
+            var executor = _executors.GetOrAdd(key,
+                x => new Lazy<ObjectMethodExecutor>(() => ObjectMethodExecutor.Create(@this, @this.ReflectedType.GetTypeInfo()))).Value;
 
             if (executor.IsMethodAsync)
                 return await executor.ExecuteAsync(obj, parameters);

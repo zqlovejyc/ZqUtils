@@ -37,7 +37,7 @@ namespace ZqUtils.Extensions
         /// <summary>
         /// 映射配置缓存
         /// </summary>
-        private static readonly ConcurrentDictionary<string, MapperConfiguration> autoMapperCache = new ConcurrentDictionary<string, MapperConfiguration>();
+        private static readonly ConcurrentDictionary<string, Lazy<MapperConfiguration>> autoMapperCache = new();
         #endregion
 
         #region 获取缓存key
@@ -63,12 +63,12 @@ namespace ZqUtils.Extensions
         /// <returns>映射后的数据</returns>
         public static T MapTo<T>(this object @this, MapperConfiguration config = null)
         {
-            if (@this == null) return default(T);
-            if (config == null)
-            {
-                config = autoMapperCache.GetOrAdd(GetKey(@this.GetType(), typeof(T)),
-                    x => new MapperConfiguration(cfg => cfg.CreateMap(@this.GetType(), typeof(T))));
-            }
+            if (@this == null)
+                return default;
+
+            config ??= autoMapperCache.GetOrAdd(GetKey(@this.GetType(), typeof(T)),
+                    x => new Lazy<MapperConfiguration>(() => new MapperConfiguration(cfg => cfg.CreateMap(@this.GetType(), typeof(T))))).Value;
+
             return config.CreateMapper().Map<T>(@this);
         }
 
@@ -85,12 +85,12 @@ namespace ZqUtils.Extensions
             where T : class
             where S : class
         {
-            if (@this == null) return default(T);
-            if (config == null)
-            {
-                config = autoMapperCache.GetOrAdd(GetKey(typeof(S), typeof(T)),
-                   x => new MapperConfiguration(cfg => cfg.CreateMap<S, T>()));
-            }
+            if (@this == null)
+                return default;
+
+            config ??= autoMapperCache.GetOrAdd(GetKey(typeof(S), typeof(T)),
+                   x => new Lazy<MapperConfiguration>(() => new MapperConfiguration(cfg => cfg.CreateMap<S, T>()))).Value;
+
             return config.CreateMapper().Map(@this, destination);
         }
         #endregion
@@ -105,16 +105,17 @@ namespace ZqUtils.Extensions
         /// <returns>映射后的数据</returns>
         public static List<T> MapTo<T>(this IEnumerable @this, MapperConfiguration config = null)
         {
-            if (@this == null) return null;
+            if (@this.IsNullOrEmpty())
+                return default;
+
             foreach (var item in @this)
             {
-                if (config == null)
-                {
-                    config = autoMapperCache.GetOrAdd(GetKey(item.GetType(), typeof(T)),
-                        x => new MapperConfiguration(cfg => cfg.CreateMap(item.GetType(), typeof(T))));
-                }
+                config ??= autoMapperCache.GetOrAdd(GetKey(item.GetType(), typeof(T)),
+                        x => new Lazy<MapperConfiguration>(() => new MapperConfiguration(cfg => cfg.CreateMap(item.GetType(), typeof(T))))).Value;
+
                 break;
             }
+
             return config?.CreateMapper().Map<List<T>>(@this);
         }
 
@@ -128,12 +129,12 @@ namespace ZqUtils.Extensions
         /// <returns>映射后的数据</returns>
         public static List<T> MapTo<S, T>(this IEnumerable<S> @this, MapperConfiguration config = null)
         {
-            if (@this == null) return null;
-            if (config == null)
-            {
-                config = autoMapperCache.GetOrAdd(GetKey(typeof(S), typeof(T)),
-                       x => new MapperConfiguration(cfg => cfg.CreateMap<S, T>()));
-            }
+            if (@this.IsNullOrEmpty())
+                return default;
+
+            config ??= autoMapperCache.GetOrAdd(GetKey(typeof(S), typeof(T)),
+                       x => new Lazy<MapperConfiguration>(() => new MapperConfiguration(cfg => cfg.CreateMap<S, T>()))).Value;
+
             return config.CreateMapper().Map<List<T>>(@this);
         }
         #endregion
