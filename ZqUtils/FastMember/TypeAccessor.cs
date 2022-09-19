@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Collections;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Threading;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
+using System.Collections.Concurrent;
 using ZqUtils.Extensions;
 
 namespace ZqUtils.FastMember
@@ -16,7 +16,7 @@ namespace ZqUtils.FastMember
     public abstract class TypeAccessor
     {
         // hash-table has better read-without-locking semantics than dictionary
-        private static readonly Hashtable publicAccessorsOnly = new(), nonPublicAccessors = new();
+        private static readonly ConcurrentDictionary<Type, Lazy<TypeAccessor>> publicAccessorsOnly = new(), nonPublicAccessors = new();
 
         /// <summary>
         /// Does this type support new instances via a parameterless constructor?
@@ -49,22 +49,12 @@ namespace ZqUtils.FastMember
         /// <remarks>The accessor is cached internally; a pre-existing accessor may be returned</remarks>
         public static TypeAccessor Create(Type type, bool allowNonPublicAccessors)
         {
-            if (type == null) throw new ArgumentNullException("type");
+            if (type is null)
+                throw new ArgumentNullException(nameof(type));
+
             var lookup = allowNonPublicAccessors ? nonPublicAccessors : publicAccessorsOnly;
-            TypeAccessor obj = (TypeAccessor)lookup[type];
-            if (obj != null) return obj;
 
-            lock (lookup)
-            {
-                // double-check
-                obj = (TypeAccessor)lookup[type];
-                if (obj != null) return obj;
-
-                obj = CreateNew(type, allowNonPublicAccessors);
-
-                lookup[type] = obj;
-                return obj;
-            }
+            return lookup.GetOrAdd(type, type => new Lazy<TypeAccessor>(() => CreateNew(type, allowNonPublicAccessors))).Value;
         }
 
         sealed class DynamicAccessor : TypeAccessor
@@ -316,8 +306,8 @@ namespace ZqUtils.FastMember
 
             foreach (var field in fields)
                 if (!map.ContainsKey(field.Name))
-                { 
-                    map.Add(field.Name, i++); 
+                {
+                    map.Add(field.Name, i++);
                     members.Add(field);
                 }
 

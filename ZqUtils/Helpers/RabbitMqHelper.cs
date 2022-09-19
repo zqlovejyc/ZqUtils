@@ -40,12 +40,12 @@ namespace ZqUtils.Helpers
         /// <summary>
         /// RabbitMQ建议客户端线程之间不要共用Model，至少要保证共用Model的线程发送消息必须是串行的，但是建议尽量共用Connection。
         /// </summary>
-        private static readonly ConcurrentDictionary<string, IModel> _channelDic = new();
+        private static readonly ConcurrentDictionary<string, Lazy<IModel>> _channelDic = new();
 
         /// <summary>
         /// QueueHelper缓存
         /// </summary>
-        private static readonly ConcurrentDictionary<string, QueueHelper<QueueMessage>> _queueHelperDic = new();
+        private static readonly ConcurrentDictionary<string, Lazy<QueueHelper<QueueMessage>>> _queueHelperDic = new();
 
         /// <summary>
         /// 用于缓存路由键数据
@@ -147,22 +147,8 @@ namespace ZqUtils.Helpers
         {
             IModel channel = null;
 
-            if (queue.IsNotNullOrEmpty() && _channelDic.ContainsKey(queue))
-                channel = _channelDic[queue];
-
-            if (queue.IsNotNullOrEmpty() && channel.IsNull())
-            {
-                lock (_locker)
-                {
-                    channel = _channelDic.GetOrAdd(queue, queue =>
-                    {
-                        var model = _connection.CreateModel();
-                        _channelDic[queue] = model;
-
-                        return model;
-                    });
-                }
-            }
+            if (queue.IsNotNullOrEmpty())
+                channel = _channelDic.GetOrAdd(queue, queue => new Lazy<IModel>(() => _connection.CreateModel())).Value;
 
             channel ??= _connection.CreateModel();
 
@@ -185,6 +171,7 @@ namespace ZqUtils.Helpers
                 {
                     //移除已关闭的管道
                     _channelDic.TryRemove(data.Value.Key, out var model);
+
                     //重新获取管道
                     channel = GetChannel(data.Value.Key);
                 }
@@ -222,34 +209,22 @@ namespace ZqUtils.Helpers
             if (queue.IsNullOrEmpty())
                 queue = "default";
 
-            if (_queueHelperDic.ContainsKey(queue))
-                return _queueHelperDic[queue];
-
-            lock (_locker)
-            {
-                return _queueHelperDic.GetOrAdd(queue, queue =>
-                {
-                    var queueHelper = new QueueHelper<QueueMessage>(x =>
-                        PublishRabbitMqMessage(
-                            x.Exchange,
-                            x.Queue,
-                            x.RoutingKey,
-                            x.Body,
-                            x.ExchangeType,
-                            x.Durable,
-                            x.Confirm,
-                            x.Expiration,
-                            x.Priority,
-                            x.AutoCreate,
-                            x.QueueArguments,
-                            x.ExchangeArguments,
-                            x.Headers));
-
-                    _queueHelperDic[queue] = queueHelper;
-
-                    return queueHelper;
-                });
-            }
+            return _queueHelperDic.GetOrAdd(queue,
+                queue => new Lazy<QueueHelper<QueueMessage>>(() => new QueueHelper<QueueMessage>(x =>
+                    PublishRabbitMqMessage(
+                        x.Exchange,
+                        x.Queue,
+                        x.RoutingKey,
+                        x.Body,
+                        x.ExchangeType,
+                        x.Durable,
+                        x.Confirm,
+                        x.Expiration,
+                        x.Priority,
+                        x.AutoCreate,
+                        x.QueueArguments,
+                        x.ExchangeArguments,
+                        x.Headers)))).Value;
         }
         #endregion
 
@@ -1838,12 +1813,12 @@ namespace ZqUtils.Helpers
         {
             foreach (var item in _channelDic)
             {
-                item.Value?.Dispose();
+                item.Value?.Value?.Dispose();
             }
 
             foreach (var item in _queueHelperDic)
             {
-                item.Value?.Dispose();
+                item.Value?.Value?.Dispose();
             }
 
             _connection?.Dispose();
