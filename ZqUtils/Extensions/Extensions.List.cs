@@ -1801,15 +1801,16 @@ namespace ZqUtils.Extensions
         public static int MaxIndex<T>(this IEnumerable<T> @this, out T maxValue) where T : IComparable<T>
         {
             if (@this.IsNullOrEmpty())
-            {
                 throw new ArgumentNullException(nameof(@this));
-            }
 
             var index = 0;
             maxValue = @this.ElementAt(0);
             var length = @this.Count();
 
-            for (var i = 1; i < length; ++i)
+            if (length == 1)
+                return index;
+
+            for (var i = 1; i < length; i++)
             {
                 var tempValue = @this.ElementAt(i);
                 if (tempValue.CompareTo(maxValue) > 0)
@@ -1829,7 +1830,7 @@ namespace ZqUtils.Extensions
         /// <param name="this"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
-        public static int MaxIndex<T>(this IList<T> @this) where T : IComparable<T> =>
+        public static int MaxIndex<T>(this ICollection<T> @this) where T : IComparable<T> =>
             @this.MaxIndex(out _);
 
         /// <summary>
@@ -1840,19 +1841,20 @@ namespace ZqUtils.Extensions
         /// <param name="maxValue"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
-        public static int MaxIndex<T>(this IList<T> @this, out T maxValue) where T : IComparable<T>
+        public static int MaxIndex<T>(this ICollection<T> @this, out T maxValue) where T : IComparable<T>
         {
             if (@this.IsNullOrEmpty())
-            {
                 throw new ArgumentNullException(nameof(@this));
-            }
 
             var index = 0;
-            maxValue = @this[0];
+            maxValue = @this.ElementAt(0);
 
-            for (var i = 1; i < @this.Count; ++i)
+            if (@this.Count == 1)
+                return index;
+
+            for (var i = 1; i < @this.Count; i++)
             {
-                var tempValue = @this[i];
+                var tempValue = @this.ElementAt(i);
                 if (tempValue.CompareTo(maxValue) > 0)
                 {
                     maxValue = tempValue;
@@ -1886,15 +1888,16 @@ namespace ZqUtils.Extensions
         public static int MinIndex<T>(this IEnumerable<T> @this, out T minValue) where T : IComparable<T>
         {
             if (@this.IsNullOrEmpty())
-            {
                 throw new ArgumentNullException(nameof(@this));
-            }
 
             var index = 0;
             minValue = @this.ElementAt(0);
             var length = @this.Count();
 
-            for (var i = 1; i < length; ++i)
+            if (length == 1)
+                return index;
+
+            for (var i = 1; i < length; i++)
             {
                 var tempValue = @this.ElementAt(i);
                 if (tempValue.CompareTo(minValue) < 0)
@@ -1914,7 +1917,7 @@ namespace ZqUtils.Extensions
         /// <param name="this"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
-        public static int MinIndex<T>(this IList<T> @this) where T : IComparable<T> =>
+        public static int MinIndex<T>(this ICollection<T> @this) where T : IComparable<T> =>
             @this.MinIndex(out _);
 
         /// <summary>
@@ -1925,19 +1928,20 @@ namespace ZqUtils.Extensions
         /// <param name="minValue"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
-        public static int MinIndex<T>(this IList<T> @this, out T minValue) where T : IComparable<T>
+        public static int MinIndex<T>(this ICollection<T> @this, out T minValue) where T : IComparable<T>
         {
             if (@this.IsNullOrEmpty())
-            {
                 throw new ArgumentNullException(nameof(@this));
-            }
 
             var index = 0;
-            minValue = @this[0];
+            minValue = @this.ElementAt(0);
 
-            for (var i = 1; i < @this.Count; ++i)
+            if (@this.Count == 1)
+                return index;
+
+            for (var i = 1; i < @this.Count; i++)
             {
-                var tempValue = @this[i];
+                var tempValue = @this.ElementAt(i);
                 if (tempValue.CompareTo(minValue) < 0)
                 {
                     minValue = tempValue;
