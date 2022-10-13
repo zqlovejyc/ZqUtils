@@ -42,14 +42,14 @@ namespace ZqUtils.Helpers
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static IEnumerable<T> EmptyIEnumerable<T>() => new List<T>();
+        public static IEnumerable<T> EmptyIEnumerable<T>() => EmptyList<T>();
 
         /// <summary>
         /// 空IList
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static IList<T> EmptyIList<T>() => new List<T>();
+        public static IList<T> EmptyIList<T>() => EmptyList<T>();
 
         /// <summary>
         /// 空List
@@ -64,5 +64,13 @@ namespace ZqUtils.Helpers
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         public static HashSet<T> EmptyHashSet<T>() => new();
+
+        /// <summary>
+        /// 空HashSet
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="comparer"></param>
+        /// <returns></returns>
+        public static HashSet<T> EmptyHashSet<T>(IEqualityComparer<T> comparer) => new(comparer);
     }
 }
