@@ -2,7 +2,7 @@
 <p></p>
 
 <p align="center">
-<img src="https://zqlovejyc.gitee.io/zqutils-js/Images/Utils.png" height="80"/>
+<img src="https://gitee.com/zqlovejyc/ZqUtils.Core/raw/master/ZqUtils.Core/Icon/utils.png" height="80"/>
 </p>
 
 <div align="center">
